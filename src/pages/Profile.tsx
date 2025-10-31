@@ -73,41 +73,44 @@ const Profile = () => {
             {/* Profile Header Card */}
             <Card className="overflow-hidden">
               {/* Cover Photo */}
-              <div className="h-48 bg-gradient-to-r from-primary via-secondary to-accent" />
+              <div className="h-56 bg-gradient-to-r from-primary via-secondary to-accent" />
               
               {/* Profile Info */}
-              <CardContent className="relative pt-0 px-6 pb-6">
-                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-16 sm:-mt-20">
-                  <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
-                    <Avatar className="h-32 w-32 border-4 border-card">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
-                        ME
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-1">
-                      <h1 className="text-3xl font-bold">My Profile</h1>
-                      <p className="text-lg text-muted-foreground">Software Engineer @ TechCorp</p>
-                      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-2">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          San Francisco, CA
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <LinkIcon className="h-4 w-4" />
-                          portfolio.com
-                        </span>
+              <CardContent className="relative pt-0 px-8 pb-8">
+                <div className="flex flex-col gap-6 -mt-20">
+                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                    <div className="flex flex-col sm:flex-row gap-6 sm:items-end">
+                      <Avatar className="h-40 w-40 border-4 border-card shadow-xl">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
+                          ME
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-2 pb-2">
+                        <h1 className="text-4xl font-bold">My Profile</h1>
+                        <p className="text-xl text-muted-foreground">Software Engineer @ TechCorp</p>
                       </div>
                     </div>
+                    <div className="flex gap-3 pb-2">
+                      <Button variant="outline" className="gap-2">
+                        <Mail className="h-4 w-4" />
+                        Message
+                      </Button>
+                      <Button className="gap-2">
+                        <Edit className="h-4 w-4" />
+                        Edit Profile
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Mail className="h-4 w-4" />
-                      Message
-                    </Button>
-                    <Button size="sm" className="gap-2">
-                      <Edit className="h-4 w-4" />
-                      Edit Profile
-                    </Button>
+                  
+                  <div className="flex flex-wrap gap-4 text-base text-muted-foreground">
+                    <span className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      San Francisco, CA
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <LinkIcon className="h-5 w-5" />
+                      portfolio.com
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -232,50 +235,6 @@ const Profile = () => {
 
           {/* Right Sidebar */}
           <aside className="lg:col-span-4 space-y-4">
-            {/* Profile Strength */}
-            <Card>
-              <CardHeader>
-                <h3 className="font-semibold">Profile Strength</h3>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Advanced</span>
-                    <span className="text-sm text-muted-foreground">85%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full" style={{ width: '85%' }} />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Add 2 more skills to reach All-Star level
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Analytics */}
-            <Card>
-              <CardHeader>
-                <h3 className="font-semibold">Profile Analytics</h3>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-2xl font-bold text-primary">1,234</p>
-                  <p className="text-sm text-muted-foreground">Profile views this month</p>
-                </div>
-                <Separator />
-                <div>
-                  <p className="text-2xl font-bold text-secondary">567</p>
-                  <p className="text-sm text-muted-foreground">Post impressions</p>
-                </div>
-                <Separator />
-                <div>
-                  <p className="text-2xl font-bold text-accent">89</p>
-                  <p className="text-sm text-muted-foreground">Search appearances</p>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Connections */}
             <Card>
               <CardHeader>
