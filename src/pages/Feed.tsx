@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { 
   Home, Users, Briefcase, MessageSquare, Bell, 
   Settings, ThumbsUp, MessageCircle, Share2, 
-  TrendingUp, Award, Sparkles, Search, BookOpen
+  TrendingUp, Award, Sparkles, Search, BookOpen, Calendar
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -119,6 +119,12 @@ const Feed = () => {
                   <Link to="/content-hub">
                     <BookOpen className="h-5 w-5" />
                     <span>Content Hub</span>
+                  </Link>
+                </Button>
+                <Button variant="ghost" className="w-full justify-start gap-3" asChild>
+                  <Link to="/calendar">
+                    <Calendar className="h-5 w-5" />
+                    <span>Calendar</span>
                   </Link>
                 </Button>
                 <Separator className="my-2" />
