@@ -85,9 +85,11 @@ const Feed = () => {
               <Button variant="ghost" size="icon">
                 <MessageSquare className="h-5 w-5" />
               </Button>
-              <Avatar className="h-8 w-8 cursor-pointer">
-                <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
-              </Avatar>
+              <Link to="/profile">
+                <Avatar className="h-8 w-8 cursor-pointer">
+                  <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
+                </Avatar>
+              </Link>
             </div>
           </div>
         </div>
@@ -142,9 +144,11 @@ const Feed = () => {
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex gap-3">
-                  <Avatar>
-                    <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
-                  </Avatar>
+                  <Link to="/profile">
+                    <Avatar className="cursor-pointer">
+                      <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
+                    </Avatar>
+                  </Link>
                   <Textarea
                     placeholder="Share your thoughts on diversity and inclusion in tech..."
                     value={postText}

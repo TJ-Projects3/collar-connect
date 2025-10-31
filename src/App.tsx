@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Feed from "./pages/Feed";
 import ContentHub from "./pages/ContentHub";
 import Calendar from "./pages/Calendar";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/feed" element={<Feed />} />
           <Route path="/content-hub" element={<ContentHub />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/profile" element={<Profile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
