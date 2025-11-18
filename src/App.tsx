@@ -18,48 +18,58 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 );
 
-// Test connection to Supabase
-useEffect(() => {
-  const testConnection = async () => {
-    try {
-      // Example: select from 'public' schema with no table, so just get the current user's auth state
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        // Could also use a toast/snackbar in the real app!
-        console.error("Supabase connection error:", error.message);
-      } else {
-        console.log("Supabase connection successful:", data);
-      }
-    } catch (err) {
-      console.error("Supabase connection threw an error:", err);
-    }
-  };
-
-  testConnection();
-}, []);
-
-
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/feed" element={<Feed />} />
-          <Route path="/content-hub" element={<ContentHub />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/profile" element={<Profile />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  useEffect(() => {
+    const testConnection = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Supabase connection error:", error.message);
+        } else {
+          if (session) {
+            console.log(
+              "Supabase connection successful - User logged in:",
+              session.user.email
+            );
+          } else {
+            console.log(
+              "Supabase connection successful - No user session (normal if not logged in)"
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Supabase connection threw an error:", err);
+      }
+    };
+
+    testConnection();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/feed" element={<Feed />} />
+            <Route path="/content-hub" element={<ContentHub />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/profile" element={<Profile />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
