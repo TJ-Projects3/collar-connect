@@ -11,12 +11,7 @@ import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
-);
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
