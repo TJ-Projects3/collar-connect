@@ -246,23 +246,23 @@ const ContentHub = () => {
     return (
       <Card key={resource.id} className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50">
         <CardHeader className="space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3 flex-1">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Icon className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-lg leading-tight mb-2">{resource.title}</CardTitle>
-                {resource.description && (
-                  <CardDescription className="text-sm leading-relaxed">
-                    {resource.description}
-                  </CardDescription>
-                )}
-              </div>
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Icon className="h-6 w-6 text-primary" />
             </div>
-            <Badge variant="secondary" className="flex-shrink-0">
-              {getResourceBadgeLabel(resource.type)}
-            </Badge>
+            <div className="flex-1">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <CardTitle className="text-lg leading-tight flex-1">{resource.title}</CardTitle>
+                <Badge variant="secondary" className="flex-shrink-0">
+                  {getResourceBadgeLabel(resource.type)}
+                </Badge>
+              </div>
+              {resource.description && (
+                <CardDescription className="text-sm leading-relaxed max-w-none">
+                  {resource.description}
+                </CardDescription>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
