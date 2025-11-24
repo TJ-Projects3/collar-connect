@@ -266,42 +266,44 @@ const ContentHub = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-            {resource.type === "job" && (
-              <>
+          {resource.type === "job" && (
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-4 text-muted-foreground">
                 <span className="font-medium text-foreground">{resource.metadata.company}</span>
                 <span className="flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
                   {resource.metadata.location}
                 </span>
+              </div>
+              <div className="flex items-center gap-4 text-muted-foreground">
                 <Badge variant="outline" className="text-xs">
                   {resource.metadata.jobType}
                 </Badge>
-                <span className="flex items-center gap-1 ml-auto">
+                <span className="flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" />
                   {resource.metadata.posted}
                 </span>
-              </>
-            )}
-            {resource.type === "article" && (
-              <>
-                <span>By {resource.metadata.author}</span>
-                <span>•</span>
-                <span>{resource.metadata.date}</span>
-                <span>•</span>
-                <span>{resource.metadata.readTime}</span>
-              </>
-            )}
-            {resource.type === "download" && (
-              <>
-                <span className="font-medium">{resource.metadata.fileType}</span>
-                <span>•</span>
-                <span>{resource.metadata.size}</span>
-                <span>•</span>
-                <span>{resource.metadata.downloads} downloads</span>
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
+          {resource.type === "article" && (
+            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+              <span>By {resource.metadata.author}</span>
+              <span>•</span>
+              <span>{resource.metadata.date}</span>
+              <span>•</span>
+              <span>{resource.metadata.readTime}</span>
+            </div>
+          )}
+          {resource.type === "download" && (
+            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+              <span className="font-medium">{resource.metadata.fileType}</span>
+              <span>•</span>
+              <span>{resource.metadata.size}</span>
+              <span>•</span>
+              <span>{resource.metadata.downloads} downloads</span>
+            </div>
+          )}
           {resource.action && ActionIcon && (
             <Button className="w-full sm:w-auto">
               {resource.action.label}
