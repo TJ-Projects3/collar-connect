@@ -156,7 +156,7 @@ const Auth = () => {
       <header className="border-b bg-card">
         <nav className="container mx-auto px-4 py-4">
           <h1
-            className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent cursor-pointer"
+            className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent cursor-pointer inline-block"
             onClick={() => navigate("/")}
           >
             NextGen Collar

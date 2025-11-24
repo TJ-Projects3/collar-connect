@@ -37,13 +37,23 @@ const Landing = () => {
               </h2>
             </div>
             <p className="text-xl md:text-2xl text-foreground/80 max-w-3xl mx-auto">
-              Championing diversity and inclusion for the next generation of the technology sector
+              Championing diversity and inclusion for the next generation of the
+              technology sector
             </p>
             <div className="flex gap-4 justify-center pt-6">
-              <Button size="lg" onClick={() => navigate("/auth")} className="text-lg px-8">
+              <Button
+                size="lg"
+                onClick={() => navigate("/auth")}
+                className="text-lg px-8"
+              >
                 Get Started
               </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate("/auth")} className="text-lg px-8">
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate("/auth")}
+                className="text-lg px-8"
+              >
                 Learn More
               </Button>
             </div>
@@ -59,8 +69,9 @@ const Landing = () => {
               Building an Inclusive Future
             </h3>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We're creating a professional network that celebrates diversity, fosters inclusion, 
-              and empowers the next generation of tech leaders.
+              We're creating a professional network that celebrates diversity,
+              fosters inclusion, and empowers the next generation of tech
+              leaders.
             </p>
           </div>
 
@@ -79,7 +90,9 @@ const Landing = () => {
               <div className="w-14 h-14 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-4">
                 <Target className="w-7 h-7 text-secondary" />
               </div>
-              <h4 className="font-semibold text-lg mb-2">Inclusive Opportunities</h4>
+              <h4 className="font-semibold text-lg mb-2">
+                Inclusive Opportunities
+              </h4>
               <p className="text-sm text-muted-foreground">
                 Discover career opportunities that value diversity and inclusion
               </p>
@@ -109,15 +122,39 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/10 via-background to-accent/10">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h3 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight pb-1">
+            Interested or Inspired by Our Mission?
+          </h3>
+          <p className="text-lg mb-8 text-muted-foreground">
+            Check out our website to learn more about our mission and be a part
+            of our community!
+          </p>
+          <Button
+            size="lg"
+            onClick={() => window.open("https://nextgencollar.com", "_blank")}
+            className="text-lg px-8"
+          >
+            Check Out Our Website
+          </Button>
+        </div>
+      </section>
       <section className="py-20 px-4 bg-gradient-to-br from-primary to-accent text-primary-foreground">
         <div className="container mx-auto max-w-4xl text-center">
           <h3 className="text-3xl md:text-4xl font-bold mb-6">
             Ready to Join the Movement?
           </h3>
           <p className="text-lg mb-8 opacity-90">
-            Be part of a community that's shaping the future of technology through diversity and inclusion.
+            Be part of a community that's shaping the future of technology
+            through diversity and inclusion.
           </p>
-          <Button size="lg" variant="secondary" onClick={() => navigate("/auth")} className="text-lg px-8">
+          <Button
+            size="lg"
+            variant="secondary"
+            onClick={() => navigate("/auth")}
+            className="text-lg px-8"
+          >
             Create Your Account
           </Button>
         </div>
@@ -126,7 +163,10 @@ const Landing = () => {
       {/* Footer */}
       <footer className="bg-card border-t py-8 px-4">
         <div className="container mx-auto text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 NextGen Collar. Championing diversity and inclusion in technology.</p>
+          <p>
+            &copy; 2025 NextGen Collar. Championing diversity and inclusion in
+            technology.
+          </p>
         </div>
       </footer>
     </div>
