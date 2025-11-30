@@ -1,73 +1,41 @@
-# Welcome to your Lovable project
+## README.md Structure (5 Sections)
 
-## Project info
+### Section 1: Getting Started (For Beginners)
+- Prerequisites (Node.js, npm)
+- Clone repository steps (git clone {github URL} in CLI)
+- Install dependencies (npm install in CLI)
+- Environment variables setup (Supabase URL and anon key)
+- Run development server command using npm run dev
+- Access the app in browser
 
-**URL**: https://lovable.dev/projects/49f84216-cbbf-440e-b43e-effe45910e64
+### Section 2: Project Overview
+- Brief description of NextGen Collar
+- Mission: championing diversity and inclusion in tech
+- Target audience: professional network for tech sector
 
-## How can I edit this code?
+### Section 3: Tech Stack
+- **Frontend:** React 18, Vite, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend:** Supabase (PostgreSQL database, Authentication, RLS)
+- **Deployment:** AWS Amplify
+- **Key Libraries:** TanStack Query, React Router, Zod, React Hook Form, Recharts
 
-There are several ways of editing your application.
+### Section 4: Features
+Based on core requirements:
+- 🧑‍💼 Member Profile - Register/login, update personal info
+- 🗓️ Event Calendar - View upcoming events, register for events
+- 📰 Content Hub - Jobs, articles, downloadable resources
+- 💳 Membership - Track membership status
+- ⚙️ Admin Panel - Post/edit events and content
+- 🔐 Protected Routes - Authentication-gated pages
 
-**Use Lovable**
+### Section 5: Database Schema
+Current tables with their purpose:
+- `profiles` - User profile information (linked to auth.users)
+- Planned: `user_roles`, `memberships`, `events`, `event_speakers`, `event_attendees`, `resources`
+- Note about RLS policies being enabled
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/49f84216-cbbf-440e-b43e-effe45910e64) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/49f84216-cbbf-440e-b43e-effe45910e64) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Format Notes
+- Simple, clean markdown
+- Code blocks for commands
+- Bullet points for easy scanning
+- Beginner-friendly language in Section 1
