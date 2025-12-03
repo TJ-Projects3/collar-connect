@@ -50,6 +50,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          company: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -61,6 +62,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          company?: string | null
           created_at?: string
           full_name?: string | null
           id: string
@@ -72,6 +74,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          company?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -100,45 +103,6 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
-        }
-        Relationships: []
-      }
-      users: {
-        Row: {
-          avatar_url: string | null
-          company: string | null
-          created_at: string | null
-          email: string
-          id: string
-          location: string | null
-          name: string | null
-          passwordless: boolean | null
-          role: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          company?: string | null
-          created_at?: string | null
-          email: string
-          id?: string
-          location?: string | null
-          name?: string | null
-          passwordless?: boolean | null
-          role?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          company?: string | null
-          created_at?: string | null
-          email?: string
-          id?: string
-          location?: string | null
-          name?: string | null
-          passwordless?: boolean | null
-          role?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
