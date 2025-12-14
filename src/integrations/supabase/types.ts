@@ -153,33 +153,44 @@ export type Database = {
       }
       memberships: {
         Row: {
-          created_at: string | null
+          created_at: string
           expires_at: string | null
           id: string
           renewed_at: string | null
           started_at: string | null
-          status: string | null
-          user_id: string | null
+          status: Database["public"]["Enums"]["membership_status"]
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          created_at?: string | null
-          expires_at?: string | null
-          id: string
-          renewed_at?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
+          created_at?: string
           expires_at?: string | null
           id?: string
           renewed_at?: string | null
           started_at?: string | null
-          status?: string | null
-          user_id?: string | null
+          status?: Database["public"]["Enums"]["membership_status"]
+          updated_at?: string
+          user_id: string
         }
-        Relationships: []
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          renewed_at?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["membership_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       posts: {
         Row: {
@@ -350,6 +361,7 @@ export type Database = {
       app_role: "admin" | "moderator" | "user"
       attendee_status: "registered" | "waitlisted" | "cancelled" | "attended"
       event_type: "virtual" | "in_person" | "hybrid"
+      membership_status: "active" | "expired" | "cancelled" | "pending"
       resource_type: "job" | "article" | "video" | "download"
     }
     CompositeTypes: {
@@ -481,6 +493,7 @@ export const Constants = {
       app_role: ["admin", "moderator", "user"],
       attendee_status: ["registered", "waitlisted", "cancelled", "attended"],
       event_type: ["virtual", "in_person", "hybrid"],
+      membership_status: ["active", "expired", "cancelled", "pending"],
       resource_type: ["job", "article", "video", "download"],
     },
   },
