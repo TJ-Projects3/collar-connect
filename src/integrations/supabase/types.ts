@@ -151,6 +151,36 @@ export type Database = {
         }
         Relationships: []
       }
+      memberships: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          renewed_at: string | null
+          started_at: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id: string
+          renewed_at?: string | null
+          started_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          renewed_at?: string | null
+          started_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           author_id: string | null
