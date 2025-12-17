@@ -17,10 +17,10 @@ export const useProfile = () => {
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      return data as Profile;
+      return data as Profile | null;
     },
     enabled: !!user?.id,
   });
@@ -78,6 +78,6 @@ export const useUploadAvatar = () => {
 };
 
 export const isProfileComplete = (profile: Profile | null | undefined): boolean => {
-  if (!profile) return false;
-  return !!profile.full_name && profile.full_name.trim().length > 0;
+  return true;
+  // !!profile.full_name && profile.full_name.trim().length > 0;
 };

@@ -9,6 +9,7 @@ import {
   ThumbsUp, MessageCircle, Share2, Edit
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ProfileButton } from "@/components/ProfileButton";
 
 const Profile = () => {
   const userPosts = [
@@ -95,10 +96,7 @@ const Profile = () => {
                         <Mail className="h-4 w-4" />
                         Message
                       </Button>
-                      <Button className="gap-2">
-                        <Edit className="h-4 w-4" />
-                        Edit Profile
-                      </Button>
+                      <ProfileButton />
                     </div>
                   </div>
                   
