@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, FileText, Video, Download, ExternalLink, Calendar, MapPin, ArrowLeft, Home, Users, MessageSquare, Clock, Eye } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Briefcase, FileText, Video, Download, ExternalLink, Calendar, MapPin, Clock, Eye } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
 
 type ResourceType = "job" | "article" | "video" | "download";
 
@@ -317,45 +316,7 @@ const ContentHub = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/feed" className="gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Back to Feed</span>
-                </Link>
-              </Button>
-              <div className="h-8 w-px bg-border hidden sm:block" />
-              <div>
-                <h1 className="text-xl font-bold text-primary">Content Hub</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">
-                  All resources in one place
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" asChild className="hidden sm:flex">
-                <Link to="/feed">
-                  <Home className="h-5 w-5" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="icon" className="hidden sm:flex">
-                <Users className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="hidden sm:flex">
-                <MessageSquare className="h-5 w-5" />
-              </Button>
-              <Link to="/profile">
-                <Avatar className="h-8 w-8 cursor-pointer">
-                  <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
-                </Avatar>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">

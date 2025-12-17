@@ -4,12 +4,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
-  ArrowLeft, Home, Users, MessageSquare, Mail, 
-  MapPin, Briefcase, Calendar, Link as LinkIcon,
-  ThumbsUp, MessageCircle, Share2, Edit
+  Mail, MapPin, Briefcase, Calendar, Link as LinkIcon,
+  ThumbsUp, MessageCircle, Share2
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { ProfileButton } from "@/components/ProfileButton";
+import { Navbar } from "@/components/Navbar";
 
 const Profile = () => {
   const userPosts = [
@@ -38,34 +37,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-50 bg-card border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/feed" className="gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Back to Feed</span>
-                </Link>
-              </Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" asChild>
-                <Link to="/feed">
-                  <Home className="h-5 w-5" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Users className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <MessageSquare className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
