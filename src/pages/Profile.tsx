@@ -1,39 +1,42 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Mail, MapPin, Briefcase, Calendar, Link as LinkIcon,
+  Mail, MapPin, Link as LinkIcon, Briefcase, Calendar,
   ThumbsUp, MessageCircle, Share2
 } from "lucide-react";
 import { ProfileButton } from "@/components/ProfileButton";
 import { Navbar } from "@/components/Navbar";
+import { useProfile } from "@/hooks/useProfile";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatDistanceToNow } from "date-fns";
 
 const Profile = () => {
-  const userPosts = [
-    {
-      id: 1,
-      content: "Excited to share that I'll be speaking at the upcoming Diversity in Tech conference! Looking forward to discussing inclusive hiring practices and mentorship programs. 🎤 #DiversityInTech #Inclusion",
-      likes: 127,
-      comments: 23,
-      time: "3h ago"
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { user } = useAuth();
+
+  const { data: userPosts, isLoading: postsLoading } = useQuery({
+    queryKey: ["user-posts", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("author_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
     },
-    {
-      id: 2,
-      content: "Just completed an amazing workshop on leadership and team building. The key takeaway: empowering others is the foundation of great leadership. 💡 #Leadership #Growth",
-      likes: 89,
-      comments: 15,
-      time: "2d ago"
-    },
-    {
-      id: 3,
-      content: "Grateful for the amazing mentorship opportunities in our tech community. If you're looking for guidance or want to give back, don't hesitate to reach out! 🚀 #Mentorship",
-      likes: 156,
-      comments: 31,
-      time: "5d ago"
-    }
-  ];
+    enabled: !!user?.id,
+  });
+
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return "U";
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,13 +57,19 @@ const Profile = () => {
                   <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
                     <div className="flex flex-col sm:flex-row gap-6 sm:items-end">
                       <Avatar className="h-40 w-40 border-4 border-card shadow-xl">
-                        <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
-                          ME
-                        </AvatarFallback>
+                        {profile?.avatar_url ? (
+                          <AvatarImage src={profile.avatar_url} />
+                        ) : (
+                          <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
+                            {getInitials(profile?.full_name)}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <div className="space-y-2 pb-2">
-                        <h1 className="text-4xl font-bold">My Profile</h1>
-                        <p className="text-xl text-muted-foreground">Software Engineer @ TechCorp</p>
+                        <h1 className="text-4xl font-bold">{profile?.full_name || "Your Name"}</h1>
+                        <p className="text-xl text-muted-foreground">
+                          {[profile?.job_title, profile?.company].filter(Boolean).join(" @ ") || "Add your role"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-3 pb-2">
@@ -73,40 +82,36 @@ const Profile = () => {
                   </div>
                   
                   <div className="flex flex-wrap gap-4 text-base text-muted-foreground">
-                    <span className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      San Francisco, CA
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <LinkIcon className="h-5 w-5" />
-                      portfolio.com
-                    </span>
+                    {profile?.location && (
+                      <span className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5" />
+                        {profile.location}
+                      </span>
+                    )}
+                    {profile?.website && (
+                      <span className="flex items-center gap-2">
+                        <LinkIcon className="h-5 w-5" />
+                        {profile.website}
+                      </span>
+                    )}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* About Section */}
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-bold">About</h2>
-              </CardHeader>
-              <CardContent>
-                <p className="text-foreground leading-relaxed">
-                  Passionate software engineer with 5+ years of experience building scalable web applications. 
-                  Dedicated to promoting diversity and inclusion in tech through mentorship and community engagement. 
-                  Always eager to learn new technologies and share knowledge with others.
-                </p>
-                <div className="flex flex-wrap gap-2 mt-4">
-                  <Badge variant="secondary">React</Badge>
-                  <Badge variant="secondary">TypeScript</Badge>
-                  <Badge variant="secondary">Node.js</Badge>
-                  <Badge variant="secondary">Python</Badge>
-                  <Badge variant="secondary">AWS</Badge>
-                  <Badge variant="secondary">Leadership</Badge>
-                </div>
-              </CardContent>
-            </Card>
+            {profile?.bio && (
+              <Card>
+                <CardHeader>
+                  <h2 className="text-xl font-bold">About</h2>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                    {profile.bio}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Experience Section */}
             <Card>
@@ -160,45 +165,57 @@ const Profile = () => {
                 <h2 className="text-xl font-bold">Activity</h2>
               </CardHeader>
               <CardContent className="space-y-4">
-                {userPosts.map((post) => (
-                  <div key={post.id}>
-                    <div className="space-y-3">
-                      <div className="flex gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            ME
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-semibold">My Profile</h4>
-                              <p className="text-xs text-muted-foreground">{post.time}</p>
+                {postsLoading ? (
+                  <p className="text-muted-foreground text-center">Loading posts...</p>
+                ) : userPosts && userPosts.length > 0 ? (
+                  userPosts.map((post, index) => (
+                    <div key={post.id}>
+                      <div className="space-y-3">
+                        <div className="flex gap-3">
+                          <Avatar className="h-10 w-10">
+                            {profile?.avatar_url ? (
+                              <AvatarImage src={profile.avatar_url} />
+                            ) : (
+                              <AvatarFallback className="bg-primary text-primary-foreground">
+                                {getInitials(profile?.full_name)}
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-semibold">{profile?.full_name || "You"}</h4>
+                                <p className="text-xs text-muted-foreground">
+                                  {post.created_at && formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                                </p>
+                              </div>
                             </div>
+                            <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
                           </div>
-                          <p className="mt-2 text-sm leading-relaxed">{post.content}</p>
+                        </div>
+                        <div className="flex items-center gap-6 pl-13 text-sm text-muted-foreground">
+                          <button className="flex items-center gap-2 hover:text-primary transition-colors">
+                            <ThumbsUp className="h-4 w-4" />
+                            <span>{post.likes || 0}</span>
+                          </button>
+                          <button className="flex items-center gap-2 hover:text-primary transition-colors">
+                            <MessageCircle className="h-4 w-4" />
+                            <span>0</span>
+                          </button>
+                          <button className="flex items-center gap-2 hover:text-primary transition-colors">
+                            <Share2 className="h-4 w-4" />
+                            <span>Share</span>
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-6 pl-13 text-sm text-muted-foreground">
-                        <button className="flex items-center gap-2 hover:text-primary transition-colors">
-                          <ThumbsUp className="h-4 w-4" />
-                          <span>{post.likes}</span>
-                        </button>
-                        <button className="flex items-center gap-2 hover:text-primary transition-colors">
-                          <MessageCircle className="h-4 w-4" />
-                          <span>{post.comments}</span>
-                        </button>
-                        <button className="flex items-center gap-2 hover:text-primary transition-colors">
-                          <Share2 className="h-4 w-4" />
-                          <span>Share</span>
-                        </button>
-                      </div>
+                      {index !== userPosts.length - 1 && (
+                        <Separator className="mt-4" />
+                      )}
                     </div>
-                    {post.id !== userPosts[userPosts.length - 1].id && (
-                      <Separator className="mt-4" />
-                    )}
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-center">No posts yet.</p>
+                )}
               </CardContent>
             </Card>
           </main>
