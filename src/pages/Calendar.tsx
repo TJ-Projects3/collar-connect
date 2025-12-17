@@ -3,10 +3,9 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, Users, MessageSquare, Calendar as CalendarIcon, MapPin, Clock } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Calendar as CalendarIcon, MapPin, Clock } from "lucide-react";
 import { format, isSameDay } from "date-fns";
+import { Navbar } from "@/components/Navbar";
 
 const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -15,7 +14,7 @@ const Calendar = () => {
     {
       id: 1,
       title: "Team Meeting",
-      date: new Date(2025, 9, 15, 10, 0), // Oct 15, 2025, 10:00 AM
+      date: new Date(2025, 9, 15, 10, 0),
       location: "Conference Room A",
       type: "Meeting",
       description: "Monthly team sync and project updates",
@@ -23,7 +22,7 @@ const Calendar = () => {
     {
       id: 2,
       title: "Workshop: Leadership Skills",
-      date: new Date(2025, 9, 18, 14, 0), // Oct 18, 2025, 2:00 PM
+      date: new Date(2025, 9, 18, 14, 0),
       location: "Training Center",
       type: "Workshop",
       description: "Interactive workshop on developing leadership skills",
@@ -31,7 +30,7 @@ const Calendar = () => {
     {
       id: 3,
       title: "Networking Event",
-      date: new Date(2025, 9, 22, 18, 30), // Oct 22, 2025, 6:30 PM
+      date: new Date(2025, 9, 22, 18, 30),
       location: "Downtown Hotel",
       type: "Networking",
       description: "Connect with industry professionals",
@@ -39,7 +38,7 @@ const Calendar = () => {
     {
       id: 4,
       title: "Webinar: Career Development",
-      date: new Date(2025, 9, 25, 13, 0), // Oct 25, 2025, 1:00 PM
+      date: new Date(2025, 9, 25, 13, 0),
       location: "Online",
       type: "Webinar",
       description: "Learn strategies for advancing your career",
@@ -47,7 +46,7 @@ const Calendar = () => {
     {
       id: 5,
       title: "Project Deadline",
-      date: new Date(2025, 9, 31, 17, 0), // Oct 31, 2025, 5:00 PM
+      date: new Date(2025, 9, 31, 17, 0),
       location: "Remote",
       type: "Deadline",
       description: "Final submission for Q4 project",
@@ -79,45 +78,7 @@ const Calendar = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/feed" className="gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Back to Feed</span>
-                </Link>
-              </Button>
-              <div className="h-8 w-px bg-border hidden sm:block" />
-              <div>
-                <h1 className="text-xl font-bold text-primary">Calendar</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">
-                  View and manage your events
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" asChild className="hidden sm:flex">
-                <Link to="/feed">
-                  <Home className="h-5 w-5" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="icon" className="hidden sm:flex">
-                <Users className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="hidden sm:flex">
-                <MessageSquare className="h-5 w-5" />
-              </Button>
-              <Link to="/profile">
-                <Avatar className="h-8 w-8 cursor-pointer">
-                  <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
-                </Avatar>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid gap-8 lg:grid-cols-2">
