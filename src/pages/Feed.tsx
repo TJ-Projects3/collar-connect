@@ -12,45 +12,12 @@ import {
 import { Link } from "react-router-dom";
 import { CreatePostModal } from "@/components/CreatePostModal";
 import { Navbar } from "@/components/Navbar";
+import { usePosts } from "@/hooks/usePosts";
+import { formatDistanceToNow } from "date-fns";
 
 const Feed = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-
-  const mockPosts = [
-    {
-      id: 1,
-      author: "Sarah Chen",
-      role: "Software Engineer @ TechCorp",
-      avatar: "",
-      initials: "SC",
-      content: "Excited to share that I'll be speaking at the upcoming Diversity in Tech conference! Looking forward to discussing inclusive hiring practices and mentorship programs. 🎤 #DiversityInTech #Inclusion",
-      likes: 127,
-      comments: 23,
-      time: "3h ago"
-    },
-    {
-      id: 2,
-      author: "Marcus Johnson",
-      role: "Engineering Manager @ InnovateLab",
-      avatar: "",
-      initials: "MJ",
-      content: "Our team just launched a new mentorship program focused on underrepresented groups in tech. If you're interested in being a mentor or mentee, reach out! 🚀 #Mentorship #TechCommunity",
-      likes: 89,
-      comments: 15,
-      time: "5h ago"
-    },
-    {
-      id: 3,
-      author: "Priya Patel",
-      role: "Product Designer @ DesignStudio",
-      avatar: "",
-      initials: "PP",
-      content: "Just completed a workshop on creating accessible and inclusive design systems. The future of tech is diverse, and our products should reflect that! 💡 #InclusiveDesign #UX",
-      likes: 156,
-      comments: 31,
-      time: "1d ago"
-    }
-  ];
+  const { data: posts, isLoading } = usePosts();
 
   const trendingTopics = [
     { topic: "Diversity in Tech", posts: "1.2K posts" },
@@ -58,6 +25,11 @@ const Feed = () => {
     { topic: "Tech Mentorship", posts: "2.1K posts" },
     { topic: "Career Growth", posts: "3.4K posts" }
   ];
+
+  const getInitials = (name: string | null) => {
+    if (!name) return "U";
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,47 +105,65 @@ const Feed = () => {
             <CreatePostModal open={isPostModalOpen} onOpenChange={setIsPostModalOpen} />
 
             {/* Posts Feed */}
-            {mockPosts.map((post) => (
-              <Card key={post.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex gap-3">
-                      <Avatar>
-                        {post.avatar ? (
-                          <AvatarImage src={post.avatar} />
-                        ) : (
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {post.initials}
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                      <div>
-                        <h3 className="font-semibold">{post.author}</h3>
-                        <p className="text-sm text-muted-foreground">{post.role}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{post.time}</p>
+            {isLoading ? (
+              <Card>
+                <CardContent className="p-6 text-center text-muted-foreground">
+                  Loading posts...
+                </CardContent>
+              </Card>
+            ) : posts && posts.length > 0 ? (
+              posts.map((post) => (
+                <Card key={post.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex gap-3">
+                        <Avatar>
+                          {post.profiles?.avatar_url ? (
+                            <AvatarImage src={post.profiles.avatar_url} />
+                          ) : (
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getInitials(post.profiles?.full_name)}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div>
+                          <h3 className="font-semibold">{post.profiles?.full_name || "Unknown User"}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {[post.profiles?.job_title, post.profiles?.company].filter(Boolean).join(" @ ") || "Member"}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {post.created_at && formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-foreground leading-relaxed">{post.content}</p>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
+                  </CardContent>
+                  <CardFooter className="flex items-center justify-between border-t pt-3">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <ThumbsUp className="h-4 w-4" />
+                      <span>{post.likes || 0}</span>
+                    </Button>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <MessageCircle className="h-4 w-4" />
+                      <span>0</span>
+                    </Button>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <Share2 className="h-4 w-4" />
+                      <span>Share</span>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))
+            ) : (
+              <Card>
+                <CardContent className="p-6 text-center text-muted-foreground">
+                  No posts yet. Be the first to share something!
                 </CardContent>
-                <CardFooter className="flex items-center justify-between border-t pt-3">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <ThumbsUp className="h-4 w-4" />
-                    <span>{post.likes}</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>{post.comments}</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Share2 className="h-4 w-4" />
-                    <span>Share</span>
-                  </Button>
-                </CardFooter>
               </Card>
-            ))}
+            )}
           </main>
 
           {/* Right Sidebar */}
