@@ -9,6 +9,7 @@ import Feed from "./pages/Feed";
 import ContentHub from "./pages/ContentHub";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -58,6 +59,7 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/admin" element={<Admin />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
