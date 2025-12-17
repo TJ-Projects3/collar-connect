@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { 
   Home, Users, Briefcase, MessageSquare, Bell, 
@@ -11,9 +10,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { CreatePostModal } from "@/components/CreatePostModal";
 
 const Feed = () => {
-  const [postText, setPostText] = useState("");
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 
   const mockPosts = [
     {
@@ -149,18 +149,20 @@ const Feed = () => {
                       <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
                     </Avatar>
                   </Link>
-                  <Textarea
-                    placeholder="Share your thoughts on diversity and inclusion in tech..."
-                    value={postText}
-                    onChange={(e) => setPostText(e.target.value)}
-                    className="min-h-[80px]"
-                  />
+                  <div 
+                    onClick={() => setIsPostModalOpen(true)}
+                    className="flex-1 px-4 py-3 rounded-full border bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+                  >
+                    <span className="text-muted-foreground">Share your thoughts on diversity and inclusion in tech...</span>
+                  </div>
                 </div>
               </CardHeader>
               <CardFooter className="pt-0">
-                <Button className="ml-auto">Post</Button>
+                <Button className="ml-auto" onClick={() => setIsPostModalOpen(true)}>Post</Button>
               </CardFooter>
             </Card>
+
+            <CreatePostModal open={isPostModalOpen} onOpenChange={setIsPostModalOpen} />
 
             {/* Posts Feed */}
             {mockPosts.map((post) => (
