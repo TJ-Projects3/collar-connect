@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { 
   Home, Users, Briefcase, MessageSquare, Bell, 
@@ -149,12 +150,12 @@ const Feed = () => {
                       <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
                     </Avatar>
                   </Link>
-                  <div 
-                    onClick={() => setIsPostModalOpen(true)}
-                    className="flex-1 px-4 py-3 rounded-full border bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
-                  >
-                    <span className="text-muted-foreground">Share your thoughts on diversity and inclusion in tech...</span>
-                  </div>
+                  <Textarea
+                    placeholder="Share your thoughts on diversity and inclusion in tech..."
+                    className="min-h-[80px]"
+                    onFocus={() => setIsPostModalOpen(true)}
+                    readOnly
+                  />
                 </div>
               </CardHeader>
               <CardFooter className="pt-0">
