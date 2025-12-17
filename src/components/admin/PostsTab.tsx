@@ -9,57 +9,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, Trash2, Loader2 } from "lucide-react";
 import { PostViewDialog } from "./PostViewDialog";
 import { format } from "date-fns";
-
-// Mock data for frontend development
-const mockPosts = [
-  {
-    id: "1",
-    content: "Just attended an amazing diversity and inclusion workshop. The insights on unconscious bias were eye-opening. Highly recommend everyone to participate in similar events!",
-    likes: 24,
-    created_at: "2024-01-18T14:30:00Z",
-    profiles: {
-      full_name: "Sarah Johnson",
-      avatar_url: null,
-    },
-  },
-  {
-    id: "2",
-    content: "Excited to announce that our company just launched a new mentorship program for underrepresented groups in tech. If you're interested in being a mentor or mentee, reach out!",
-    likes: 56,
-    created_at: "2024-01-17T09:15:00Z",
-    profiles: {
-      full_name: "Michael Chen",
-      avatar_url: null,
-    },
-  },
-  {
-    id: "3",
-    content: "Looking for recommendations on D&I training resources for our team. What has worked well for your organizations?",
-    likes: 12,
-    created_at: "2024-01-16T16:45:00Z",
-    profiles: {
-      full_name: "Emily Rodriguez",
-      avatar_url: null,
-    },
-  },
-];
+import { useAdminPosts, useDeletePost } from "@/hooks/useAdminPosts";
 
 export const PostsTab = () => {
-  const [posts, setPosts] = useState(mockPosts);
-  const [viewingPost, setViewingPost] = useState<typeof mockPosts[0] | null>(null);
+  const { data: posts = [], isLoading } = useAdminPosts();
+  const deletePost = useDeletePost();
+
+  const [viewingPost, setViewingPost] = useState<typeof posts[0] | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  const handleView = (post: typeof mockPosts[0]) => {
+  const handleView = (post: typeof posts[0]) => {
     setViewingPost(post);
     setIsViewDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
-    setPosts(posts.filter(p => p.id !== id));
+    deletePost.mutate(id);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
