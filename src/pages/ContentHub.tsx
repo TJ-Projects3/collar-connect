@@ -1,184 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, FileText, Video, Download, ExternalLink, Calendar, MapPin, Clock, Eye } from "lucide-react";
+import { Briefcase, FileText, Video, Download, ExternalLink, Calendar, MapPin, Clock, Eye, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-
-type ResourceType = "job" | "article" | "video" | "download";
-
-interface Resource {
-  id: string;
-  type: ResourceType;
-  title: string;
-  description?: string;
-  metadata: {
-    [key: string]: string;
-  };
-  action?: {
-    label: string;
-    icon: React.ElementType;
-  };
-  thumbnail?: string;
-}
+import { useResources, type Resource } from "@/hooks/useResources";
+import { format, formatDistanceToNow } from "date-fns";
 
 const ContentHub = () => {
-  const allResources: Resource[] = [
-    // Jobs
-    {
-      id: "job-1",
-      type: "job",
-      title: "Software Engineer",
-      description: "Join our diverse team building next-generation solutions.",
-      metadata: {
-        company: "TechCorp Inc.",
-        location: "San Francisco, CA",
-        jobType: "Full-time",
-        posted: "2 days ago"
-      },
-      action: { label: "Apply Now", icon: ExternalLink }
-    },
-    {
-      id: "job-2",
-      type: "job",
-      title: "Product Manager",
-      description: "Lead product strategy for our inclusive tech platform.",
-      metadata: {
-        company: "Innovation Labs",
-        location: "Remote",
-        jobType: "Full-time",
-        posted: "5 days ago"
-      },
-      action: { label: "Apply Now", icon: ExternalLink }
-    },
-    // Articles
-    {
-      id: "article-1",
-      type: "article",
-      title: "Breaking Barriers in Tech: A Guide to Inclusive Hiring",
-      description: "Learn how to build diverse teams and create inclusive workplace cultures.",
-      metadata: {
-        author: "Sarah Johnson",
-        date: "March 15, 2025",
-        readTime: "5 min read"
-      },
-      action: { label: "Read More", icon: ExternalLink }
-    },
-    {
-      id: "article-2",
-      type: "article",
-      title: "The Future of Work: Embracing Diversity in Technology",
-      description: "Exploring trends and opportunities for underrepresented groups in tech.",
-      metadata: {
-        author: "Michael Chen",
-        date: "March 10, 2025",
-        readTime: "8 min read"
-      },
-      action: { label: "Read More", icon: ExternalLink }
-    },
-    // Videos
-    {
-      id: "video-1",
-      type: "video",
-      title: "NextGen Collar: Our Mission",
-      thumbnail: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400",
-      metadata: {
-        duration: "3:45",
-        views: "1.2K"
-      }
-    },
-    {
-      id: "video-2",
-      type: "video",
-      title: "Tech Career Workshop",
-      thumbnail: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400",
-      metadata: {
-        duration: "45:30",
-        views: "856"
-      }
-    },
-    {
-      id: "video-3",
-      type: "video",
-      title: "Diversity in Action: Success Stories",
-      thumbnail: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400",
-      metadata: {
-        duration: "12:15",
-        views: "2.3K"
-      }
-    },
-    // Downloads
-    {
-      id: "download-1",
-      type: "download",
-      title: "Diversity & Inclusion Guide 2025",
-      metadata: {
-        fileType: "PDF",
-        size: "2.4 MB",
-        downloads: "456"
-      },
-      action: { label: "Download", icon: Download }
-    },
-    {
-      id: "download-2",
-      type: "download",
-      title: "Career Development Template",
-      metadata: {
-        fileType: "DOCX",
-        size: "850 KB",
-        downloads: "234"
-      },
-      action: { label: "Download", icon: Download }
-    },
-    {
-      id: "download-3",
-      type: "download",
-      title: "Interview Preparation Checklist",
-      metadata: {
-        fileType: "PDF",
-        size: "1.1 MB",
-        downloads: "678"
-      },
-      action: { label: "Download", icon: Download }
-    },
-    {
-      id: "job-3",
-      type: "job",
-      title: "UX Designer",
-      description: "Create accessible experiences for diverse user groups.",
-      metadata: {
-        company: "Design Studio",
-        location: "New York, NY",
-        jobType: "Contract",
-        posted: "1 week ago"
-      },
-      action: { label: "Apply Now", icon: ExternalLink }
-    },
-    {
-      id: "article-3",
-      type: "article",
-      title: "Mentorship Programs That Work",
-      description: "Best practices for creating effective mentorship initiatives.",
-      metadata: {
-        author: "Emma Rodriguez",
-        date: "March 5, 2025",
-        readTime: "6 min read"
-      },
-      action: { label: "Read More", icon: ExternalLink }
-    },
-    {
-      id: "download-4",
-      type: "download",
-      title: "Tech Skills Roadmap",
-      metadata: {
-        fileType: "PDF",
-        size: "3.2 MB",
-        downloads: "892"
-      },
-      action: { label: "Download", icon: Download }
-    }
-  ];
+  const { data: resources, isLoading } = useResources();
 
-  const getResourceIcon = (type: ResourceType) => {
+  const getResourceIcon = (type: string) => {
     switch (type) {
       case "job":
         return Briefcase;
@@ -188,10 +19,12 @@ const ContentHub = () => {
         return Video;
       case "download":
         return FileText;
+      default:
+        return FileText;
     }
   };
 
-  const getResourceBadgeLabel = (type: ResourceType) => {
+  const getResourceBadgeLabel = (type: string) => {
     switch (type) {
       case "job":
         return "Job Opening";
@@ -201,22 +34,25 @@ const ContentHub = () => {
         return "Video";
       case "download":
         return "Resource";
+      default:
+        return "Resource";
     }
   };
 
   const renderResourceCard = (resource: Resource) => {
-    const Icon = getResourceIcon(resource.type);
-    const ActionIcon = resource.action?.icon;
+    const Icon = getResourceIcon(resource.resource_type);
 
-    if (resource.type === "video") {
+    if (resource.resource_type === "video") {
       return (
         <Card key={resource.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 rounded-xl border-border/50">
           <div className="relative aspect-video bg-muted">
-            <img
-              src={resource.thumbnail}
-              alt={resource.title}
-              className="w-full h-full object-cover"
-            />
+            {resource.image_url && (
+              <img
+                src={resource.image_url}
+                alt={resource.title}
+                className="w-full h-full object-cover"
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-center group hover:from-black/70 transition-all cursor-pointer">
               <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
                 <Video className="h-8 w-8 text-primary-foreground" />
@@ -226,18 +62,27 @@ const ContentHub = () => {
               <Video className="h-3 w-3 mr-1" />
               Video
             </Badge>
-            <Badge className="absolute bottom-3 right-3 bg-black/70 text-white border-0">
-              <Clock className="h-3 w-3 mr-1" />
-              {resource.metadata.duration}
-            </Badge>
           </div>
           <CardHeader className="space-y-2">
             <CardTitle className="text-lg leading-tight">{resource.title}</CardTitle>
+            {resource.description && (
+              <CardDescription>{resource.description}</CardDescription>
+            )}
             <CardDescription className="flex items-center gap-2">
               <Eye className="h-3 w-3" />
-              {resource.metadata.views} views
+              {resource.view_count || 0} views
             </CardDescription>
           </CardHeader>
+          {resource.external_url && (
+            <CardContent>
+              <Button asChild className="w-full sm:w-auto">
+                <a href={resource.external_url} target="_blank" rel="noopener noreferrer">
+                  Watch Video
+                  <ExternalLink className="h-4 w-4 ml-2" />
+                </a>
+              </Button>
+            </CardContent>
+          )}
         </Card>
       );
     }
@@ -253,7 +98,7 @@ const ContentHub = () => {
               <div className="flex items-start justify-between gap-3 mb-2">
                 <CardTitle className="text-lg leading-tight flex-1">{resource.title}</CardTitle>
                 <Badge variant="secondary" className="flex-shrink-0">
-                  {getResourceBadgeLabel(resource.type)}
+                  {getResourceBadgeLabel(resource.resource_type)}
                 </Badge>
               </div>
               {resource.description && (
@@ -265,48 +110,67 @@ const ContentHub = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {resource.type === "job" && (
+          {resource.resource_type === "job" && (
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-4 text-muted-foreground">
-                <span className="font-medium text-foreground">{resource.metadata.company}</span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {resource.metadata.location}
-                </span>
+                {resource.company && (
+                  <span className="font-medium text-foreground">{resource.company}</span>
+                )}
+                {resource.location && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {resource.location}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-4 text-muted-foreground">
-                <Badge variant="outline" className="text-xs">
-                  {resource.metadata.jobType}
-                </Badge>
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" />
-                  {resource.metadata.posted}
+                  {formatDistanceToNow(new Date(resource.created_at), { addSuffix: true })}
                 </span>
               </div>
             </div>
           )}
-          {resource.type === "article" && (
+          {resource.resource_type === "article" && (
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span>By {resource.metadata.author}</span>
-              <span>•</span>
-              <span>{resource.metadata.date}</span>
-              <span>•</span>
-              <span>{resource.metadata.readTime}</span>
+              <span>{format(new Date(resource.created_at), "MMMM d, yyyy")}</span>
+              {resource.view_count !== null && resource.view_count > 0 && (
+                <>
+                  <span>•</span>
+                  <span>{resource.view_count} views</span>
+                </>
+              )}
             </div>
           )}
-          {resource.type === "download" && (
+          {resource.resource_type === "download" && (
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span className="font-medium">{resource.metadata.fileType}</span>
-              <span>•</span>
-              <span>{resource.metadata.size}</span>
-              <span>•</span>
-              <span>{resource.metadata.downloads} downloads</span>
+              {resource.view_count !== null && resource.view_count > 0 && (
+                <span>{resource.view_count} downloads</span>
+              )}
             </div>
           )}
-          {resource.action && ActionIcon && (
-            <Button className="w-full sm:w-auto">
-              {resource.action.label}
-              <ActionIcon className="h-4 w-4 ml-2" />
+          {resource.resource_type === "job" && resource.external_url && (
+            <Button asChild className="w-full sm:w-auto">
+              <a href={resource.external_url} target="_blank" rel="noopener noreferrer">
+                Apply Now
+                <ExternalLink className="h-4 w-4 ml-2" />
+              </a>
+            </Button>
+          )}
+          {resource.resource_type === "article" && resource.external_url && (
+            <Button asChild className="w-full sm:w-auto">
+              <a href={resource.external_url} target="_blank" rel="noopener noreferrer">
+                Read More
+                <ExternalLink className="h-4 w-4 ml-2" />
+              </a>
+            </Button>
+          )}
+          {resource.resource_type === "download" && resource.file_url && (
+            <Button asChild className="w-full sm:w-auto">
+              <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
+                Download
+                <Download className="h-4 w-4 ml-2" />
+              </a>
             </Button>
           )}
         </CardContent>
@@ -326,9 +190,19 @@ const ContentHub = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {allResources.map((resource) => renderResourceCard(resource))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : resources && resources.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {resources.map((resource) => renderResourceCard(resource))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No resources available yet.</p>
+          </div>
+        )}
       </main>
     </div>
   );
