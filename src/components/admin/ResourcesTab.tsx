@@ -17,64 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { ResourceFormModal } from "./ResourceFormModal";
 import { format } from "date-fns";
-
-// Mock data for frontend development
-const mockResources = [
-  {
-    id: "1",
-    title: "Senior Software Engineer",
-    resource_type: "job" as const,
-    description: "Join our diverse team as a senior engineer...",
-    content: null,
-    company: "TechCorp Inc.",
-    location: "San Francisco, CA",
-    external_url: "https://example.com/job",
-    file_url: null,
-    image_url: null,
-    tags: ["engineering", "remote"],
-    is_published: true,
-    is_featured: false,
-    view_count: 245,
-    created_at: "2024-01-15T10:00:00Z",
-  },
-  {
-    id: "2",
-    title: "Building Inclusive Teams",
-    resource_type: "article" as const,
-    description: "Learn how to build and maintain inclusive teams...",
-    content: "Full article content here...",
-    company: null,
-    location: null,
-    external_url: null,
-    file_url: null,
-    image_url: null,
-    tags: ["inclusion", "leadership"],
-    is_published: true,
-    is_featured: true,
-    view_count: 1024,
-    created_at: "2024-01-10T14:30:00Z",
-  },
-  {
-    id: "3",
-    title: "D&I Workshop Recording",
-    resource_type: "video" as const,
-    description: "Recording of our latest D&I workshop",
-    content: null,
-    company: null,
-    location: null,
-    external_url: "https://youtube.com/watch?v=xxx",
-    file_url: null,
-    image_url: "https://example.com/thumbnail.jpg",
-    tags: ["workshop", "video"],
-    is_published: false,
-    is_featured: false,
-    view_count: 0,
-    created_at: "2024-01-20T09:00:00Z",
-  },
-];
+import { useAdminResources, useCreateResource, useUpdateResource, useDeleteResource, type Resource } from "@/hooks/useAdminResources";
 
 const resourceTypeColors: Record<string, string> = {
   job: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -84,10 +30,14 @@ const resourceTypeColors: Record<string, string> = {
 };
 
 export const ResourcesTab = () => {
-  const [resources, setResources] = useState(mockResources);
+  const { data: resources = [], isLoading } = useAdminResources();
+  const createResource = useCreateResource();
+  const updateResource = useUpdateResource();
+  const deleteResource = useDeleteResource();
+
   const [filterType, setFilterType] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingResource, setEditingResource] = useState<typeof mockResources[0] | null>(null);
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
 
   const filteredResources = filterType === "all" 
     ? resources 
@@ -98,37 +48,49 @@ export const ResourcesTab = () => {
     setIsModalOpen(true);
   };
 
-  const handleEdit = (resource: typeof mockResources[0]) => {
+  const handleEdit = (resource: Resource) => {
     setEditingResource(resource);
     setIsModalOpen(true);
   };
 
   const handleDelete = (id: string) => {
-    setResources(resources.filter(r => r.id !== id));
+    deleteResource.mutate(id);
   };
 
-  const handleTogglePublish = (id: string) => {
-    setResources(resources.map(r => 
-      r.id === id ? { ...r, is_published: !r.is_published } : r
-    ));
+  const handleTogglePublish = (resource: Resource) => {
+    updateResource.mutate({ id: resource.id, is_published: !resource.is_published });
   };
 
   const handleSubmit = (data: any) => {
+    const resourceData = {
+      title: data.title,
+      resource_type: data.resource_type,
+      description: data.description || null,
+      content: data.content || null,
+      company: data.company || null,
+      location: data.location || null,
+      external_url: data.external_url || null,
+      file_url: data.file_url || null,
+      image_url: data.image_url || null,
+      tags: data.tags?.split(",").map((t: string) => t.trim()).filter(Boolean) || null,
+      is_published: data.is_published ?? false,
+      is_featured: data.is_featured ?? false,
+    };
+
     if (editingResource) {
-      setResources(resources.map(r => 
-        r.id === editingResource.id ? { ...r, ...data, tags: data.tags?.split(",").map((t: string) => t.trim()) || [] } : r
-      ));
+      updateResource.mutate({ id: editingResource.id, ...resourceData });
     } else {
-      const newResource = {
-        ...data,
-        id: Date.now().toString(),
-        tags: data.tags?.split(",").map((t: string) => t.trim()) || [],
-        view_count: 0,
-        created_at: new Date().toISOString(),
-      };
-      setResources([newResource, ...resources]);
+      createResource.mutate(resourceData);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -181,8 +143,8 @@ export const ResourcesTab = () => {
                 <TableCell className="text-center">{resource.view_count}</TableCell>
                 <TableCell className="text-center">
                   <Switch
-                    checked={resource.is_published}
-                    onCheckedChange={() => handleTogglePublish(resource.id)}
+                    checked={resource.is_published ?? false}
+                    onCheckedChange={() => handleTogglePublish(resource)}
                   />
                 </TableCell>
                 <TableCell className="text-muted-foreground">

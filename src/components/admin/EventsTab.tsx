@@ -10,55 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { EventFormModal } from "./EventFormModal";
 import { format } from "date-fns";
-
-// Mock data for frontend development
-const mockEvents = [
-  {
-    id: "1",
-    title: "Tech Diversity Summit 2024",
-    description: "Annual summit bringing together leaders in tech diversity...",
-    event_type: "hybrid" as const,
-    start_time: "2024-03-15T09:00:00Z",
-    end_time: "2024-03-15T17:00:00Z",
-    location: "San Francisco Convention Center",
-    virtual_link: "https://zoom.us/j/123456789",
-    capacity: 500,
-    image_url: null,
-    is_published: true,
-    created_at: "2024-01-10T08:00:00Z",
-  },
-  {
-    id: "2",
-    title: "Inclusive Leadership Workshop",
-    description: "Virtual workshop on developing inclusive leadership skills...",
-    event_type: "virtual" as const,
-    start_time: "2024-02-20T14:00:00Z",
-    end_time: "2024-02-20T16:00:00Z",
-    location: null,
-    virtual_link: "https://zoom.us/j/987654321",
-    capacity: 100,
-    image_url: null,
-    is_published: true,
-    created_at: "2024-01-08T10:30:00Z",
-  },
-  {
-    id: "3",
-    title: "Networking Mixer",
-    description: "In-person networking event for D&I professionals...",
-    event_type: "in_person" as const,
-    start_time: "2024-02-28T18:00:00Z",
-    end_time: "2024-02-28T21:00:00Z",
-    location: "The Tech Hub, 123 Innovation Way",
-    virtual_link: null,
-    capacity: 75,
-    image_url: null,
-    is_published: false,
-    created_at: "2024-01-15T11:00:00Z",
-  },
-];
+import { useAdminEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, type Event } from "@/hooks/useAdminEvents";
 
 const eventTypeColors: Record<string, string> = {
   virtual: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -73,44 +28,60 @@ const eventTypeLabels: Record<string, string> = {
 };
 
 export const EventsTab = () => {
-  const [events, setEvents] = useState(mockEvents);
+  const { data: events = [], isLoading } = useAdminEvents();
+  const createEvent = useCreateEvent();
+  const updateEvent = useUpdateEvent();
+  const deleteEvent = useDeleteEvent();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<typeof mockEvents[0] | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   const handleCreate = () => {
     setEditingEvent(null);
     setIsModalOpen(true);
   };
 
-  const handleEdit = (event: typeof mockEvents[0]) => {
+  const handleEdit = (event: Event) => {
     setEditingEvent(event);
     setIsModalOpen(true);
   };
 
   const handleDelete = (id: string) => {
-    setEvents(events.filter(e => e.id !== id));
+    deleteEvent.mutate(id);
   };
 
-  const handleTogglePublish = (id: string) => {
-    setEvents(events.map(e => 
-      e.id === id ? { ...e, is_published: !e.is_published } : e
-    ));
+  const handleTogglePublish = (event: Event) => {
+    updateEvent.mutate({ id: event.id, is_published: !event.is_published });
   };
 
   const handleSubmit = (data: any) => {
+    const eventData = {
+      title: data.title,
+      description: data.description || null,
+      event_type: data.event_type,
+      start_time: data.start_time,
+      end_time: data.end_time,
+      location: data.location || null,
+      virtual_link: data.virtual_link || null,
+      capacity: data.capacity ? parseInt(data.capacity) : null,
+      image_url: data.image_url || null,
+      is_published: data.is_published ?? false,
+    };
+
     if (editingEvent) {
-      setEvents(events.map(e => 
-        e.id === editingEvent.id ? { ...e, ...data } : e
-      ));
+      updateEvent.mutate({ id: editingEvent.id, ...eventData });
     } else {
-      const newEvent = {
-        ...data,
-        id: Date.now().toString(),
-        created_at: new Date().toISOString(),
-      };
-      setEvents([newEvent, ...events]);
+      createEvent.mutate(eventData);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -149,15 +120,15 @@ export const EventsTab = () => {
                   {format(new Date(event.start_time), "MMM d, yyyy h:mm a")}
                 </TableCell>
                 <TableCell className="text-muted-foreground max-w-[150px] truncate">
-                  {event.location || event.virtual_link ? "Virtual" : "—"}
+                  {event.location || (event.virtual_link ? "Virtual" : "—")}
                 </TableCell>
                 <TableCell className="text-center">
                   {event.capacity || "∞"}
                 </TableCell>
                 <TableCell className="text-center">
                   <Switch
-                    checked={event.is_published}
-                    onCheckedChange={() => handleTogglePublish(event.id)}
+                    checked={event.is_published ?? false}
+                    onCheckedChange={() => handleTogglePublish(event)}
                   />
                 </TableCell>
                 <TableCell className="text-right">
