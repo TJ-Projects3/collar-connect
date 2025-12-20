@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,16 +8,40 @@ import {
   ThumbsUp, MessageCircle, Share2
 } from "lucide-react";
 import { ProfileButton } from "@/components/ProfileButton";
+import { ReplyModal } from "@/components/ReplyModal";
+import { ShareDialog } from "@/components/ShareDialog";
 import { Navbar } from "@/components/Navbar";
 import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
+import { usePostReplies } from "@/hooks/usePostReplies";
 import { formatDistanceToNow } from "date-fns";
 
 const Profile = () => {
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { user } = useAuth();
+
+  const [replyModalState, setReplyModalState] = useState<{
+    isOpen: boolean;
+    postId: string;
+    postContent: string;
+    postAuthor: string;
+  }>({
+    isOpen: false,
+    postId: "",
+    postContent: "",
+    postAuthor: "",
+  });
+
+  const [shareDialogState, setShareDialogState] = useState<{
+    isOpen: boolean;
+    postId: string;
+  }>({
+    isOpen: false,
+    postId: "",
+  });
 
   const { data: userPosts, isLoading: postsLoading } = useQuery({
     queryKey: ["user-posts", user?.id],
@@ -36,6 +61,64 @@ const Profile = () => {
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  const handleReplyClick = (postId: string, content: string) => {
+    setReplyModalState({
+      isOpen: true,
+      postId,
+      postContent: content,
+      postAuthor: profile?.full_name || "You",
+    });
+  };
+
+  const handleShareClick = (postId: string) => {
+    setShareDialogState({
+      isOpen: true,
+      postId,
+    });
+  };
+
+  const PostActions = ({ post }: { post: any }) => {
+    const toggleLike = useToggleLike();
+    const { data: likesData } = usePostLikes(post.id);
+    const { data: replies = [] } = usePostReplies(post.id);
+
+    const handleLike = () => {
+      toggleLike.mutate({
+        postId: post.id,
+        hasLiked: likesData?.hasLiked || false,
+      });
+    };
+
+    return (
+      <div className="flex items-center gap-6 pl-13 text-sm text-muted-foreground">
+        <button
+          className={`flex items-center gap-2 hover:text-primary transition-colors ${
+            likesData?.hasLiked ? "text-primary" : ""
+          }`}
+          onClick={handleLike}
+          disabled={toggleLike.isPending}
+        >
+          <ThumbsUp className={`h-4 w-4 ${likesData?.hasLiked ? "fill-current" : ""}`} />
+          <span>{likesData?.likeCount || 0}</span>
+        </button>
+        <button
+          className="flex items-center gap-2 hover:text-primary transition-colors"
+          onClick={() => handleReplyClick(post.id, post.content)}
+        >
+          <MessageCircle className="h-4 w-4" />
+          <span>{replies.length}</span>
+        </button>
+        <button
+          className="flex items-center gap-2 hover:text-primary transition-colors"
+          onClick={() => handleShareClick(post.id)}
+        >
+          <Share2 className="h-4 w-4" />
+          <span>Share</span>
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -193,20 +276,7 @@ const Profile = () => {
                             <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-6 pl-13 text-sm text-muted-foreground">
-                          <button className="flex items-center gap-2 hover:text-primary transition-colors">
-                            <ThumbsUp className="h-4 w-4" />
-                            <span>{post.likes || 0}</span>
-                          </button>
-                          <button className="flex items-center gap-2 hover:text-primary transition-colors">
-                            <MessageCircle className="h-4 w-4" />
-                            <span>0</span>
-                          </button>
-                          <button className="flex items-center gap-2 hover:text-primary transition-colors">
-                            <Share2 className="h-4 w-4" />
-                            <span>Share</span>
-                          </button>
-                        </div>
+                        <PostActions post={post} />
                       </div>
                       {index !== userPosts.length - 1 && (
                         <Separator className="mt-4" />
@@ -249,6 +319,20 @@ const Profile = () => {
           </aside>
         </div>
       </div>
+
+      {/* Modals */}
+      <ReplyModal
+        open={replyModalState.isOpen}
+        onOpenChange={(open) => setReplyModalState({ ...replyModalState, isOpen: open })}
+        postId={replyModalState.postId}
+        postContent={replyModalState.postContent}
+        postAuthor={replyModalState.postAuthor}
+      />
+      <ShareDialog
+        open={shareDialogState.isOpen}
+        onOpenChange={(open) => setShareDialogState({ ...shareDialogState, isOpen: open })}
+        postId={shareDialogState.postId}
+      />
     </div>
   );
 };

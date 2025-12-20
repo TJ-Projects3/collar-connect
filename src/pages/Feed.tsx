@@ -11,12 +11,34 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CreatePostModal } from "@/components/CreatePostModal";
+import { ReplyModal } from "@/components/ReplyModal";
+import { ShareDialog } from "@/components/ShareDialog";
 import { Navbar } from "@/components/Navbar";
 import { usePosts } from "@/hooks/usePosts";
+import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
+import { usePostReplies } from "@/hooks/usePostReplies";
 import { formatDistanceToNow } from "date-fns";
 
 const Feed = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [replyModalState, setReplyModalState] = useState<{
+    isOpen: boolean;
+    postId: string;
+    postContent: string;
+    postAuthor: string;
+  }>({
+    isOpen: false,
+    postId: "",
+    postContent: "",
+    postAuthor: "",
+  });
+  const [shareDialogState, setShareDialogState] = useState<{
+    isOpen: boolean;
+    postId: string;
+  }>({
+    isOpen: false,
+    postId: "",
+  });
   const { data: posts, isLoading } = usePosts();
 
   const trendingTopics = [
@@ -29,6 +51,97 @@ const Feed = () => {
   const getInitials = (name: string | null) => {
     if (!name) return "U";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  const handleReplyClick = (postId: string, content: string, authorName: string) => {
+    setReplyModalState({
+      isOpen: true,
+      postId,
+      postContent: content,
+      postAuthor: authorName,
+    });
+  };
+
+  const handleShareClick = (postId: string) => {
+    setShareDialogState({
+      isOpen: true,
+      postId,
+    });
+  };
+
+  const PostCard = ({ post }: { post: any }) => {
+    const toggleLike = useToggleLike();
+    const { data: likesData } = usePostLikes(post.id);
+    const { data: replies = [] } = usePostReplies(post.id);
+
+    const handleLike = () => {
+      toggleLike.mutate({
+        postId: post.id,
+        hasLiked: likesData?.hasLiked || false,
+      });
+    };
+
+    return (
+      <Card key={post.id}>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex gap-3">
+              <Avatar>
+                {post.profiles?.avatar_url ? (
+                  <AvatarImage src={post.profiles.avatar_url} />
+                ) : (
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {getInitials(post.profiles?.full_name)}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div>
+                <h3 className="font-semibold">{post.profiles?.full_name || "Unknown User"}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {[post.profiles?.job_title, post.profiles?.company].filter(Boolean).join(" @ ") || "Member"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {post.created_at && formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
+        </CardContent>
+        <CardFooter className="flex items-center justify-between border-t pt-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`gap-2 ${likesData?.hasLiked ? "text-primary" : ""}`}
+            onClick={handleLike}
+            disabled={toggleLike.isPending}
+          >
+            <ThumbsUp className={`h-4 w-4 ${likesData?.hasLiked ? "fill-current" : ""}`} />
+            <span>{likesData?.likeCount || 0}</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            onClick={() => handleReplyClick(post.id, post.content, post.profiles?.full_name || "Unknown User")}
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span>{replies.length}</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            onClick={() => handleShareClick(post.id)}
+          >
+            <Share2 className="h-4 w-4" />
+            <span>Share</span>
+          </Button>
+        </CardFooter>
+      </Card>
+    );
   };
 
   return (
@@ -112,51 +225,7 @@ const Feed = () => {
                 </CardContent>
               </Card>
             ) : posts && posts.length > 0 ? (
-              posts.map((post) => (
-                <Card key={post.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-3">
-                        <Avatar>
-                          {post.profiles?.avatar_url ? (
-                            <AvatarImage src={post.profiles.avatar_url} />
-                          ) : (
-                            <AvatarFallback className="bg-primary text-primary-foreground">
-                              {getInitials(post.profiles?.full_name)}
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold">{post.profiles?.full_name || "Unknown User"}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {[post.profiles?.job_title, post.profiles?.company].filter(Boolean).join(" @ ") || "Member"}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {post.created_at && formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
-                  </CardContent>
-                  <CardFooter className="flex items-center justify-between border-t pt-3">
-                    <Button variant="ghost" size="sm" className="gap-2">
-                      <ThumbsUp className="h-4 w-4" />
-                      <span>{post.likes || 0}</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" className="gap-2">
-                      <MessageCircle className="h-4 w-4" />
-                      <span>0</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" className="gap-2">
-                      <Share2 className="h-4 w-4" />
-                      <span>Share</span>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))
+              posts.map((post) => <PostCard key={post.id} post={post} />)
             ) : (
               <Card>
                 <CardContent className="p-6 text-center text-muted-foreground">
@@ -218,6 +287,20 @@ const Feed = () => {
           </aside>
         </div>
       </div>
+
+      {/* Modals */}
+      <ReplyModal
+        open={replyModalState.isOpen}
+        onOpenChange={(open) => setReplyModalState({ ...replyModalState, isOpen: open })}
+        postId={replyModalState.postId}
+        postContent={replyModalState.postContent}
+        postAuthor={replyModalState.postAuthor}
+      />
+      <ShareDialog
+        open={shareDialogState.isOpen}
+        onOpenChange={(open) => setShareDialogState({ ...shareDialogState, isOpen: open })}
+        postId={shareDialogState.postId}
+      />
     </div>
   );
 };
