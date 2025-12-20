@@ -151,6 +151,59 @@ export type Database = {
         }
         Relationships: []
       }
+      jobs: {
+        Row: {
+          career_level: Database["public"]["Enums"]["career_level"]
+          company: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          external_url: string | null
+          id: string
+          is_published: boolean | null
+          location: string | null
+          title: string
+          updated_at: string
+          work_arrangement: Database["public"]["Enums"]["work_arrangement"]
+        }
+        Insert: {
+          career_level: Database["public"]["Enums"]["career_level"]
+          company: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          is_published?: boolean | null
+          location?: string | null
+          title: string
+          updated_at?: string
+          work_arrangement: Database["public"]["Enums"]["work_arrangement"]
+        }
+        Update: {
+          career_level?: Database["public"]["Enums"]["career_level"]
+          company?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          is_published?: boolean | null
+          location?: string | null
+          title?: string
+          updated_at?: string
+          work_arrangement?: Database["public"]["Enums"]["work_arrangement"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -360,9 +413,17 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       attendee_status: "registered" | "waitlisted" | "cancelled" | "attended"
+      career_level:
+        | "internship"
+        | "entry_level"
+        | "associate"
+        | "mid_senior"
+        | "director"
+        | "executive"
       event_type: "virtual" | "in_person" | "hybrid"
       membership_status: "active" | "expired" | "cancelled" | "pending"
       resource_type: "job" | "article" | "video" | "download"
+      work_arrangement: "remote" | "hybrid" | "on_site"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -492,9 +553,18 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       attendee_status: ["registered", "waitlisted", "cancelled", "attended"],
+      career_level: [
+        "internship",
+        "entry_level",
+        "associate",
+        "mid_senior",
+        "director",
+        "executive",
+      ],
       event_type: ["virtual", "in_person", "hybrid"],
       membership_status: ["active", "expired", "cancelled", "pending"],
       resource_type: ["job", "article", "video", "download"],
+      work_arrangement: ["remote", "hybrid", "on_site"],
     },
   },
 } as const

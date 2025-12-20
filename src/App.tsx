@@ -7,6 +7,7 @@ import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Feed from "./pages/Feed";
 import ContentHub from "./pages/ContentHub";
+import Jobs from "./pages/Jobs";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
@@ -40,6 +41,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ContentHub />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/jobs"
+                element={
+                  <ProtectedRoute>
+                    <Jobs />
                   </ProtectedRoute>
                 }
               />
