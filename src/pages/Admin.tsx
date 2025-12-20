@@ -2,13 +2,14 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield } from "lucide-react";
+import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield, Briefcase } from "lucide-react";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ResourcesTab } from "@/components/admin/ResourcesTab";
 import { PostsTab } from "@/components/admin/PostsTab";
 import { EventsTab } from "@/components/admin/EventsTab";
+import { JobsTab } from "@/components/admin/JobsTab";
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();
@@ -62,8 +63,12 @@ const Admin = () => {
 
       {/* Main Content */}
       <main className="container py-8">
-        <Tabs defaultValue="resources" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+        <Tabs defaultValue="jobs" className="space-y-6">
+          <TabsList className="grid w-full max-w-lg grid-cols-4">
+            <TabsTrigger value="jobs" className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4" />
+              <span className="hidden sm:inline">Jobs</span>
+            </TabsTrigger>
             <TabsTrigger value="resources" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Resources</span>
@@ -77,6 +82,10 @@ const Admin = () => {
               <span className="hidden sm:inline">Events</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="jobs">
+            <JobsTab />
+          </TabsContent>
 
           <TabsContent value="resources">
             <ResourcesTab />

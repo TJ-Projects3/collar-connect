@@ -1,18 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, FileText, Video, Download, ExternalLink, Calendar, MapPin, Clock, Eye, Loader2 } from "lucide-react";
+import { FileText, Video, Download, ExternalLink, Eye, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useResources, type Resource } from "@/hooks/useResources";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 
 const ContentHub = () => {
   const { data: resources, isLoading } = useResources();
 
   const getResourceIcon = (type: string) => {
     switch (type) {
-      case "job":
-        return Briefcase;
       case "article":
         return FileText;
       case "video":
@@ -26,8 +24,6 @@ const ContentHub = () => {
 
   const getResourceBadgeLabel = (type: string) => {
     switch (type) {
-      case "job":
-        return "Job Opening";
       case "article":
         return "Article";
       case "video":
@@ -110,27 +106,6 @@ const ContentHub = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {resource.resource_type === "job" && (
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-4 text-muted-foreground">
-                {resource.company && (
-                  <span className="font-medium text-foreground">{resource.company}</span>
-                )}
-                {resource.location && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {resource.location}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-4 text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  {formatDistanceToNow(new Date(resource.created_at), { addSuffix: true })}
-                </span>
-              </div>
-            </div>
-          )}
           {resource.resource_type === "article" && (
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span>{format(new Date(resource.created_at), "MMMM d, yyyy")}</span>
@@ -148,14 +123,6 @@ const ContentHub = () => {
                 <span>{resource.view_count} downloads</span>
               )}
             </div>
-          )}
-          {resource.resource_type === "job" && resource.external_url && (
-            <Button asChild className="w-full sm:w-auto">
-              <a href={resource.external_url} target="_blank" rel="noopener noreferrer">
-                Apply Now
-                <ExternalLink className="h-4 w-4 ml-2" />
-              </a>
-            </Button>
           )}
           {resource.resource_type === "article" && resource.external_url && (
             <Button asChild className="w-full sm:w-auto">
@@ -184,9 +151,9 @@ const ContentHub = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Discover Resources</h2>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Content Hub</h1>
           <p className="text-muted-foreground">
-            Jobs, articles, videos, and downloadable resources all in one place
+            Articles, videos, and downloadable resources all in one place
           </p>
         </div>
 
