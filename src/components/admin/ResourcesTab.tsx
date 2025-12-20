@@ -23,14 +23,13 @@ import { format } from "date-fns";
 import { useAdminResources, useCreateResource, useUpdateResource, useDeleteResource, type Resource } from "@/hooks/useAdminResources";
 
 const resourceTypeColors: Record<string, string> = {
-  job: "bg-blue-500/10 text-blue-500 border-blue-500/20",
   article: "bg-green-500/10 text-green-500 border-green-500/20",
   video: "bg-purple-500/10 text-purple-500 border-purple-500/20",
   download: "bg-orange-500/10 text-orange-500 border-orange-500/20",
 };
 
 export const ResourcesTab = () => {
-  const { data: resources = [], isLoading } = useAdminResources();
+  const { data: allResources = [], isLoading } = useAdminResources();
   const createResource = useCreateResource();
   const updateResource = useUpdateResource();
   const deleteResource = useDeleteResource();
@@ -38,6 +37,9 @@ export const ResourcesTab = () => {
   const [filterType, setFilterType] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+
+  // Filter out jobs - they're managed in the Jobs tab now
+  const resources = allResources.filter(r => r.resource_type !== "job");
 
   const filteredResources = filterType === "all" 
     ? resources 
@@ -101,7 +103,6 @@ export const ResourcesTab = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="job">Jobs</SelectItem>
             <SelectItem value="article">Articles</SelectItem>
             <SelectItem value="video">Videos</SelectItem>
             <SelectItem value="download">Downloads</SelectItem>

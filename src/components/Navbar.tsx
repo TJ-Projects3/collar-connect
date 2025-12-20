@@ -50,7 +50,7 @@ export const Navbar = () => {
   const navItems = [
     { to: "/feed", icon: Home, label: "Home" },
     { to: "#", icon: Users, label: "My Network" },
-    { to: "/content-hub", icon: Briefcase, label: "Jobs" },
+    { to: "/jobs", icon: Briefcase, label: "Jobs" },
     { to: "#", icon: MessageSquare, label: "Messaging" },
     { to: "#", icon: Bell, label: "Notifications" },
   ];

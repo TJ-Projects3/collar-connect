@@ -29,7 +29,7 @@ import {
 
 const resourceSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  resource_type: z.enum(["job", "article", "video", "download"]),
+  resource_type: z.enum(["article", "video", "download"]),
   description: z.string().optional(),
   content: z.string().optional(),
   company: z.string().optional(),
@@ -47,7 +47,7 @@ type ResourceFormData = z.infer<typeof resourceSchema>;
 interface Resource {
   id: string;
   title: string;
-  resource_type: "job" | "article" | "video" | "download";
+  resource_type: string;
   description: string | null;
   content: string | null;
   company: string | null;
@@ -77,7 +77,7 @@ export const ResourceFormModal = ({
     resolver: zodResolver(resourceSchema),
     defaultValues: {
       title: resource?.title || "",
-      resource_type: resource?.resource_type || "article",
+      resource_type: (resource?.resource_type as "article" | "video" | "download") || "article",
       description: resource?.description || "",
       content: resource?.content || "",
       company: resource?.company || "",
@@ -136,7 +136,6 @@ export const ResourceFormModal = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="job">Job</SelectItem>
                       <SelectItem value="article">Article</SelectItem>
                       <SelectItem value="video">Video</SelectItem>
                       <SelectItem value="download">Download</SelectItem>
@@ -175,37 +174,6 @@ export const ResourceFormModal = ({
                   </FormItem>
                 )}
               />
-            )}
-
-            {resourceType === "job" && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="company"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
             )}
 
             <FormField
