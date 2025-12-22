@@ -16,7 +16,7 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { Navbar } from "@/components/Navbar";
 import { usePosts } from "@/hooks/usePosts";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
-import { usePostReplies } from "@/hooks/usePostReplies";
+
 import { formatDistanceToNow } from "date-fns";
 
 const Feed = () => {
@@ -72,7 +72,6 @@ const Feed = () => {
   const PostCard = ({ post }: { post: any }) => {
     const toggleLike = useToggleLike();
     const { data: likesData } = usePostLikes(post.id);
-    const { data: replies = [] } = usePostReplies(post.id);
 
     const handleLike = () => {
       toggleLike.mutate({
@@ -128,7 +127,7 @@ const Feed = () => {
             onClick={() => handleReplyClick(post.id, post.content, post.profiles?.full_name || "Unknown User")}
           >
             <MessageCircle className="h-4 w-4" />
-            <span>{replies.length}</span>
+            <span>{post.reply_count || 0}</span>
           </Button>
           <Button
             variant="ghost"
