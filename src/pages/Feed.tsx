@@ -7,31 +7,21 @@ import { Separator } from "@/components/ui/separator";
 import { 
   Home, Users, Briefcase, MessageSquare, 
   Settings, ThumbsUp, MessageCircle, Share2, 
-  TrendingUp, Award, Sparkles, BookOpen, Calendar
+  TrendingUp, Award, Sparkles, BookOpen, Calendar, Send, ChevronDown, ChevronUp
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CreatePostModal } from "@/components/CreatePostModal";
-import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
 import { Navbar } from "@/components/Navbar";
 import { usePosts } from "@/hooks/usePosts";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
+import { usePostReplies, useCreateReply } from "@/hooks/usePostReplies";
+import { useProfile } from "@/hooks/useProfile";
 
 import { formatDistanceToNow } from "date-fns";
 
 const Feed = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-  const [replyModalState, setReplyModalState] = useState<{
-    isOpen: boolean;
-    postId: string;
-    postContent: string;
-    postAuthor: string;
-  }>({
-    isOpen: false,
-    postId: "",
-    postContent: "",
-    postAuthor: "",
-  });
   const [shareDialogState, setShareDialogState] = useState<{
     isOpen: boolean;
     postId: string;
@@ -53,15 +43,6 @@ const Feed = () => {
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
-  const handleReplyClick = (postId: string, content: string, authorName: string) => {
-    setReplyModalState({
-      isOpen: true,
-      postId,
-      postContent: content,
-      postAuthor: authorName,
-    });
-  };
-
   const handleShareClick = (postId: string) => {
     setShareDialogState({
       isOpen: true,
@@ -72,6 +53,11 @@ const Feed = () => {
   const PostCard = ({ post }: { post: any }) => {
     const toggleLike = useToggleLike();
     const { data: likesData } = usePostLikes(post.id);
+    const { data: replies } = usePostReplies(post.id);
+    const createReply = useCreateReply();
+    const { data: profile } = useProfile();
+    const [showReplies, setShowReplies] = useState(false);
+    const [replyContent, setReplyContent] = useState("");
 
     const handleLike = () => {
       toggleLike.mutate({
@@ -79,6 +65,18 @@ const Feed = () => {
         hasLiked: likesData?.hasLiked || false,
       });
     };
+
+    const handleSubmitReply = async () => {
+      if (!replyContent.trim()) return;
+      
+      await createReply.mutateAsync({
+        postId: post.id,
+        content: replyContent.trim(),
+      });
+      setReplyContent("");
+    };
+
+    const replyCount = post.reply_count || 0;
 
     return (
       <Card key={post.id}>
@@ -109,35 +107,101 @@ const Feed = () => {
         <CardContent>
           <p className="text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
         </CardContent>
-        <CardFooter className="flex items-center justify-between border-t pt-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`gap-2 ${likesData?.hasLiked ? "text-primary" : ""}`}
-            onClick={handleLike}
-            disabled={toggleLike.isPending}
-          >
-            <ThumbsUp className={`h-4 w-4 ${likesData?.hasLiked ? "fill-current" : ""}`} />
-            <span>{likesData?.likeCount || 0}</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() => handleReplyClick(post.id, post.content, post.profiles?.full_name || "Unknown User")}
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>{post.reply_count || 0}</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() => handleShareClick(post.id)}
-          >
-            <Share2 className="h-4 w-4" />
-            <span>Share</span>
-          </Button>
+        <CardFooter className="flex flex-col gap-3 border-t pt-3">
+          <div className="flex items-center justify-between w-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`gap-2 ${likesData?.hasLiked ? "text-primary" : ""}`}
+              onClick={handleLike}
+              disabled={toggleLike.isPending}
+            >
+              <ThumbsUp className={`h-4 w-4 ${likesData?.hasLiked ? "fill-current" : ""}`} />
+              <span>{likesData?.likeCount || 0}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowReplies(!showReplies)}
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span>{replyCount}</span>
+              {replyCount > 0 && (showReplies ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />)}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2"
+              onClick={() => handleShareClick(post.id)}
+            >
+              <Share2 className="h-4 w-4" />
+              <span>Share</span>
+            </Button>
+          </div>
+
+          {/* Inline Reply Input */}
+          {showReplies && (
+            <div className="w-full space-y-3">
+              <div className="flex gap-2 items-start">
+                <Avatar className="h-8 w-8">
+                  {profile?.avatar_url ? (
+                    <AvatarImage src={profile.avatar_url} />
+                  ) : (
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                      {getInitials(profile?.full_name || null)}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div className="flex-1 flex gap-2">
+                  <Textarea
+                    placeholder="Write a reply..."
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    className="min-h-[40px] resize-none text-sm"
+                    rows={1}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={handleSubmitReply}
+                    disabled={!replyContent.trim() || createReply.isPending}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Replies List */}
+              {replies && replies.length > 0 && (
+                <div className="space-y-3 pl-10">
+                  {replies.map((reply: any) => (
+                    <div key={reply.id} className="flex gap-2">
+                      <Avatar className="h-8 w-8">
+                        {reply.profiles?.avatar_url ? (
+                          <AvatarImage src={reply.profiles.avatar_url} />
+                        ) : (
+                          <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                            {getInitials(reply.profiles?.full_name || null)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="flex-1 bg-muted/50 rounded-lg p-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">
+                            {reply.profiles?.full_name || "Unknown User"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {reply.created_at && formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-foreground mt-1">{reply.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </CardFooter>
       </Card>
     );
@@ -288,13 +352,6 @@ const Feed = () => {
       </div>
 
       {/* Modals */}
-      <ReplyModal
-        open={replyModalState.isOpen}
-        onOpenChange={(open) => setReplyModalState({ ...replyModalState, isOpen: open })}
-        postId={replyModalState.postId}
-        postContent={replyModalState.postContent}
-        postAuthor={replyModalState.postAuthor}
-      />
       <ShareDialog
         open={shareDialogState.isOpen}
         onOpenChange={(open) => setShareDialogState({ ...shareDialogState, isOpen: open })}
