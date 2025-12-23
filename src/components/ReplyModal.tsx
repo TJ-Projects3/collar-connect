@@ -88,40 +88,40 @@ export const ReplyModal = ({
             </div>
           </div>
 
-          {/* Existing Replies */}
-          {replies.length > 0 && (
-            <>
-              <Separator />
-              <ScrollArea className="flex-1 pr-4">
-                <div className="space-y-4">
-                  <h4 className="text-sm font-semibold text-muted-foreground">
-                    {replies.length} {replies.length === 1 ? "Reply" : "Replies"}
-                  </h4>
-                  {replies.map((reply: any) => (
-                    <div key={reply.id} className="flex gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={reply.profiles?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                          {getInitials(reply.profiles?.full_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm">
-                            {reply.profiles?.full_name || "Unknown User"}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
-                          </span>
-                        </div>
-                        <p className="text-sm mt-1">{reply.content}</p>
+          {/* Existing Replies (scrollable) */}
+          <Separator />
+          <ScrollArea className="h-[40vh] pr-4">
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-muted-foreground">
+                {replies.length} {replies.length === 1 ? "Reply" : "Replies"}
+              </h4>
+              {replies.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No replies yet.</p>
+              ) : (
+                replies.map((reply: any) => (
+                  <div key={reply.id} className="flex gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={reply.profiles?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                        {getInitials(reply.profiles?.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">
+                          {reply.profiles?.full_name || "Unknown User"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                        </span>
                       </div>
+                      <p className="text-sm mt-1">{reply.content}</p>
                     </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </>
-          )}
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
 
           <Separator />
 
