@@ -10,6 +10,7 @@ import {
 import { ProfileButton } from "@/components/ProfileButton";
 import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
+import { InlineReplies } from "@/components/InlineReplies";
 import { Navbar } from "@/components/Navbar";
 import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
@@ -274,6 +275,9 @@ const Profile = () => {
                               </div>
                             </div>
                             <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+
+                            {/* Inline Replies */}
+                            <InlineReplies postId={post.id} replyCount={post.reply_count || 0} />
                           </div>
                         </div>
                         <PostActions post={post} />

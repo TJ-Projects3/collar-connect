@@ -245,6 +245,67 @@ export type Database = {
           },
         ]
       }
+      post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_replies: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string | null
@@ -252,6 +313,8 @@ export type Database = {
           created_at: string | null
           id: string
           likes: number | null
+          likes_count: number
+          reply_count: number
         }
         Insert: {
           author_id?: string | null
@@ -259,6 +322,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           likes?: number | null
+          likes_count?: number
+          reply_count?: number
         }
         Update: {
           author_id?: string | null
@@ -266,6 +331,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           likes?: number | null
+          likes_count?: number
+          reply_count?: number
         }
         Relationships: [
           {

@@ -13,10 +13,11 @@ import { Link } from "react-router-dom";
 import { CreatePostModal } from "@/components/CreatePostModal";
 import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
+import { InlineReplies } from "@/components/InlineReplies";
 import { Navbar } from "@/components/Navbar";
 import { usePosts } from "@/hooks/usePosts";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
-import { usePostReplies } from "@/hooks/usePostReplies";
+
 import { formatDistanceToNow } from "date-fns";
 
 const Feed = () => {
@@ -72,7 +73,6 @@ const Feed = () => {
   const PostCard = ({ post }: { post: any }) => {
     const toggleLike = useToggleLike();
     const { data: likesData } = usePostLikes(post.id);
-    const { data: replies = [] } = usePostReplies(post.id);
 
     const handleLike = () => {
       toggleLike.mutate({
@@ -109,6 +109,9 @@ const Feed = () => {
         </CardHeader>
         <CardContent>
           <p className="text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
+
+          {/* Inline Replies */}
+          <InlineReplies postId={post.id} replyCount={post.reply_count || 0} />
         </CardContent>
         <CardFooter className="flex items-center justify-between border-t pt-3">
           <Button
@@ -128,7 +131,7 @@ const Feed = () => {
             onClick={() => handleReplyClick(post.id, post.content, post.profiles?.full_name || "Unknown User")}
           >
             <MessageCircle className="h-4 w-4" />
-            <span>{replies.length}</span>
+            <span>{post.reply_count || 0}</span>
           </Button>
           <Button
             variant="ghost"

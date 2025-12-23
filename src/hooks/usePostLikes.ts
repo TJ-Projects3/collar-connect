@@ -11,7 +11,7 @@ export const usePostLikes = (postId: string) => {
     queryKey: ["post-likes", postId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("post_likes" as any)
+        .from("post_likes")
         .select("*")
         .eq("post_id", postId);
 
@@ -38,7 +38,7 @@ export const useToggleLike = () => {
       if (hasLiked) {
         // Unlike the post
         const { error } = await supabase
-          .from("post_likes" as any)
+          .from("post_likes")
           .delete()
           .eq("post_id", postId)
           .eq("user_id", user.id);
@@ -47,7 +47,7 @@ export const useToggleLike = () => {
       } else {
         // Like the post
         const { error } = await supabase
-          .from("post_likes" as any)
+          .from("post_likes")
           .insert({ post_id: postId, user_id: user.id });
 
         if (error) throw error;
