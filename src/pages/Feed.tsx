@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { CreatePostModal } from "@/components/CreatePostModal";
 import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
+import { PostReplies } from "@/components/PostReplies";
 import { Navbar } from "@/components/Navbar";
 import { usePosts } from "@/hooks/usePosts";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
@@ -139,6 +140,7 @@ const Feed = () => {
             <span>Share</span>
           </Button>
         </CardFooter>
+        <PostReplies postId={post.id} replyCount={post.reply_count || 0} />
       </Card>
     );
   };
