@@ -25,6 +25,7 @@ export const usePostReplies = (postId: string) => {
       if (error) throw error;
       return data;
     },
+    enabled: !!postId,
   });
 };
 
@@ -51,10 +52,31 @@ export const useCreateReply = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
+    onMutate: async ({ postId, content }) => {
+      // Cancel outgoing refetches for this query
+      await queryClient.cancelQueries({ queryKey: ["post-replies", postId] });
+      const previous = queryClient.getQueryData<any[]>(["post-replies", postId]) || [];
+
+      // Create an optimistic reply
+      const optimistic = {
+        id: `optimistic-${Date.now()}`,
+        post_id: postId,
+        author_id: user?.id ?? null,
+        content,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        profiles: undefined,
+      };
+
+      queryClient.setQueryData(["post-replies", postId], [...previous, optimistic]);
+      return { previous, postId };
+    },
+    onSuccess: (created, variables) => {
+      // Replace any optimistic entries with the actual created reply
+      const current = queryClient.getQueryData<any[]>(["post-replies", variables.postId]) || [];
+      const withoutOptimistic = current.filter((r) => !String(r.id).startsWith("optimistic-"));
+      queryClient.setQueryData(["post-replies", variables.postId], [...withoutOptimistic, created]);
       toast({ title: "Reply posted successfully!" });
-      queryClient.invalidateQueries({ queryKey: ["post-replies", variables.postId] });
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
     onError: (error: any) => {
       toast({
@@ -62,6 +84,11 @@ export const useCreateReply = () => {
         description: error.message,
         variant: "destructive",
       });
+    },
+    onSettled: (_data, _err, variables) => {
+      // Ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["post-replies", variables.postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
   });
 };
