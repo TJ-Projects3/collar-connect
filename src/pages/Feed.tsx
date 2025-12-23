@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { CreatePostModal } from "@/components/CreatePostModal";
 import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
+import { InlineReplies } from "@/components/InlineReplies";
 import { Navbar } from "@/components/Navbar";
 import { usePosts } from "@/hooks/usePosts";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
@@ -108,6 +109,9 @@ const Feed = () => {
         </CardHeader>
         <CardContent>
           <p className="text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
+
+          {/* Inline Replies */}
+          <InlineReplies postId={post.id} replyCount={post.reply_count || 0} />
         </CardContent>
         <CardFooter className="flex items-center justify-between border-t pt-3">
           <Button

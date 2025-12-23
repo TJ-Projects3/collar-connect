@@ -8,22 +8,36 @@ export const usePostReplies = (postId: string) => {
   return useQuery({
     queryKey: ["post-replies", postId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("post_replies" as any)
-        .select(`
-          *,
-          profiles:author_id (
-            full_name,
-            job_title,
-            company,
-            avatar_url
-          )
-        `)
+      // First get the replies
+      const { data: replies, error: repliesError } = await supabase
+        .from("post_replies")
+        .select("*")
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      return data;
+      if (repliesError) throw repliesError;
+      if (!replies || replies.length === 0) return [];
+
+      // Then get the profile data for each reply author
+      const authorIds = replies
+        .map(reply => reply.author_id)
+        .filter((id): id is string => id !== null);
+
+      if (authorIds.length === 0) return replies.map(reply => ({ ...reply, profiles: null }));
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, full_name, job_title, company, avatar_url")
+        .in("id", authorIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      return replies.map(reply => ({
+        ...reply,
+        profiles: reply.author_id ? profilesMap.get(reply.author_id) || null : null
+      }));
     },
   });
 };
@@ -39,7 +53,7 @@ export const useCreateReply = () => {
       if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
-        .from("post_replies" as any)
+        .from("post_replies")
         .insert({
           post_id: postId,
           author_id: user.id,
@@ -74,7 +88,7 @@ export const useDeleteReply = () => {
   return useMutation({
     mutationFn: async ({ replyId, postId }: { replyId: string; postId: string }) => {
       const { error } = await supabase
-        .from("post_replies" as any)
+        .from("post_replies")
         .delete()
         .eq("id", replyId);
 
