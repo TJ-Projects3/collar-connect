@@ -165,9 +165,11 @@ const Feed = () => {
                   <Users className="h-5 w-5" />
                   <span>My Network</span>
                 </Button>
-                <Button variant="ghost" className="w-full justify-start gap-3">
-                  <Briefcase className="h-5 w-5" />
-                  <span>Jobs</span>
+                <Button variant="ghost" className="w-full justify-start gap-3" asChild>
+                  <Link to="/jobs">
+                    <Briefcase className="h-5 w-5" />
+                    <span>Jobs</span>
+                  </Link>
                 </Button>
                 <Button variant="ghost" className="w-full justify-start gap-3" asChild>
                   <Link to="/messages">

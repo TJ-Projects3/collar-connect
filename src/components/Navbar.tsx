@@ -51,7 +51,7 @@ export const Navbar = () => {
     { to: "/feed", icon: Home, label: "Home" },
     { to: "#", icon: Users, label: "My Network" },
     { to: "/jobs", icon: Briefcase, label: "Jobs" },
-    { to: "#", icon: MessageSquare, label: "Messaging" },
+    { to: "/messages", icon: MessageSquare, label: "Messaging" },
     { to: "#", icon: Bell, label: "Notifications" },
   ];
 
