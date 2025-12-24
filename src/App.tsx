@@ -10,6 +10,7 @@ import ContentHub from "./pages/ContentHub";
 import Jobs from "./pages/Jobs";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
+import Messages from "./pages/Messages";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -65,6 +66,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/messages"
+                element={
+                  <ProtectedRoute>
+                    <Messages />
                   </ProtectedRoute>
                 }
               />
