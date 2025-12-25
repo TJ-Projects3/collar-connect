@@ -11,6 +11,7 @@ import Jobs from "./pages/Jobs";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
+import MyNetwork from "./pages/MyNetwork";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -77,7 +78,22 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/admin" element={<Admin />} />
+              <Route
+                path="/my-network"
+                element={
+                  <ProtectedRoute>
+                    <MyNetwork />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <Admin />
+                  </ProtectedRoute>
+                }
+              />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

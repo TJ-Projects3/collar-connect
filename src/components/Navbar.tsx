@@ -11,6 +11,7 @@ import {
   BookOpen,
   Calendar,
   ChevronDown,
+  Shield,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
+import { useAdminRole } from "@/hooks/useAdminRole";
 
 interface NavItemProps {
   to: string;
@@ -48,10 +50,11 @@ export const Navbar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { data: profile } = useProfile();
+  const { isAdmin } = useAdminRole();
 
   const navItems = [
     { to: "/feed", icon: Home, label: "Home" },
-    { to: "#", icon: Users, label: "My Network" },
+    { to: "/my-network", icon: Users, label: "My Network" },
     { to: "/jobs", icon: Briefcase, label: "Jobs" },
     { to: "/messages", icon: MessageSquare, label: "Messaging" },
     { to: "#", icon: Bell, label: "Notifications" },
@@ -102,6 +105,16 @@ export const Navbar = () => {
                 isActive={currentPath === item.to}
               />
             ))}
+
+            {/* Admin Nav Item - Only for admin users */}
+            {isAdmin && (
+              <NavItem
+                to="/admin"
+                icon={Shield}
+                label="Admin"
+                isActive={currentPath === "/admin"}
+              />
+            )}
 
             {/* Divider */}
             <div className="h-10 w-px bg-border mx-1 hidden lg:block" />

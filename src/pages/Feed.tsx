@@ -161,9 +161,11 @@ const Feed = () => {
                   <Home className="h-5 w-5" />
                   <span>Home</span>
                 </Button>
-                <Button variant="ghost" className="w-full justify-start gap-3">
-                  <Users className="h-5 w-5" />
-                  <span>My Network</span>
+                <Button variant="ghost" className="w-full justify-start gap-3" asChild>
+                  <Link to="/my-network">
+                    <Users className="h-5 w-5" />
+                    <span>My Network</span>
+                  </Link>
                 </Button>
                 <Button variant="ghost" className="w-full justify-start gap-3" asChild>
                   <Link to="/jobs">
