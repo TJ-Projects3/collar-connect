@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useProfile } from "@/hooks/useProfile";
 
 interface NavItemProps {
   to: string;
@@ -46,6 +47,7 @@ const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
 export const Navbar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { data: profile } = useProfile();
 
   const navItems = [
     { to: "/feed", icon: Home, label: "Home" },
@@ -54,6 +56,16 @@ export const Navbar = () => {
     { to: "/messages", icon: MessageSquare, label: "Messaging" },
     { to: "#", icon: Bell, label: "Notifications" },
   ];
+
+  // Get initials from full name for avatar fallback
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return "ME";
+    const names = name.trim().split(" ");
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-card border-b">
@@ -99,8 +111,9 @@ export const Navbar = () => {
               <DropdownMenuTrigger asChild>
                 <button className="flex flex-col items-center justify-center px-3 py-1 min-w-[80px] border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors">
                   <Avatar className="h-6 w-6">
+                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                      ME
+                      {getInitials(profile?.full_name)}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-xs mt-1 hidden md:flex items-center gap-0.5">
@@ -112,12 +125,13 @@ export const Navbar = () => {
               <DropdownMenuContent align="end" className="w-56">
                 <div className="flex items-center gap-3 p-3">
                   <Avatar className="h-12 w-12">
+                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
                     <AvatarFallback className="bg-primary text-primary-foreground">
-                      ME
+                      {getInitials(profile?.full_name)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold text-sm">My Profile</p>
+                    <p className="font-semibold text-sm">{profile?.full_name || "My Profile"}</p>
                     <p className="text-xs text-muted-foreground">View profile</p>
                   </div>
                 </div>

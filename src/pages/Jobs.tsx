@@ -250,10 +250,10 @@ const Jobs = () => {
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <Badge variant="secondary">
+                      <Badge className="justify-center" variant="secondary">
                         {careerLevelLabels[job.career_level]}
                       </Badge>
-                      <Badge variant="outline">
+                      <Badge className="justify-center" variant="outline">
                         {workArrangementLabels[job.work_arrangement]}
                       </Badge>
                     </div>
