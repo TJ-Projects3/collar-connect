@@ -26,7 +26,9 @@ const resourceTypeColors: Record<string, string> = {
   article: "bg-green-500/10 text-green-500 border-green-500/20",
   video: "bg-purple-500/10 text-purple-500 border-purple-500/20",
   download: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+  website: "bg-blue-500/10 text-blue-500 border-blue-500/20"
 };
+
 
 export const ResourcesTab = () => {
   const { data: allResources = [], isLoading } = useAdminResources();
@@ -106,6 +108,7 @@ export const ResourcesTab = () => {
             <SelectItem value="article">Articles</SelectItem>
             <SelectItem value="video">Videos</SelectItem>
             <SelectItem value="download">Downloads</SelectItem>
+            <SelectItem value="website">Website</SelectItem>
           </SelectContent>
         </Select>
         <Button onClick={handleCreate}>

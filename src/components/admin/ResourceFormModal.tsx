@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,14 +30,50 @@ import {
 
 const resourceSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  resource_type: z.enum(["article", "video", "download"]),
+  resource_type: z.enum(["article", "video", "download", "website"]),
   description: z.string().optional(),
   content: z.string().optional(),
   company: z.string().optional(),
   location: z.string().optional(),
-  external_url: z.string().url().optional().or(z.literal("")),
-  file_url: z.string().url().optional().or(z.literal("")),
-  image_url: z.string().url().optional().or(z.literal("")),
+  external_url: z.string()
+    .url()
+    .refine((url) => {
+      if (!url) return true;
+      try {
+        const parsed = new URL(url);
+        return ['http:', 'https:'].includes(parsed.protocol);
+      } catch {
+        return false;
+      }
+    }, { message: "Only HTTP and HTTPS URLs are allowed" })
+    .optional()
+    .or(z.literal("")),
+  file_url: z.string()
+    .url()
+    .refine((url) => {
+      if (!url) return true;
+      try {
+        const parsed = new URL(url);
+        return ['http:', 'https:'].includes(parsed.protocol);
+      } catch {
+        return false;
+      }
+    }, { message: "Only HTTP and HTTPS URLs are allowed" })
+    .optional()
+    .or(z.literal("")),
+  image_url: z.string()
+    .url()
+    .refine((url) => {
+      if (!url) return true;
+      try {
+        const parsed = new URL(url);
+        return ['http:', 'https:'].includes(parsed.protocol);
+      } catch {
+        return false;
+      }
+    }, { message: "Only HTTP and HTTPS URLs are allowed" })
+    .optional()
+    .or(z.literal("")),
   tags: z.string().optional(),
   is_published: z.boolean(),
   is_featured: z.boolean(),
@@ -77,7 +114,7 @@ export const ResourceFormModal = ({
     resolver: zodResolver(resourceSchema),
     defaultValues: {
       title: resource?.title || "",
-      resource_type: (resource?.resource_type as "article" | "video" | "download") || "article",
+      resource_type: (resource?.resource_type as "article" | "video" | "download" | "website") || "article",
       description: resource?.description || "",
       content: resource?.content || "",
       company: resource?.company || "",
@@ -92,6 +129,41 @@ export const ResourceFormModal = ({
   });
 
   const resourceType = form.watch("resource_type");
+
+  // Reset form when resource prop changes (for editing)
+  useEffect(() => {
+    if (resource) {
+      form.reset({
+        title: resource.title || "",
+        resource_type: (resource.resource_type as "article" | "video" | "download" | "website") || "article",
+        description: resource.description || "",
+        content: resource.content || "",
+        company: resource.company || "",
+        location: resource.location || "",
+        external_url: resource.external_url || "",
+        file_url: resource.file_url || "",
+        image_url: resource.image_url || "",
+        tags: resource.tags?.join(", ") || "",
+        is_published: resource.is_published ?? false,
+        is_featured: resource.is_featured ?? false,
+      });
+    } else {
+      form.reset({
+        title: "",
+        resource_type: "article",
+        description: "",
+        content: "",
+        company: "",
+        location: "",
+        external_url: "",
+        file_url: "",
+        image_url: "",
+        tags: "",
+        is_published: false,
+        is_featured: false,
+      });
+    }
+  }, [resource, form]);
 
   const handleSubmit = (data: ResourceFormData) => {
     onSubmit(data);
@@ -139,6 +211,7 @@ export const ResourceFormModal = ({
                       <SelectItem value="article">Article</SelectItem>
                       <SelectItem value="video">Video</SelectItem>
                       <SelectItem value="download">Download</SelectItem>
+                      <SelectItem value="website">Website</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

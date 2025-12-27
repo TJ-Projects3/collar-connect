@@ -489,7 +489,7 @@ export type Database = {
         | "executive"
       event_type: "virtual" | "in_person" | "hybrid"
       membership_status: "active" | "expired" | "cancelled" | "pending"
-      resource_type: "job" | "article" | "video" | "download"
+      resource_type: "job" | "article" | "video" | "download" | "website"
       work_arrangement: "remote" | "hybrid" | "on_site"
     }
     CompositeTypes: {
@@ -630,7 +630,7 @@ export const Constants = {
       ],
       event_type: ["virtual", "in_person", "hybrid"],
       membership_status: ["active", "expired", "cancelled", "pending"],
-      resource_type: ["job", "article", "video", "download"],
+      resource_type: ["job", "article", "video", "download", "website"],
       work_arrangement: ["remote", "hybrid", "on_site"],
     },
   },

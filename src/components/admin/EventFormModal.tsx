@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -91,6 +92,37 @@ export const EventFormModal = ({
   });
 
   const eventType = form.watch("event_type");
+
+  // Reset form when event prop changes (for editing)
+  useEffect(() => {
+    if (event) {
+      form.reset({
+        title: event.title || "",
+        description: event.description || "",
+        event_type: event.event_type || "virtual",
+        start_time: event.start_time ? formatDateTimeLocal(event.start_time) : "",
+        end_time: event.end_time ? formatDateTimeLocal(event.end_time) : "",
+        location: event.location || "",
+        virtual_link: event.virtual_link || "",
+        capacity: event.capacity ?? undefined,
+        image_url: event.image_url || "",
+        is_published: event.is_published ?? false,
+      });
+    } else {
+      form.reset({
+        title: "",
+        description: "",
+        event_type: "virtual",
+        start_time: "",
+        end_time: "",
+        location: "",
+        virtual_link: "",
+        capacity: undefined,
+        image_url: "",
+        is_published: false,
+      });
+    }
+  }, [event, form]);
 
   const handleSubmit = (data: EventFormData) => {
     onSubmit(data);

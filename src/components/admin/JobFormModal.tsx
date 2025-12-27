@@ -95,20 +95,32 @@ export const JobFormModal = ({
     },
   });
 
+  // Reset form when job prop changes (for editing)
   useEffect(() => {
-    if (open) {
+    if (job) {
       form.reset({
-        title: job?.title || "",
-        company: job?.company || "",
-        description: job?.description || "",
-        location: job?.location || "",
-        career_level: job?.career_level || "entry_level",
-        work_arrangement: job?.work_arrangement || "on_site",
-        external_url: job?.external_url || "",
-        is_published: job?.is_published ?? false,
+        title: job.title || "",
+        company: job.company || "",
+        description: job.description || "",
+        location: job.location || "",
+        career_level: job.career_level || "entry_level",
+        work_arrangement: job.work_arrangement || "on_site",
+        external_url: job.external_url || "",
+        is_published: job.is_published ?? false,
+      });
+    } else {
+      form.reset({
+        title: "",
+        company: "",
+        description: "",
+        location: "",
+        career_level: "entry_level",
+        work_arrangement: "on_site",
+        external_url: "",
+        is_published: false,
       });
     }
-  }, [open, job, form]);
+  }, [job, form]);
 
   const handleSubmit = (data: JobFormData) => {
     onSubmit(data);

@@ -1,10 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Video, Download, ExternalLink, Eye, Loader2 } from "lucide-react";
+import { FileText, Video, Download, ExternalLink, Eye, Loader2, Globe } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useResources, type Resource } from "@/hooks/useResources";
 import { format } from "date-fns";
+
+// Security: Validate URL protocol to prevent XSS via javascript: URLs
+const isSafeUrl = (url: string | null): boolean => {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+};
 
 const ContentHub = () => {
   const { data: resources, isLoading } = useResources();
@@ -16,7 +27,9 @@ const ContentHub = () => {
       case "video":
         return Video;
       case "download":
-        return FileText;
+        return Download;
+      case "website":
+        return Globe;
       default:
         return FileText;
     }
@@ -29,7 +42,9 @@ const ContentHub = () => {
       case "video":
         return "Video";
       case "download":
-        return "Resource";
+        return "Download";
+      case "website":
+        return "Website";
       default:
         return "Resource";
     }
@@ -42,7 +57,7 @@ const ContentHub = () => {
       return (
         <Card key={resource.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 rounded-xl border-border/50">
           <div className="relative aspect-video bg-muted">
-            {resource.image_url && (
+            {resource.image_url && isSafeUrl(resource.image_url) && (
               <img
                 src={resource.image_url}
                 alt={resource.title}
@@ -69,7 +84,7 @@ const ContentHub = () => {
               {resource.view_count || 0} views
             </CardDescription>
           </CardHeader>
-          {resource.external_url && (
+          {isSafeUrl(resource.external_url) && (
             <CardContent>
               <Button asChild className="w-full sm:w-auto">
                 <a href={resource.external_url} target="_blank" rel="noopener noreferrer">
@@ -124,7 +139,7 @@ const ContentHub = () => {
               )}
             </div>
           )}
-          {resource.resource_type === "article" && resource.external_url && (
+          {resource.resource_type === "article" && isSafeUrl(resource.external_url) && (
             <Button asChild className="w-full sm:w-auto">
               <a href={resource.external_url} target="_blank" rel="noopener noreferrer">
                 Read More
@@ -132,11 +147,19 @@ const ContentHub = () => {
               </a>
             </Button>
           )}
-          {resource.resource_type === "download" && resource.file_url && (
+          {resource.resource_type === "download" && isSafeUrl(resource.file_url) && (
             <Button asChild className="w-full sm:w-auto">
               <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
                 Download
                 <Download className="h-4 w-4 ml-2" />
+              </a>
+            </Button>
+          )}
+          {resource.resource_type === "website" && isSafeUrl(resource.external_url) && (
+            <Button asChild className="w-full sm:w-auto">
+              <a href={resource.external_url} target="_blank" rel="noopener noreferrer">
+                Visit Website
+                <ExternalLink className="h-4 w-4 ml-2" />
               </a>
             </Button>
           )}
@@ -153,7 +176,7 @@ const ContentHub = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Content Hub</h1>
           <p className="text-muted-foreground">
-            Articles, videos, and downloadable resources all in one place
+            Articles, videos, websites, and downloadable resources all in one place
           </p>
         </div>
 
