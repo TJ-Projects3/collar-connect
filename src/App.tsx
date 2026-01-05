@@ -12,6 +12,7 @@ import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
 import MyNetwork from "./pages/MyNetwork";
+import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -83,6 +84,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <MyNetwork />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
                   </ProtectedRoute>
                 }
               />

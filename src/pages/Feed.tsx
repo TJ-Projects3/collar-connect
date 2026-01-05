@@ -192,9 +192,11 @@ const Feed = () => {
                   </Link>
                 </Button>
                 <Separator className="my-2" />
-                <Button variant="ghost" className="w-full justify-start gap-3">
-                  <Settings className="h-5 w-5" />
-                  <span>Settings</span>
+                <Button variant="ghost" className="w-full justify-start gap-3" asChild>
+                  <Link to="/settings">
+                    <Settings className="h-5 w-5" />
+                    <span>Settings</span>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>

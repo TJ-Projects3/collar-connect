@@ -167,8 +167,10 @@ export const Navbar = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer text-muted-foreground">
-                  Settings & Privacy
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="cursor-pointer">
+                    Settings & Privacy
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-muted-foreground">
                   Sign Out
