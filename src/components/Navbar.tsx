@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -23,6 +23,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface NavItemProps {
   to: string;
@@ -48,9 +50,24 @@ const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
 
 export const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const currentPath = location.pathname;
   const { data: profile } = useProfile();
   const { isAdmin } = useAdminRole();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      navigate("/auth");
+    }
+  };
 
   const navItems = [
     { to: "/feed", icon: Home, label: "Home" },
@@ -172,7 +189,7 @@ export const Navbar = () => {
                     Settings & Privacy
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer text-muted-foreground">
+                <DropdownMenuItem className="cursor-pointer text-muted-foreground" onClick={handleSignOut}>
                   Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
