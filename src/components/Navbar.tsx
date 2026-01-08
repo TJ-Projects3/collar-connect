@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Home,
   Users,
@@ -194,6 +195,13 @@ export const Navbar = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Mobile-visible quick sign out */}
+            <div className="ml-2 lg:hidden">
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                Sign out
+              </Button>
+            </div>
           </nav>
         </div>
       </div>
