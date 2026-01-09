@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
 import MyNetwork from "./pages/MyNetwork";
 import Settings from "./pages/Settings";
+import Notifications from "./pages/Notifications";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -92,6 +93,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
                   </ProtectedRoute>
                 }
               />

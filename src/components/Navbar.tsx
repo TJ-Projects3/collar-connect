@@ -75,7 +75,7 @@ export const Navbar = () => {
     { to: "/my-network", icon: Users, label: "My Network" },
     { to: "/jobs", icon: Briefcase, label: "Jobs" },
     { to: "/messages", icon: MessageSquare, label: "Messaging" },
-    { to: "#", icon: Bell, label: "Notifications" },
+    { to: "/notifications", icon: Bell, label: "Notifications" },
   ];
 
   // Get initials from full name for avatar fallback
