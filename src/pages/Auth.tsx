@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
+import { useEffect } from "react";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -37,6 +38,10 @@ const Auth = () => {
   // Password reset state
   const [resetEmail, setResetEmail] = useState("");
   const [showResetForm, setShowResetForm] = useState(false);
+  // Password recovery mode (arriving from email link)
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -154,6 +159,77 @@ const Auth = () => {
     }
   };
 
+  // Detect Supabase password recovery and show new password form
+  useEffect(() => {
+    // Listen for auth state changes (Supabase sets event PASSWORD_RECOVERY)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecoveryMode(true);
+        setShowResetForm(false);
+      }
+    });
+
+    // Fallback: check URL hash for type=recovery
+    try {
+      const hash = window.location.hash || "";
+      if (hash.includes("type=recovery")) {
+        setIsRecoveryMode(true);
+        setShowResetForm(false);
+      }
+    } catch {}
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleUpdatePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 8 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast({
+        title: "Password mismatch",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) throw error;
+      toast({
+        title: "Password updated",
+        description: "Your password has been reset successfully.",
+      });
+      // Exit recovery mode and go to feed
+      setIsRecoveryMode(false);
+      setNewPassword("");
+      setConfirmNewPassword("");
+      // Optional: clean hash to avoid re-triggering
+      try {
+        history.replaceState(null, document.title, window.location.pathname + window.location.search);
+      } catch {}
+      navigate("/feed");
+    } catch (error: any) {
+      toast({
+        title: "Update failed",
+        description: error.message || "Unable to update password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -178,7 +254,84 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {showResetForm ? (
+            {isRecoveryMode ? (
+              <div className="space-y-4">
+                <form onSubmit={handleUpdatePassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="new-password"
+                        type={showSignUpPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        minLength={8}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 px-3 text-muted-foreground"
+                        onClick={() => setShowSignUpPassword((prev) => !prev)}
+                        aria-label={showSignUpPassword ? "Hide password" : "Show password"}
+                      >
+                        {showSignUpPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirm-new-password"
+                        type={showSignUpConfirmPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        required
+                        minLength={8}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 px-3 text-muted-foreground"
+                        onClick={() => setShowSignUpConfirmPassword((prev) => !prev)}
+                        aria-label={showSignUpConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showSignUpConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setIsRecoveryMode(false);
+                        setNewPassword("");
+                        setConfirmNewPassword("");
+                      }}
+                      disabled={isLoading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="flex-1" disabled={isLoading}>
+                      {isLoading ? "Updating..." : "Update Password"}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            ) : showResetForm ? (
               <div className="space-y-4">
                 <form onSubmit={handlePasswordReset} className="space-y-4">
                   <div className="space-y-2">
