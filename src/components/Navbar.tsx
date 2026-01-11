@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,6 +27,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SearchDialog } from "@/components/SearchDialog";
 
 interface NavItemProps {
   to: string;
@@ -50,6 +52,7 @@ const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
 );
 
 export const Navbar = () => {
+  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -107,6 +110,8 @@ export const Navbar = () => {
                 <Input
                   placeholder="Search"
                   className="pl-9 w-[200px] lg:w-[280px] h-9 bg-muted/50 border-0 focus-visible:bg-background"
+                  onClick={() => setSearchOpen(true)}
+                  readOnly
                 />
               </div>
             </div>
@@ -204,7 +209,8 @@ export const Navbar = () => {
             </div>
           </nav>
         </div>
-      </div>
+        {/* Search Dialog */}
+        <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />      </div>
     </header>
   );
 };
