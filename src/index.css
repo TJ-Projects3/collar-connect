@@ -107,7 +107,12 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html,
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
+  }
+
+  body {
+    @apply width-full;
   }
 }
