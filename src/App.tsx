@@ -23,16 +23,15 @@ const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <div className="overflow-x-hidden w-full">
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/auth" element={<Auth />} />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<Auth />} />
               <Route
                 path="/feed"
                 element={
@@ -120,7 +119,6 @@ const App = () => {
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
-    </div>
   );
 };
 
