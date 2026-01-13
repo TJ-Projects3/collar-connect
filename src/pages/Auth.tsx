@@ -169,6 +169,27 @@ const Auth = () => {
       }
     });
 
+    // Handle PKCE code exchange (modern Supabase flow)
+    const handleCodeExchange = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      
+      if (code) {
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error('Code exchange error:', error);
+          }
+          // Clean up URL after exchange
+          window.history.replaceState({}, '', window.location.pathname);
+        } catch (err) {
+          console.error('Exchange failed:', err);
+        }
+      }
+    };
+
+    handleCodeExchange();
+
     // Fallback: check URL hash for type=recovery
     try {
       const hash = window.location.hash || "";
