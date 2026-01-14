@@ -6,10 +6,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Loader2, UserPlus } from "lucide-react";
 import { useAllProfiles } from "@/hooks/useAllProfiles";
+import { useAddConnection } from "@/hooks/useMessaging";
+import { useAuth } from "@/contexts/AuthContext";
 
 const MyNetwork = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: profiles, isLoading } = useAllProfiles();
+  const { user } = useAuth();
+  const addConnection = useAddConnection();
+  const [connectedUsers, setConnectedUsers] = useState<Set<string>>(new Set());
 
   // Filter users based on search
   const filteredUsers = useMemo(() => {
@@ -34,6 +39,15 @@ const MyNetwork = () => {
       return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
+  };
+
+  const handleConnect = (userId: string) => {
+    if (!user?.id) return;
+    addConnection.mutate(userId, {
+      onSuccess: () => {
+        setConnectedUsers((prev) => new Set([...prev, userId]));
+      },
+    });
   };
 
   return (
@@ -103,9 +117,14 @@ const MyNetwork = () => {
                       <span className="truncate">{user.location}</span>
                     </div>
                   )}
-                  <Button className="w-full" variant="outline">
+                  <Button
+                    className="w-full"
+                    variant={connectedUsers.has(user.id) ? "default" : "outline"}
+                    onClick={() => handleConnect(user.id)}
+                    disabled={connectedUsers.has(user.id) || addConnection.isPending}
+                  >
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Connect
+                    {connectedUsers.has(user.id) ? "Connected" : "Connect"}
                   </Button>
                 </CardContent>
               </Card>

@@ -90,3 +90,32 @@ export const useSendMessage = () => {
     onError: (e: any) => toast({ title: "Failed to send", description: e.message, variant: "destructive" }),
   });
 };
+
+// Add a connection
+export const useAddConnection = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (connectedUserId: string) => {
+      if (!user?.id) throw new Error("Not authenticated");
+      const { data, error } = await supabase
+        .from("user_connections" as any)
+        .insert({
+          user_id: user.id,
+          connected_user_id: connectedUserId,
+          status: "connected",
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["connections", user?.id] });
+      toast({ title: "Connection added!" });
+    },
+    onError: (e: any) => toast({ title: "Failed to connect", description: e.message, variant: "destructive" }),
+  });
+};
