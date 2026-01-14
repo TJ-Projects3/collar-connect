@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Mail, MapPin, Link as LinkIcon, Briefcase, Calendar,
   ThumbsUp, MessageCircle, Share2
@@ -20,6 +22,7 @@ import { usePostReplies } from "@/hooks/usePostReplies";
 import { formatDistanceToNow } from "date-fns";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { useSendMessage } from "@/hooks/useMessaging";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -62,6 +65,10 @@ const Profile = () => {
     isOpen: false,
     postId: "",
   });
+
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [messageText, setMessageText] = useState("");
+  const sendMessage = useSendMessage();
 
   const { data: userPosts, isLoading: postsLoading } = useQuery({
     queryKey: ["user-posts", viewedUserId],
@@ -179,10 +186,7 @@ const Profile = () => {
                       <Button
                         variant="outline"
                         className="gap-2"
-                        onClick={() => {
-                          if (!viewedUserId) return;
-                          navigate(`/messages?recipientId=${viewedUserId}`);
-                        }}
+                        onClick={() => setMessageDialogOpen(true)}
                       >
                         <Mail className="h-4 w-4" />
                         Message
@@ -363,8 +367,59 @@ const Profile = () => {
         onOpenChange={(open) => setShareDialogState({ ...shareDialogState, isOpen: open })}
         postId={shareDialogState.postId}
       />
+
+      {/* Message Dialog */}
+      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Message {profile?.full_name || "User"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Type your message..."
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              className="min-h-[100px] py-2 px-3 align-top"
+              style={{ resize: "vertical" }}
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setMessageDialogOpen(false);
+                  setMessageText("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSendMessage} disabled={sendMessage.isPending || !messageText.trim()}>
+                {sendMessage.isPending ? "Sending..." : "Send"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
+  const handleSendMessage = () => {
+    if (!viewedUserId || !messageText.trim()) return;
+    sendMessage.mutate(
+      { recipientId: viewedUserId, content: messageText.trim() },
+      {
+        onSuccess: () => {
+          setMessageDialogOpen(false);
+          setMessageText("");
+        },
+      }
+    );
+  };
 };
 
 export default Profile;
