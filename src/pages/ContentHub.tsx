@@ -5,6 +5,8 @@ import { FileText, Video, Download, ExternalLink, Eye, Loader2, Globe } from "lu
 import { Navbar } from "@/components/Navbar";
 import { useResources, type Resource } from "@/hooks/useResources";
 import { format } from "date-fns";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 // Security: Validate URL protocol to prevent XSS via javascript: URLs
 const isSafeUrl = (url: string | null): boolean => {
@@ -19,6 +21,23 @@ const isSafeUrl = (url: string | null): boolean => {
 
 const ContentHub = () => {
   const { data: resources, isLoading } = useResources();
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
+
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+  }, [searchParams]);
+
+  const filteredResources = useMemo(() => {
+    if (!resources) return [];
+    if (!searchQuery.trim()) return resources;
+    const q = searchQuery.toLowerCase();
+    return resources.filter(
+      (resource) =>
+        resource.title.toLowerCase().includes(q) ||
+        resource.description?.toLowerCase().includes(q)
+    );
+  }, [resources, searchQuery]);
 
   const getResourceIcon = (type: string) => {
     switch (type) {
@@ -184,9 +203,9 @@ const ContentHub = () => {
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : resources && resources.length > 0 ? (
+        ) : filteredResources && filteredResources.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resources.map((resource) => renderResourceCard(resource))}
+            {filteredResources.map((resource) => renderResourceCard(resource))}
           </div>
         ) : (
           <div className="text-center py-12">

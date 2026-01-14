@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Search, MapPin, Building2, ExternalLink, Loader2, Filter, X } from "lucide-react";
 import { useJobs } from "@/hooks/useJobs";
+import { useSearchParams } from "react-router-dom";
 
 const careerLevelLabels: Record<string, string> = {
   internship: "Internship",
@@ -32,13 +33,19 @@ const workArrangementLabels: Record<string, string> = {
 };
 
 const Jobs = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [selectedCareerLevels, setSelectedCareerLevels] = useState<string[]>([]);
   const [selectedWorkArrangements, setSelectedWorkArrangements] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: jobs, isLoading } = useJobs();
+
+  useEffect(() => {
+    const incoming = searchParams.get("search") || "";
+    setSearchQuery(incoming);
+  }, [searchParams]);
 
   // Get unique locations from jobs
   const uniqueLocations = useMemo(() => {

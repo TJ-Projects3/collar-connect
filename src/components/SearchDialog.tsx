@@ -115,18 +115,20 @@ export const SearchDialog = ({ open, onOpenChange }: SearchDialogProps) => {
                     <div className="space-y-2">
                       <h3 className="font-semibold text-sm">Posts</h3>
                       {results.posts.map((post) => (
-                        <Card
+                        <Link
                           key={post.id}
-                          className="cursor-pointer hover:bg-muted/50"
+                          to={`/feed?postId=${post.id}`}
                           onClick={() => onOpenChange(false)}
                         >
-                          <CardContent className="p-3">
-                            <p className="text-sm line-clamp-2">{post.content}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              by {post.profiles?.full_name || "Unknown"}
-                            </p>
-                          </CardContent>
-                        </Card>
+                          <Card className="cursor-pointer hover:bg-muted/50">
+                            <CardContent className="p-3">
+                              <p className="text-sm line-clamp-2">{post.content}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                by {post.profiles?.full_name || "Unknown"}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        </Link>
                       ))}
                     </div>
                   )}
@@ -136,33 +138,35 @@ export const SearchDialog = ({ open, onOpenChange }: SearchDialogProps) => {
                     <div className="space-y-2">
                       <h3 className="font-semibold text-sm">People</h3>
                       {results.profiles.map((profile) => (
-                        <Card
+                        <Link
                           key={profile.id}
-                          className="cursor-pointer hover:bg-muted/50"
+                          to={`/profile?userId=${profile.id}`}
                           onClick={() => onOpenChange(false)}
                         >
-                          <CardContent className="p-3">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage
-                                  src={profile.avatar_url || undefined}
-                                />
-                                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                                  {profile.full_name?.[0]?.toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">
-                                  {profile.full_name}
-                                </p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {profile.job_title || "No title"}
-                                  {profile.company && ` at ${profile.company}`}
-                                </p>
+                          <Card className="cursor-pointer hover:bg-muted/50">
+                            <CardContent className="p-3">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage
+                                    src={profile.avatar_url || undefined}
+                                  />
+                                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                                    {profile.full_name?.[0]?.toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    {profile.full_name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {profile.job_title || "No title"}
+                                    {profile.company && ` at ${profile.company}`}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                            </CardContent>
+                          </Card>
+                        </Link>
                       ))}
                     </div>
                   )}
@@ -172,20 +176,22 @@ export const SearchDialog = ({ open, onOpenChange }: SearchDialogProps) => {
                     <div className="space-y-2">
                       <h3 className="font-semibold text-sm">Jobs</h3>
                       {results.jobs.map((job) => (
-                        <Card
+                        <Link
                           key={job.id}
-                          className="cursor-pointer hover:bg-muted/50"
+                          to={`/jobs?search=${encodeURIComponent(job.title)}`}
                           onClick={() => onOpenChange(false)}
                         >
-                          <CardContent className="p-3">
-                            <p className="text-sm font-medium truncate">
-                              {job.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {job.company}
-                            </p>
-                          </CardContent>
-                        </Card>
+                          <Card className="cursor-pointer hover:bg-muted/50">
+                            <CardContent className="p-3">
+                              <p className="text-sm font-medium truncate">
+                                {job.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {job.company}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        </Link>
                       ))}
                     </div>
                   )}
@@ -195,20 +201,22 @@ export const SearchDialog = ({ open, onOpenChange }: SearchDialogProps) => {
                     <div className="space-y-2">
                       <h3 className="font-semibold text-sm">Resources</h3>
                       {results.resources.map((resource) => (
-                        <Card
+                        <Link
                           key={resource.id}
-                          className="cursor-pointer hover:bg-muted/50"
+                          to={`/content-hub?search=${encodeURIComponent(resource.title)}`}
                           onClick={() => onOpenChange(false)}
                         >
-                          <CardContent className="p-3">
-                            <p className="text-sm font-medium truncate">
-                              {resource.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {resource.description}
-                            </p>
-                          </CardContent>
-                        </Card>
+                          <Card className="cursor-pointer hover:bg-muted/50">
+                            <CardContent className="p-3">
+                              <p className="text-sm font-medium truncate">
+                                {resource.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {resource.description}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        </Link>
                       ))}
                     </div>
                   )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,17 +12,34 @@ import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
 import { InlineReplies } from "@/components/InlineReplies";
 import { Navbar } from "@/components/Navbar";
-import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
 import { usePostReplies } from "@/hooks/usePostReplies";
 import { formatDistanceToNow } from "date-fns";
+import { useSearchParams } from "react-router-dom";
 
 const Profile = () => {
-  const { data: profile, isLoading: profileLoading } = useProfile();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const viewedUserId = searchParams.get("userId") || user?.id || null;
+
+  // Fetch profile for viewed user (fallback to current user)
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ["profile", viewedUserId],
+    queryFn: async () => {
+      if (!viewedUserId) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", viewedUserId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!viewedUserId,
+  });
 
   const [replyModalState, setReplyModalState] = useState<{
     isOpen: boolean;
@@ -45,18 +62,18 @@ const Profile = () => {
   });
 
   const { data: userPosts, isLoading: postsLoading } = useQuery({
-    queryKey: ["user-posts", user?.id],
+    queryKey: ["user-posts", viewedUserId],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!viewedUserId) return [];
       const { data, error } = await supabase
         .from("posts")
         .select("*")
-        .eq("author_id", user.id)
+        .eq("author_id", viewedUserId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!viewedUserId,
   });
 
   const getInitials = (name: string | null | undefined) => {
@@ -161,7 +178,7 @@ const Profile = () => {
                         <Mail className="h-4 w-4" />
                         Message
                       </Button>
-                      <ProfileButton />
+                      {viewedUserId === user?.id && <ProfileButton />}
                     </div>
                   </div>
                   
