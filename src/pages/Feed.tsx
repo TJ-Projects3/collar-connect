@@ -85,8 +85,8 @@ const Feed = () => {
       <Card key={post.id}>
         <CardHeader>
           <div className="flex items-start justify-between">
-            <div className="flex gap-3">
-              <Avatar>
+            <Link to={`/profile?userId=${post.author_id}`} className="flex gap-3">
+              <Avatar className="cursor-pointer">
                 {post.profiles?.avatar_url ? (
                   <AvatarImage src={post.profiles.avatar_url} />
                 ) : (
@@ -95,7 +95,7 @@ const Feed = () => {
                   </AvatarFallback>
                 )}
               </Avatar>
-              <div>
+              <div className="cursor-pointer">
                 <h3 className="font-semibold">{post.profiles?.full_name || "Unknown User"}</h3>
                 <p className="text-sm text-muted-foreground">
                   {[post.profiles?.job_title, post.profiles?.company].filter(Boolean).join(" @ ") || "Member"}
@@ -104,7 +104,7 @@ const Feed = () => {
                   {post.created_at && formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                 </p>
               </div>
-            </div>
+            </Link>
           </div>
         </CardHeader>
         <CardContent>
