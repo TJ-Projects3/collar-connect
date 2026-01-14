@@ -19,9 +19,11 @@ import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
 import { usePostReplies } from "@/hooks/usePostReplies";
 import { formatDistanceToNow } from "date-fns";
 import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const viewedUserId = searchParams.get("userId") || user?.id || null;
 
@@ -174,7 +176,14 @@ const Profile = () => {
                       </div>
                     </div>
                     <div className="flex gap-3 pb-2">
-                      <Button variant="outline" className="gap-2">
+                      <Button
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => {
+                          if (!viewedUserId) return;
+                          navigate(`/messages?recipientId=${viewedUserId}`);
+                        }}
+                      >
                         <Mail className="h-4 w-4" />
                         Message
                       </Button>

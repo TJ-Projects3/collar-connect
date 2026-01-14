@@ -77,7 +77,7 @@ export const useSendMessage = () => {
       if (!user?.id) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("messages" as any)
-        .insert({ sender_id: user.id, recipient_id: recipientId, content })
+        .insert({ sender_id: user.id, recipient_id: recipientId, content, created_at: new Date().toISOString() })
         .select()
         .single();
       if (error) throw error;

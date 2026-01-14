@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useConversations, useConnections, useSendMessage } from "@/hooks/useMessaging";
 import { formatDistanceToNow } from "date-fns";
+import { useSearchParams } from "react-router-dom";
 
 const Messages = () => {
   const { data: conversations = [] } = useConversations();
   const { data: connections = [] } = useConnections();
   const sendMessage = useSendMessage();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeRecipient, setActiveRecipient] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
@@ -23,7 +25,19 @@ const Messages = () => {
 
   const startChat = (recipientId: string) => {
     setActiveRecipient(recipientId);
+    // reflect in URL so deep-link works
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.set("recipientId", recipientId);
+      return params;
+    });
   };
+
+  // Initialize from URL recipientId
+  useEffect(() => {
+    const rid = searchParams.get("recipientId");
+    if (rid) setActiveRecipient(rid);
+  }, [searchParams]);
 
   const handleSend = () => {
     if (!activeRecipient || !messageText.trim()) return;
