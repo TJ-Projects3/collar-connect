@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,12 +21,10 @@ import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
 import { usePostReplies } from "@/hooks/usePostReplies";
 import { formatDistanceToNow } from "date-fns";
 import { useSearchParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import { useSendMessage } from "@/hooks/useMessaging";
 
 const Profile = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const viewedUserId = searchParams.get("userId") || user?.id || null;
 
@@ -104,6 +102,19 @@ const Profile = () => {
       isOpen: true,
       postId,
     });
+  };
+
+  const handleSendMessage = () => {
+    if (!viewedUserId || !messageText.trim()) return;
+    sendMessage.mutate(
+      { recipientId: viewedUserId, content: messageText.trim() },
+      {
+        onSuccess: () => {
+          setMessageDialogOpen(false);
+          setMessageText("");
+        },
+      }
+    );
   };
 
   const PostActions = ({ post }: { post: any }) => {
@@ -417,19 +428,6 @@ const Profile = () => {
       </Dialog>
     </div>
   );
-
-  const handleSendMessage = () => {
-    if (!viewedUserId || !messageText.trim()) return;
-    sendMessage.mutate(
-      { recipientId: viewedUserId, content: messageText.trim() },
-      {
-        onSuccess: () => {
-          setMessageDialogOpen(false);
-          setMessageText("");
-        },
-      }
-    );
-  };
 };
 
 export default Profile;
