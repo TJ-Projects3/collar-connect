@@ -8,6 +8,7 @@ import { Search, MapPin, Loader2, UserPlus } from "lucide-react";
 import { useAllProfiles } from "@/hooks/useAllProfiles";
 import { useAddConnection } from "@/hooks/useMessaging";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 
 const MyNetwork = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,44 +91,48 @@ const MyNetwork = () => {
         ) : filteredUsers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredUsers.map((user) => (
-              <Card
-                key={user.id}
-                className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50"
-              >
-                <CardHeader className="space-y-4 pb-4">
-                  <div className="flex flex-col items-center text-center">
-                    <Avatar className="h-24 w-24 mb-3">
-                      <AvatarImage src={user.avatar_url || undefined} alt={user.full_name} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                        {getInitials(user.full_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <h3 className="font-semibold text-lg leading-tight mb-1">
-                      {user.full_name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
-                      {user.job_title || "Tech Professional"}
-                    </p>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-0">
-                  {user.location && (
-                    <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-                      <span className="truncate">{user.location}</span>
+              <Link key={user.id} to={`/profile?userId=${user.id}`} className="no-underline">
+                <Card
+                  className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50 h-full cursor-pointer"
+                >
+                  <CardHeader className="space-y-4 pb-4">
+                    <div className="flex flex-col items-center text-center">
+                      <Avatar className="h-24 w-24 mb-3">
+                        <AvatarImage src={user.avatar_url || undefined} alt={user.full_name} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                          {getInitials(user.full_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <h3 className="font-semibold text-lg leading-tight mb-1">
+                        {user.full_name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+                        {user.job_title || "Tech Professional"}
+                      </p>
                     </div>
-                  )}
-                  <Button
-                    className="w-full"
-                    variant={connectedUsers.has(user.id) ? "default" : "outline"}
-                    onClick={() => handleConnect(user.id)}
-                    disabled={connectedUsers.has(user.id) || addConnection.isPending}
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    {connectedUsers.has(user.id) ? "Connected" : "Connect"}
-                  </Button>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent className="space-y-3 pt-0">
+                    {user.location && (
+                      <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span className="truncate">{user.location}</span>
+                      </div>
+                    )}
+                    <Button
+                      className="w-full"
+                      variant={connectedUsers.has(user.id) ? "default" : "outline"}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleConnect(user.id);
+                      }}
+                      disabled={connectedUsers.has(user.id) || addConnection.isPending}
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      {connectedUsers.has(user.id) ? "Connected" : "Connect"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         ) : (

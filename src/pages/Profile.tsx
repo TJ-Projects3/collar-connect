@@ -153,6 +153,15 @@ const Profile = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 py-6">
+        {profileLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground">Loading profile...</p>
+          </div>
+        ) : !profile ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground">Profile not found</p>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Content */}
           <main className="lg:col-span-8 space-y-4">
@@ -405,6 +414,9 @@ const Profile = () => {
           </div>
         </DialogContent>
       </Dialog>
+        </div>
+        )}
+      </div>
     </div>
   );
 
