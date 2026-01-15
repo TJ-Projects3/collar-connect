@@ -361,6 +361,7 @@ const Profile = () => {
             </Card>
           </aside>
         </div>
+        )}
       </div>
 
       {/* Modals */}
@@ -414,9 +415,6 @@ const Profile = () => {
           </div>
         </DialogContent>
       </Dialog>
-        </div>
-        )}
-      </div>
     </div>
   );
 
