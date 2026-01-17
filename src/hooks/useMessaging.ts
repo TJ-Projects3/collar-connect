@@ -83,13 +83,9 @@ export const useConversations = () => {
             const idx = old.findIndex((c: any) => c.counterpart_id === counterpartId);
             if (idx >= 0) {
               const updated = [...old];
-              updated[idx] = {
-                ...updated[idx],
-                last_message: newMessage,
-              };
-              // Move to top
-              updated.splice(idx, 1);
-              return [updated[0], ...updated];
+              const [conversation] = updated.splice(idx, 1);
+              conversation.last_message = newMessage;
+              return [conversation, ...updated];
             }
 
             return [newConversation, ...old];
@@ -201,8 +197,6 @@ export const useSendMessage = () => {
         ];
       });
 
-      // Ensure eventual consistency with a refetch
-      qc.invalidateQueries({ queryKey: ["conversations", user?.id] });
       toast({ title: "Message sent" });
     },
     onError: (e: any) => toast({ title: "Failed to send", description: e.message, variant: "destructive" }),
