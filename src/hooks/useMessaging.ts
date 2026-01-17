@@ -83,7 +83,46 @@ export const useSendMessage = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_d, { recipientId }) => {
+    onSuccess: (data, { recipientId }) => {
+      // Instant UI update: inject or update the counterpart in Recent Chats
+      qc.setQueryData(["conversations", user?.id], (old: any[] | undefined) => {
+        const inserted = data as any;
+        const lastMessage = inserted;
+        const counterpartId = recipientId;
+        const counterpartProfile = inserted?.recipient ?? undefined;
+
+        if (!old || old.length === 0) {
+          return [
+            {
+              counterpart_id: counterpartId,
+              counterpart_profile: counterpartProfile,
+              last_message: lastMessage,
+            },
+          ];
+        }
+
+        const idx = old.findIndex((c: any) => c.counterpart_id === counterpartId);
+        if (idx >= 0) {
+          const updated = [...old];
+          updated[idx] = {
+            ...updated[idx],
+            counterpart_profile: updated[idx].counterpart_profile ?? counterpartProfile,
+            last_message: lastMessage,
+          };
+          return updated;
+        }
+
+        return [
+          {
+            counterpart_id: counterpartId,
+            counterpart_profile: counterpartProfile,
+            last_message: lastMessage,
+          },
+          ...old,
+        ];
+      });
+
+      // Ensure eventual consistency with a refetch
       qc.invalidateQueries({ queryKey: ["conversations", user?.id] });
       toast({ title: "Message sent" });
     },
