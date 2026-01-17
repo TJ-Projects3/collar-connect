@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -6,9 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 // List conversations with last message time per counterpart
 export const useConversations = () => {
   const { user } = useAuth();
-  return useQuery({
+  const qc = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["conversations", user?.id],
     enabled: !!user?.id,
+    staleTime: Infinity,
+    gcTime: Infinity,
     queryFn: async () => {
       // Fetch messages involving the user
       const { data, error } = await supabase
@@ -37,6 +42,68 @@ export const useConversations = () => {
       return Array.from(map.values());
     },
   });
+
+  // Set up real-time subscription for incoming messages
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const subscription = supabase
+      .channel("messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          const newMessage = payload.new as any;
+
+          // Fetch sender profile
+          const { data: senderProfile } = await supabase
+            .from("profiles")
+            .select("full_name, avatar_url")
+            .eq("id", newMessage.sender_id)
+            .maybeSingle();
+
+          // Update cache: add or update conversation for this sender
+          qc.setQueryData(["conversations", user.id], (old: any[] | undefined) => {
+            const counterpartId = newMessage.sender_id;
+            const newConversation = {
+              counterpart_id: counterpartId,
+              counterpart_profile: senderProfile,
+              last_message: newMessage,
+            };
+
+            if (!old || old.length === 0) {
+              return [newConversation];
+            }
+
+            const idx = old.findIndex((c: any) => c.counterpart_id === counterpartId);
+            if (idx >= 0) {
+              const updated = [...old];
+              updated[idx] = {
+                ...updated[idx],
+                last_message: newMessage,
+              };
+              // Move to top
+              updated.splice(idx, 1);
+              return [updated[0], ...updated];
+            }
+
+            return [newConversation, ...old];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [user?.id, qc]);
+
+  return query;
 };
 
 // List connections for current user
