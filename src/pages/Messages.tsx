@@ -70,6 +70,7 @@ const Messages = () => {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{c.counterpart_profile?.full_name || "Unknown"}</p>
+                        <p className="text-xs text-muted-foreground truncate">ID: {c.counterpart_id}</p>
                         <p className="text-xs text-muted-foreground truncate">
                           {c.last_message?.content}
                         </p>
