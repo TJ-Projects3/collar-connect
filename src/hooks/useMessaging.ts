@@ -83,13 +83,25 @@ export const useSendMessage = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data, { recipientId }) => {
+    onSuccess: async (data, { recipientId }) => {
+      // Fetch recipient profile for name + avatar
+      let counterpartProfile: any | undefined;
+      try {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("full_name, avatar_url")
+          .eq("id", recipientId)
+          .maybeSingle();
+        counterpartProfile = profileData ?? undefined;
+      } catch {
+        counterpartProfile = undefined;
+      }
+
       // Instant UI update: inject or update the counterpart in Recent Chats
       qc.setQueryData(["conversations", user?.id], (old: any[] | undefined) => {
         const inserted = data as any;
         const lastMessage = inserted;
         const counterpartId = recipientId;
-        const counterpartProfile = inserted?.recipient ?? undefined;
 
         if (!old || old.length === 0) {
           return [
