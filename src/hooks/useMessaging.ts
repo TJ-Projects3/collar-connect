@@ -140,11 +140,11 @@ export const useSendMessage = () => {
   return useMutation({
     mutationFn: async ({ recipientId, content }: { recipientId: string; content: string }) => {
       if (!user?.id) throw new Error("Not authenticated");
-      const { data, error } = await supabase
-        .from("messages" as any)
-        .insert({ sender_id: user.id, recipient_id: recipientId, content, created_at: new Date().toISOString() })
-        .select()
-        .single();
+      const { data, error } = await (supabase as any).rpc('send_dm', {
+        sender: user.id,
+        recipient: recipientId,
+        message_text: content,
+      });
       if (error) throw error;
       return data;
     },
