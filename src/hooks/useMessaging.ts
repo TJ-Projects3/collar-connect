@@ -14,6 +14,8 @@ export const useConversations = () => {
     enabled: !!user?.id,
     staleTime: 0,
     gcTime: 1000 * 60 * 5,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       // Fetch messages involving the user
       const { data, error } = await supabase
