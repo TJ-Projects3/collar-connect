@@ -12,8 +12,8 @@ export const useConversations = () => {
   const query = useQuery({
     queryKey: ["conversations", user?.id],
     enabled: !!user?.id,
-    staleTime: Infinity,
-    gcTime: Infinity,
+    staleTime: 0,
+    gcTime: 1000 * 60 * 5,
     queryFn: async () => {
       // Fetch messages involving the user
       const { data, error } = await supabase
