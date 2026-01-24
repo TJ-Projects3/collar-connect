@@ -300,7 +300,7 @@ const Profile = () => {
                       <div className="space-y-2 pb-2">
                         <h1 className="text-4xl font-bold">{profile?.full_name || "Your Name"}</h1>
                         <p className="text-xl text-muted-foreground">
-                          {[profile?.job_title, profile?.company].filter(Boolean).join(" @ ") || "Add your role"}
+                          {[profile?.job_title, profile?.company].filter(Boolean).join(" @ ") || "Welcome to NextGen Collar"}
                         </p>
                       </div>
                     </div>
