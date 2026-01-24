@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,6 +25,8 @@ import { formatDistanceToNow, format } from "date-fns";
 import { useSearchParams } from "react-router-dom";
 import { useSendMessage } from "@/hooks/useMessaging";
 import { useToast } from "@/hooks/use-toast";
+import { useAllProfiles } from "@/hooks/useAllProfiles";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -151,6 +153,69 @@ const Profile = () => {
           setMessageText("");
         },
       }
+    );
+  };
+
+  // Connections sidebar component
+  const ConnectionsSidebar = ({ currentUserId }: { currentUserId: string | null }) => {
+    const { data: allProfiles, isLoading } = useAllProfiles();
+    
+    // Filter out the current user and limit to 5 connections
+    const connections = useMemo(() => {
+      if (!allProfiles) return [];
+      return allProfiles
+        .filter(p => p.id !== currentUserId)
+        .slice(0, 5);
+    }, [allProfiles, currentUserId]);
+
+    const getInitials = (name: string | null) => {
+      if (!name) return "??";
+      const names = name.trim().split(" ");
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    };
+
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Connections</h3>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/my-network">View all</Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground text-center">Loading...</p>
+          ) : connections.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center">No connections yet</p>
+          ) : (
+            connections.map((connection) => (
+              <Link
+                key={connection.id}
+                to={`/profile?userId=${connection.id}`}
+                className="flex items-center gap-3 hover:bg-muted/50 rounded-lg p-1 -mx-1 transition-colors"
+              >
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={connection.avatar_url || undefined} />
+                  <AvatarFallback className="bg-secondary text-secondary-foreground">
+                    {getInitials(connection.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{connection.full_name || "Unknown"}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {connection.job_title || "Tech Professional"}
+                  </p>
+                </div>
+              </Link>
+            ))
+          )}
+        </CardContent>
+      </Card>
     );
   };
 
@@ -421,29 +486,7 @@ const Profile = () => {
           {/* Right Sidebar */}
           <aside className="lg:col-span-4 space-y-4">
             {/* Connections */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Connections</h3>
-                  <Button variant="ghost" size="sm">View all</Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-secondary text-secondary-foreground">
-                        U{i}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">User {i}</p>
-                      <p className="text-xs text-muted-foreground truncate">Professional Title</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <ConnectionsSidebar currentUserId={viewedUserId} />
           </aside>
         </div>
         )}
