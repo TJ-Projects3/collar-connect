@@ -14,6 +14,7 @@ import {
   Calendar,
   ChevronDown,
   Shield,
+  Menu,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,6 +23,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -40,19 +48,44 @@ const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
   <Link
     to={to}
     className={cn(
-      "flex flex-col items-center justify-center px-3 py-1 min-w-[80px] border-b-2 transition-colors hover:text-foreground",
+      "flex flex-col items-center justify-center px-2 md:px-3 py-1 min-w-[60px] md:min-w-[80px] border-b-2 transition-colors hover:text-foreground",
       isActive
         ? "border-foreground text-foreground"
         : "border-transparent text-muted-foreground"
     )}
   >
-    <Icon className="h-6 w-6" />
-    <span className="text-xs mt-1 hidden md:block">{label}</span>
+    <Icon className="h-5 w-5 md:h-6 md:w-6" />
+    <span className="text-[10px] md:text-xs mt-1 hidden md:block">{label}</span>
+  </Link>
+);
+
+interface MobileNavItemProps {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  isActive?: boolean;
+  onClick?: () => void;
+}
+
+const MobileNavItem = ({ to, icon: Icon, label, isActive, onClick }: MobileNavItemProps) => (
+  <Link
+    to={to}
+    onClick={onClick}
+    className={cn(
+      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+      isActive
+        ? "bg-primary/10 text-foreground font-medium"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+    )}
+  >
+    <Icon className="h-5 w-5" />
+    <span className="text-sm">{label}</span>
   </Link>
 );
 
 export const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -81,7 +114,6 @@ export const Navbar = () => {
     { to: "/notifications", icon: Bell, label: "Notifications" },
   ];
 
-  // Get initials from full name for avatar fallback
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "ME";
     const names = name.trim().split(" ");
@@ -91,9 +123,11 @@ export const Navbar = () => {
     return name.substring(0, 2).toUpperCase();
   };
 
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   return (
     <header className="sticky top-0 z-50 bg-card border-b">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-14">
           {/* Left: Logo + Search */}
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -101,7 +135,7 @@ export const Navbar = () => {
               <img
                 src="/ngc-transparent-logo.png"
                 alt="NextGen Collar"
-                className="h-9 w-9 object-contain"
+                className="h-8 w-8 sm:h-9 sm:w-9 object-contain"
               />
             </Link>
             <div className="hidden sm:block">
@@ -109,16 +143,25 @@ export const Navbar = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search"
-                  className="pl-9 w-[200px] lg:w-[280px] h-9 bg-muted/50 border-0 focus-visible:bg-background"
+                  className="pl-9 w-[160px] lg:w-[280px] h-9 bg-muted/50 border-0 focus-visible:bg-background"
                   onClick={() => setSearchOpen(true)}
                   readOnly
                 />
               </div>
             </div>
+            {/* Mobile Search Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="sm:hidden h-9 w-9"
+              onClick={() => setSearchOpen(true)}
+            >
+              <Search className="h-5 w-5 text-muted-foreground" />
+            </Button>
           </div>
 
-          {/* Center/Right: Navigation Items */}
-          <nav className="flex items-center h-full">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center h-full">
             {navItems.map((item) => (
               <NavItem
                 key={item.label}
@@ -129,7 +172,6 @@ export const Navbar = () => {
               />
             ))}
 
-            {/* Admin Nav Item - Only for admin users */}
             {isAdmin && (
               <NavItem
                 to="/admin"
@@ -139,10 +181,9 @@ export const Navbar = () => {
               />
             )}
 
-            {/* Divider */}
             <div className="h-10 w-px bg-border mx-1 hidden lg:block" />
 
-            {/* Profile Dropdown */}
+            {/* Profile Dropdown - Desktop */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex flex-col items-center justify-center px-3 py-1 min-w-[80px] border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors">
@@ -200,17 +241,127 @@ export const Navbar = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Mobile-visible quick sign out */}
-            <div className="ml-2 lg:hidden">
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                Sign out
-              </Button>
-            </div>
           </nav>
+
+          {/* Mobile Navigation */}
+          <div className="flex md:hidden items-center gap-1">
+            {/* Compact nav icons for mobile */}
+            <Link
+              to="/feed"
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                currentPath === "/feed" ? "text-foreground bg-muted" : "text-muted-foreground"
+              )}
+            >
+              <Home className="h-5 w-5" />
+            </Link>
+            <Link
+              to="/messages"
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                currentPath === "/messages" ? "text-foreground bg-muted" : "text-muted-foreground"
+              )}
+            >
+              <MessageSquare className="h-5 w-5" />
+            </Link>
+            <Link
+              to="/notifications"
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                currentPath === "/notifications" ? "text-foreground bg-muted" : "text-muted-foreground"
+              )}
+            >
+              <Bell className="h-5 w-5" />
+            </Link>
+
+            {/* Mobile Menu */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] p-0">
+                <SheetHeader className="p-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials(profile?.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <SheetTitle className="text-left">{profile?.full_name || "My Profile"}</SheetTitle>
+                      <p className="text-xs text-muted-foreground">View profile</p>
+                    </div>
+                  </div>
+                </SheetHeader>
+                <div className="p-4 space-y-1">
+                  {navItems.map((item) => (
+                    <MobileNavItem
+                      key={item.label}
+                      to={item.to}
+                      icon={item.icon}
+                      label={item.label}
+                      isActive={currentPath === item.to}
+                      onClick={closeMobileMenu}
+                    />
+                  ))}
+                  {isAdmin && (
+                    <MobileNavItem
+                      to="/admin"
+                      icon={Shield}
+                      label="Admin"
+                      isActive={currentPath === "/admin"}
+                      onClick={closeMobileMenu}
+                    />
+                  )}
+                  <div className="my-2 border-t" />
+                  <MobileNavItem
+                    to="/profile"
+                    icon={Users}
+                    label="View Profile"
+                    isActive={currentPath === "/profile"}
+                    onClick={closeMobileMenu}
+                  />
+                  <MobileNavItem
+                    to="/calendar"
+                    icon={Calendar}
+                    label="Calendar"
+                    isActive={currentPath === "/calendar"}
+                    onClick={closeMobileMenu}
+                  />
+                  <MobileNavItem
+                    to="/content-hub"
+                    icon={BookOpen}
+                    label="Content Hub"
+                    isActive={currentPath === "/content-hub"}
+                    onClick={closeMobileMenu}
+                  />
+                  <MobileNavItem
+                    to="/settings"
+                    icon={Shield}
+                    label="Settings & Privacy"
+                    isActive={currentPath === "/settings"}
+                    onClick={closeMobileMenu}
+                  />
+                  <div className="my-2 border-t" />
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      handleSignOut();
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <span className="text-sm">Sign Out</span>
+                  </button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
-        {/* Search Dialog */}
-        <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />      </div>
+        <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      </div>
     </header>
   );
 };
