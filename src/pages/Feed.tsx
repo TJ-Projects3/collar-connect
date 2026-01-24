@@ -87,13 +87,10 @@ const Feed = () => {
           <div className="flex items-start justify-between">
             <Link to={`/profile?userId=${post.author_id}`} className="flex gap-3">
               <Avatar className="cursor-pointer">
-                {post.profiles?.avatar_url ? (
-                  <AvatarImage src={post.profiles.avatar_url} />
-                ) : (
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getInitials(post.profiles?.full_name)}
-                  </AvatarFallback>
-                )}
+                <AvatarImage src={post.profiles?.avatar_url || undefined} />
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {getInitials(post.profiles?.full_name)}
+                </AvatarFallback>
               </Avatar>
               <div className="cursor-pointer">
                 <h3 className="font-semibold">{post.profiles?.full_name || "Unknown User"}</h3>

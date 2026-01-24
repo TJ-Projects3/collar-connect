@@ -289,13 +289,10 @@ const Profile = () => {
                   <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
                     <div className="flex flex-col sm:flex-row gap-6 sm:items-end">
                       <Avatar className="h-40 w-40 border-4 border-card shadow-xl">
-                        {profile?.avatar_url ? (
-                          <AvatarImage src={profile.avatar_url} />
-                        ) : (
-                          <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
-                            {getInitials(profile?.full_name)}
-                          </AvatarFallback>
-                        )}
+                        <AvatarImage src={profile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
+                          {getInitials(profile?.full_name)}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="space-y-2 pb-2">
                         <h1 className="text-4xl font-bold">{profile?.full_name || "Your Name"}</h1>
@@ -446,13 +443,10 @@ const Profile = () => {
                       <div className="space-y-3">
                         <div className="flex gap-3">
                           <Avatar className="h-10 w-10">
-                            {profile?.avatar_url ? (
-                              <AvatarImage src={profile.avatar_url} />
-                            ) : (
-                              <AvatarFallback className="bg-primary text-primary-foreground">
-                                {getInitials(profile?.full_name)}
-                              </AvatarFallback>
-                            )}
+                            <AvatarImage src={profile?.avatar_url || undefined} />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getInitials(profile?.full_name)}
+                            </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
