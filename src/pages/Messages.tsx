@@ -9,6 +9,7 @@ import { useConversations, useConnections, useSendMessage } from "@/hooks/useMes
 import { formatDistanceToNow } from "date-fns";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Messages = () => {
   const { user } = useAuth();
@@ -26,6 +27,40 @@ const Messages = () => {
       refetch();
     }
   }, [user?.id, refetch]);
+
+  // Explicit load chats on mount to guarantee persistence after refresh
+  useEffect(() => {
+    const loadChats = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) return; // ⛔ DO NOT QUERY YET
+
+      const { data, error } = await supabase
+        .from("conversations")
+        .select(`
+          id,
+          last_message,
+          last_message_at,
+          conversation_participants (
+            user_id,
+            user:user_id (full_name, avatar_url)
+          )
+        `)
+        .order("last_message_at", { ascending: false });
+
+      if (error) {
+        console.error("Failed to load chats:", error);
+        return;
+      }
+
+      // Invalidate and refetch to update the cache
+      refetch();
+    };
+
+    loadChats();
+  }, [refetch]);
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";

@@ -17,81 +17,60 @@ export const useConversations = () => {
     refetchOnMount: 'always',
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      // Fetch messages involving the user
+      if (!user?.id) return [];
+
+      // Fetch conversations where user is a participant
       const { data, error } = await supabase
-        .from("messages" as any)
+        .from("conversations")
         .select(`
-          id, sender_id, recipient_id, content, created_at,
-          sender:sender_id (full_name, avatar_url),
-          recipient:recipient_id (full_name, avatar_url)
+          id,
+          last_message,
+          last_message_at,
+          conversation_participants (
+            user_id,
+            user:user_id (full_name, avatar_url)
+          )
         `)
-        .or(`sender_id.eq.${user!.id},recipient_id.eq.${user!.id}`)
-        .order("created_at", { ascending: false });
+        .order("last_message_at", { ascending: false });
+
       if (error) throw error;
 
-      // Group by counterpart and compute last message
-      const map = new Map<string, any>();
-      for (const m of data as any[]) {
-        const counterpartId = m.sender_id === user!.id ? m.recipient_id : m.sender_id;
-        if (!map.has(counterpartId)) {
-          map.set(counterpartId, {
-            counterpart_id: counterpartId,
-            counterpart_profile: m.sender_id === user!.id ? m.recipient : m.sender,
-            last_message: m,
-          });
-        }
-      }
-      return Array.from(map.values());
+      // Transform to match expected format: get the OTHER participant
+      return (data as any[]).map((conv) => {
+        const otherParticipant = conv.conversation_participants?.find(
+          (p: any) => p.user_id !== user!.id
+        );
+        const counterpartProfile = otherParticipant?.user;
+        const counterpartId = otherParticipant?.user_id;
+
+        return {
+          counterpart_id: counterpartId,
+          counterpart_profile: counterpartProfile,
+          last_message: {
+            content: conv.last_message,
+            created_at: conv.last_message_at,
+          },
+        };
+      });
     },
   });
 
-  // Set up real-time subscription for incoming messages
+  // Set up real-time subscription for incoming messages (conversations table)
   useEffect(() => {
     if (!user?.id) return;
 
     const subscription = supabase
-      .channel("messages")
+      .channel("conversations")
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
-          table: "messages",
-          filter: `recipient_id=eq.${user.id}`,
+          table: "conversations",
         },
-        async (payload) => {
-          const newMessage = payload.new as any;
-
-          // Fetch sender profile
-          const { data: senderProfile } = await supabase
-            .from("profiles")
-            .select("full_name, avatar_url")
-            .eq("id", newMessage.sender_id)
-            .maybeSingle();
-
-          // Update cache: add or update conversation for this sender
-          qc.setQueryData(["conversations", user.id], (old: any[] | undefined) => {
-            const counterpartId = newMessage.sender_id;
-            const newConversation = {
-              counterpart_id: counterpartId,
-              counterpart_profile: senderProfile,
-              last_message: newMessage,
-            };
-
-            if (!old || old.length === 0) {
-              return [newConversation];
-            }
-
-            const idx = old.findIndex((c: any) => c.counterpart_id === counterpartId);
-            if (idx >= 0) {
-              const updated = [...old];
-              const [conversation] = updated.splice(idx, 1);
-              conversation.last_message = newMessage;
-              return [conversation, ...updated];
-            }
-
-            return [newConversation, ...old];
-          });
+        async () => {
+          // Refetch conversations when any conversation changes
+          qc.invalidateQueries({ queryKey: ["conversations", user.id] });
         }
       )
       .subscribe();
