@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,21 +7,26 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Mail, MapPin, Link as LinkIcon, Briefcase, Calendar,
-  ThumbsUp, MessageCircle, Share2
+  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2
 } from "lucide-react";
 import { ProfileButton } from "@/components/ProfileButton";
 import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
 import { InlineReplies } from "@/components/InlineReplies";
+import { ExperienceFormModal } from "@/components/ExperienceFormModal";
 import { Navbar } from "@/components/Navbar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
 import { usePostReplies } from "@/hooks/usePostReplies";
-import { formatDistanceToNow } from "date-fns";
+import { useExperiences, useDeleteExperience, type Experience } from "@/hooks/useExperiences";
+import { formatDistanceToNow, format } from "date-fns";
 import { useSearchParams } from "react-router-dom";
 import { useSendMessage } from "@/hooks/useMessaging";
+import { useToast } from "@/hooks/use-toast";
+import { useAllProfiles } from "@/hooks/useAllProfiles";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -67,6 +72,40 @@ const Profile = () => {
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const sendMessage = useSendMessage();
+  const { toast } = useToast();
+
+  // Experience state
+  const [experienceModalOpen, setExperienceModalOpen] = useState(false);
+  const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
+  const { data: experiences = [], isLoading: experiencesLoading } = useExperiences(viewedUserId);
+  const deleteExperience = useDeleteExperience();
+
+  const isOwnProfile = viewedUserId === user?.id;
+
+  const handleEditExperience = (exp: Experience) => {
+    setEditingExperience(exp);
+    setExperienceModalOpen(true);
+  };
+
+  const handleDeleteExperience = async (id: string) => {
+    try {
+      await deleteExperience.mutateAsync(id);
+      toast({
+        title: "Experience deleted",
+        description: "Your experience has been removed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete experience.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatExperienceDate = (dateStr: string) => {
+    return format(new Date(dateStr), "MMM yyyy");
+  };
 
   const { data: userPosts, isLoading: postsLoading } = useQuery({
     queryKey: ["user-posts", viewedUserId],
@@ -114,6 +153,69 @@ const Profile = () => {
           setMessageText("");
         },
       }
+    );
+  };
+
+  // Connections sidebar component
+  const ConnectionsSidebar = ({ currentUserId }: { currentUserId: string | null }) => {
+    const { data: allProfiles, isLoading } = useAllProfiles();
+    
+    // Filter out the current user and limit to 5 connections
+    const connections = useMemo(() => {
+      if (!allProfiles) return [];
+      return allProfiles
+        .filter(p => p.id !== currentUserId)
+        .slice(0, 5);
+    }, [allProfiles, currentUserId]);
+
+    const getInitials = (name: string | null) => {
+      if (!name) return "??";
+      const names = name.trim().split(" ");
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    };
+
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Connections</h3>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/my-network">View all</Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground text-center">Loading...</p>
+          ) : connections.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center">No connections yet</p>
+          ) : (
+            connections.map((connection) => (
+              <Link
+                key={connection.id}
+                to={`/profile?userId=${connection.id}`}
+                className="flex items-center gap-3 hover:bg-muted/50 rounded-lg p-1 -mx-1 transition-colors"
+              >
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={connection.avatar_url || undefined} />
+                  <AvatarFallback className="bg-secondary text-secondary-foreground">
+                    {getInitials(connection.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{connection.full_name || "Unknown"}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {connection.job_title || "Tech Professional"}
+                  </p>
+                </div>
+              </Link>
+            ))
+          )}
+        </CardContent>
+      </Card>
     );
   };
 
@@ -187,18 +289,15 @@ const Profile = () => {
                   <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
                     <div className="flex flex-col sm:flex-row gap-6 sm:items-end">
                       <Avatar className="h-40 w-40 border-4 border-card shadow-xl">
-                        {profile?.avatar_url ? (
-                          <AvatarImage src={profile.avatar_url} />
-                        ) : (
-                          <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
-                            {getInitials(profile?.full_name)}
-                          </AvatarFallback>
-                        )}
+                        <AvatarImage src={profile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
+                          {getInitials(profile?.full_name)}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="space-y-2 pb-2">
                         <h1 className="text-4xl font-bold">{profile?.full_name || "Your Name"}</h1>
                         <p className="text-xl text-muted-foreground">
-                          {[profile?.job_title, profile?.company].filter(Boolean).join(" @ ") || "Add your role"}
+                          {[profile?.job_title, profile?.company].filter(Boolean).join(" @ ") || "Welcome to NextGenCollar!"}
                         </p>
                       </div>
                     </div>
@@ -249,47 +348,84 @@ const Profile = () => {
 
             {/* Experience Section */}
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <h2 className="text-xl font-bold">Experience</h2>
+                {isOwnProfile && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingExperience(null);
+                      setExperienceModalOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Briefcase className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">Software Engineer</h3>
-                    <p className="text-muted-foreground">TechCorp</p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Jan 2022 - Present</span>
+                {experiencesLoading ? (
+                  <p className="text-muted-foreground text-center">Loading experiences...</p>
+                ) : experiences.length === 0 ? (
+                  <p className="text-muted-foreground text-center">
+                    {isOwnProfile ? "No experience added yet. Click 'Add' to add your work history." : "No experience added yet."}
+                  </p>
+                ) : (
+                  experiences.map((exp, index) => (
+                    <div key={exp.id}>
+                      <div className="flex gap-4">
+                        <div className="w-12 h-12 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Briefcase className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-semibold text-lg">{exp.title}</h3>
+                              <p className="text-muted-foreground">{exp.company}</p>
+                              {exp.location && (
+                                <p className="text-sm text-muted-foreground">{exp.location}</p>
+                              )}
+                            </div>
+                            {isOwnProfile && (
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleEditExperience(exp)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteExperience(exp.id)}
+                                  disabled={deleteExperience.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                            <Calendar className="h-4 w-4" />
+                            <span>
+                              {formatExperienceDate(exp.start_date)} - {exp.is_current ? "Present" : exp.end_date ? formatExperienceDate(exp.end_date) : "Present"}
+                            </span>
+                          </div>
+                          {exp.description && (
+                            <p className="mt-3 text-sm leading-relaxed whitespace-pre-wrap">
+                              {exp.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {index !== experiences.length - 1 && <Separator className="mt-6" />}
                     </div>
-                    <p className="mt-3 text-sm leading-relaxed">
-                      Leading frontend development for enterprise applications. Mentoring junior developers 
-                      and advocating for inclusive hiring practices.
-                    </p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded bg-secondary/10 flex items-center justify-center flex-shrink-0">
-                    <Briefcase className="h-6 w-6 text-secondary" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">Junior Developer</h3>
-                    <p className="text-muted-foreground">StartupXYZ</p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Jun 2020 - Dec 2021</span>
-                    </div>
-                    <p className="mt-3 text-sm leading-relaxed">
-                      Developed and maintained web applications using React and Node.js. 
-                      Collaborated with cross-functional teams to deliver high-quality features.
-                    </p>
-                  </div>
-                </div>
+                  ))
+                )}
               </CardContent>
             </Card>
 
@@ -307,13 +443,10 @@ const Profile = () => {
                       <div className="space-y-3">
                         <div className="flex gap-3">
                           <Avatar className="h-10 w-10">
-                            {profile?.avatar_url ? (
-                              <AvatarImage src={profile.avatar_url} />
-                            ) : (
-                              <AvatarFallback className="bg-primary text-primary-foreground">
-                                {getInitials(profile?.full_name)}
-                              </AvatarFallback>
-                            )}
+                            <AvatarImage src={profile?.avatar_url || undefined} />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getInitials(profile?.full_name)}
+                            </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
@@ -347,29 +480,7 @@ const Profile = () => {
           {/* Right Sidebar */}
           <aside className="lg:col-span-4 space-y-4">
             {/* Connections */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Connections</h3>
-                  <Button variant="ghost" size="sm">View all</Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-secondary text-secondary-foreground">
-                        U{i}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">User {i}</p>
-                      <p className="text-xs text-muted-foreground truncate">Professional Title</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <ConnectionsSidebar currentUserId={viewedUserId} />
           </aside>
         </div>
         )}
@@ -387,6 +498,14 @@ const Profile = () => {
         open={shareDialogState.isOpen}
         onOpenChange={(open) => setShareDialogState({ ...shareDialogState, isOpen: open })}
         postId={shareDialogState.postId}
+      />
+      <ExperienceFormModal
+        open={experienceModalOpen}
+        onOpenChange={(open) => {
+          setExperienceModalOpen(open);
+          if (!open) setEditingExperience(null);
+        }}
+        experience={editingExperience}
       />
 
       {/* Message Dialog */}
