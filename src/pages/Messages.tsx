@@ -8,15 +8,24 @@ import { Separator } from "@/components/ui/separator";
 import { useConversations, useConnections, useSendMessage } from "@/hooks/useMessaging";
 import { formatDistanceToNow } from "date-fns";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Messages = () => {
-  const { data: conversations = [] } = useConversations();
+  const { user } = useAuth();
+  const { data: conversations = [], refetch } = useConversations();
   const { data: connections = [] } = useConnections();
   const sendMessage = useSendMessage();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeRecipient, setActiveRecipient] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
+
+  // Ensure Recent Chats are fetched when user is loaded
+  useEffect(() => {
+    if (user?.id) {
+      refetch();
+    }
+  }, [user?.id, refetch]);
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
