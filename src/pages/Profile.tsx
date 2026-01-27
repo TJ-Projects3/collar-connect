@@ -151,6 +151,8 @@ const Profile = () => {
         onSuccess: () => {
           setMessageDialogOpen(false);
           setMessageText("");
+          // Navigate to messages page with this conversation active
+          window.location.href = `/messages?recipientId=${viewedUserId}`;
         },
       }
     );
