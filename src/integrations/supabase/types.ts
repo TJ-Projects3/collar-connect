@@ -625,7 +625,24 @@ export type Database = {
       }
       send_dm: {
         Args: { message_text: string; recipient: string; sender: string }
-        Returns: undefined
+        Returns: {
+          content: string
+          conversation_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          recipient_deleted: boolean
+          recipient_id: string
+          sender_deleted: boolean
+          sender_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
     }
     Enums: {
