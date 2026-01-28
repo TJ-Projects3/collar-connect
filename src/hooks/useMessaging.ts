@@ -18,6 +18,24 @@ interface Conversation {
   } | null;
 }
 
+interface Message {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  content: string;
+  created_at: string;
+}
+
+// Fetch profile by ID
+const fetchProfile = async (userId: string): Promise<MessageProfile | null> => {
+  const { data } = await supabase
+    .from("profiles")
+    .select("full_name, avatar_url")
+    .eq("id", userId)
+    .maybeSingle();
+  return data;
+};
+
 // List conversations with last message per counterpart
 export const useConversations = () => {
   const { user } = useAuth();
@@ -31,43 +49,52 @@ export const useConversations = () => {
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      // Fetch messages involving the user with profile joins
-      const { data, error } = await supabase
+      console.log("[useConversations] Fetching messages for user:", user!.id);
+      
+      // Fetch messages without profile joins (no FK required)
+      const { data: messages, error } = await supabase
         .from("messages")
-        .select(`
-          id, sender_id, recipient_id, content, created_at,
-          sender:sender_id (full_name, avatar_url),
-          recipient:recipient_id (full_name, avatar_url)
-        `)
+        .select("id, sender_id, recipient_id, content, created_at")
         .or(`sender_id.eq.${user!.id},recipient_id.eq.${user!.id}`)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[useConversations] Error fetching messages:", error);
+        throw error;
+      }
 
-      // Cast and process the data
-      const messages = data as unknown as Array<{
-        id: string;
-        sender_id: string;
-        recipient_id: string;
-        content: string;
-        created_at: string;
-        sender: MessageProfile | null;
-        recipient: MessageProfile | null;
-      }>;
+      console.log("[useConversations] Got messages:", messages?.length || 0);
 
-      // Group by counterpart and compute last message
-      const map = new Map<string, Conversation>();
+      if (!messages || messages.length === 0) {
+        return [];
+      }
+
+      // Group by counterpart and get unique counterpart IDs
+      const counterpartMap = new Map<string, Message>();
       for (const m of messages) {
         const counterpartId = m.sender_id === user!.id ? m.recipient_id : m.sender_id;
-        if (!map.has(counterpartId)) {
-          map.set(counterpartId, {
-            counterpart_id: counterpartId,
-            counterpart_profile: m.sender_id === user!.id ? m.recipient : m.sender,
-            last_message: { content: m.content, created_at: m.created_at },
-          });
+        if (!counterpartMap.has(counterpartId)) {
+          counterpartMap.set(counterpartId, m);
         }
       }
-      return Array.from(map.values());
+
+      // Fetch all counterpart profiles in parallel
+      const counterpartIds = Array.from(counterpartMap.keys());
+      const profilePromises = counterpartIds.map(id => fetchProfile(id));
+      const profiles = await Promise.all(profilePromises);
+
+      // Build conversations array
+      const conversations: Conversation[] = counterpartIds.map((id, index) => {
+        const lastMsg = counterpartMap.get(id)!;
+        return {
+          counterpart_id: id,
+          counterpart_profile: profiles[index],
+          last_message: { content: lastMsg.content, created_at: lastMsg.created_at },
+        };
+      });
+
+      console.log("[useConversations] Built conversations:", conversations.length);
+      return conversations;
     },
   });
 
@@ -86,15 +113,13 @@ export const useConversations = () => {
           filter: `recipient_id=eq.${user.id}`,
         },
         async (payload) => {
-          const newMessage = payload.new as { sender_id: string; content: string; created_at: string };
+          const newMessage = payload.new as Message;
           const senderId = newMessage.sender_id;
 
+          console.log("[useConversations] Real-time message from:", senderId);
+
           // Fetch sender profile
-          const { data: senderProfile } = await supabase
-            .from("profiles")
-            .select("full_name, avatar_url")
-            .eq("id", senderId)
-            .maybeSingle();
+          const senderProfile = await fetchProfile(senderId);
 
           // Update cache
           qc.setQueryData(["conversations", user.id], (old: Conversation[] | undefined) => {
@@ -143,27 +168,24 @@ export const useConversationMessages = (recipientId: string | null) => {
     enabled: !!user?.id && !!recipientId,
     staleTime: 0,
     queryFn: async () => {
+      console.log("[useConversationMessages] Fetching for user:", user!.id, "recipient:", recipientId);
+      
+      // Query without profile joins - just get messages
       const { data, error } = await supabase
         .from("messages")
-        .select(`
-          id, sender_id, recipient_id, content, created_at,
-          sender:sender_id (full_name, avatar_url)
-        `)
+        .select("id, sender_id, recipient_id, content, created_at")
         .or(
           `and(sender_id.eq.${user!.id},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${user!.id})`
         )
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      
-      return data as unknown as Array<{
-        id: string;
-        sender_id: string;
-        recipient_id: string;
-        content: string;
-        created_at: string;
-        sender: MessageProfile | null;
-      }>;
+      if (error) {
+        console.error("[useConversationMessages] Error:", error);
+        throw error;
+      }
+
+      console.log("[useConversationMessages] Got messages:", data?.length || 0);
+      return data as Message[];
     },
   });
 
@@ -181,13 +203,14 @@ export const useConversationMessages = (recipientId: string | null) => {
           table: "messages",
         },
         (payload) => {
-          const newMessage = payload.new as { sender_id: string; recipient_id: string };
+          const newMessage = payload.new as Message;
           // Only update if message is part of this conversation
           const isRelevant =
             (newMessage.sender_id === user.id && newMessage.recipient_id === recipientId) ||
             (newMessage.sender_id === recipientId && newMessage.recipient_id === user.id);
 
           if (isRelevant) {
+            console.log("[useConversationMessages] Real-time update for conversation");
             qc.invalidateQueries({ queryKey: ["conversation-messages", recipientId] });
           }
         }
@@ -211,29 +234,25 @@ export const useSendMessage = () => {
   return useMutation({
     mutationFn: async ({ recipientId, content }: { recipientId: string; content: string }) => {
       if (!user?.id) throw new Error("Not authenticated");
+      console.log("[useSendMessage] Sending to:", recipientId);
+      
       const { data, error } = await supabase.rpc("send_dm", {
         sender: user.id,
         recipient: recipientId,
         message_text: content,
       });
-      if (error) throw error;
+      if (error) {
+        console.error("[useSendMessage] Error:", error);
+        throw error;
+      }
+      console.log("[useSendMessage] Success:", data);
       return data;
     },
     onSuccess: async (data, { recipientId }) => {
-      // Fetch recipient profile for name + avatar
-      let counterpartProfile: MessageProfile | null = null;
-      try {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("full_name, avatar_url")
-          .eq("id", recipientId)
-          .maybeSingle();
-        counterpartProfile = profileData;
-      } catch {
-        counterpartProfile = null;
-      }
+      // Fetch recipient profile
+      const counterpartProfile = await fetchProfile(recipientId);
 
-      const inserted = (data as Array<{ content: string; created_at: string }>)?.[0];
+      const inserted = (data as Message[])?.[0];
 
       // Instant UI update: inject or update the counterpart in Recent Chats
       qc.setQueryData(["conversations", user?.id], (old: Conversation[] | undefined) => {
