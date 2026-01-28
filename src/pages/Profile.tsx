@@ -304,15 +304,17 @@ const Profile = () => {
                       </div>
                     </div>
                     <div className="flex gap-3 pb-2">
-                      <Button
-                        variant="outline"
-                        className="gap-2"
-                        onClick={() => setMessageDialogOpen(true)}
-                      >
-                        <Mail className="h-4 w-4" />
-                        Message
-                      </Button>
-                      {viewedUserId === user?.id && <ProfileButton />}
+                      {!isOwnProfile && (
+                        <Button
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => setMessageDialogOpen(true)}
+                        >
+                          <Mail className="h-4 w-4" />
+                          Message
+                        </Button>
+                      )}
+                      {isOwnProfile && <ProfileButton />}
                     </div>
                   </div>
                   
