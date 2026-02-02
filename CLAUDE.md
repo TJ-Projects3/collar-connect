@@ -46,10 +46,10 @@ Forms use React Hook Form with Zod resolver for validation. See `OnboardingModal
 ```
 src/
 ├── components/ui/     # shadcn/ui components (do not edit directly)
-├── components/        # Feature components (ProtectedRoute, Onboarding*)
+├── components/        # Feature components (ProtectedRoute, Onboarding*, ReplyModal, ShareDialog, ExperienceFormModal)
 ├── contexts/          # AuthContext
-├── hooks/             # React Query hooks for data fetching
-├── pages/             # Route components
+├── hooks/             # React Query hooks (useProfile, useMessaging, useExperiences, usePostLikes, usePostReplies)
+├── pages/             # Route components (Profile, Messages, etc.)
 ├── integrations/supabase/
 │   ├── client.ts      # Supabase client init
 │   └── types.ts       # Auto-generated DB types (do not edit)
@@ -60,12 +60,31 @@ src/
 
 Key tables with RLS enabled:
 - **profiles** - User profiles linked to auth.users
+- **messages** - Direct messages between users (real-time enabled)
+- **experiences** - Work history entries for user profiles
+- **posts** - User activity posts with likes/replies
 - **events** - Platform events
 - **event_attendees** - Event registrations with status enum
 - **event_speakers** - Speaker info with profile links
 - **memberships** - User membership tracking
 
+Database functions:
+- `send_dm(sender, recipient, message_text)` - RPC for sending direct messages
+
 Avatar storage uses the "avatars" bucket with path pattern `{userId}/avatar.{ext}`.
+
+### Messaging System
+Real-time direct messaging with Supabase subscriptions:
+- `useConversations()` - Lists conversations grouped by counterpart with last message
+- `useConversationMessages(recipientId)` - Fetches message thread
+- `useSendMessage()` - Sends via `send_dm` RPC, updates cache optimistically
+- Routes: `/messages` with optional `?recipientId=` to open specific chat
+
+### Profile Features
+Profiles support viewing other users via `?userId=` query param:
+- `useExperiences(userId)` - Work history CRUD with `useAddExperience`, `useUpdateExperience`, `useDeleteExperience`
+- `useAllProfiles()` - Lists all users for connections sidebar
+- Message button on profiles initiates DM and redirects to `/messages`
 
 ## Path Aliases
 

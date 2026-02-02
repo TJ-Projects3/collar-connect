@@ -83,6 +83,57 @@ export const useConversations = () => {
   return query;
 };
 
+// Fetch messages for a specific conversation/recipient
+export const useConversationMessages = (recipientId: string | null) => {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["messages", user?.id, recipientId],
+    enabled: !!user?.id && !!recipientId,
+    staleTime: 0,
+    queryFn: async () => {
+      if (!user?.id || !recipientId) return [];
+
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .or(`and(sender_id.eq.${user.id},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${user.id})`)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Real-time subscription for new messages
+  useEffect(() => {
+    if (!user?.id || !recipientId) return;
+
+    const subscription = supabase
+      .channel(`messages:${user.id}:${recipientId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `sender_id=eq.${recipientId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ["messages", user.id, recipientId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [user?.id, recipientId, qc]);
+
+  return query;
+};
+
 // List connections for current user
 export const useConnections = () => {
   const { user } = useAuth();
@@ -94,33 +145,20 @@ export const useConnections = () => {
         .from("user_connections" as any)
         .select(`
           *,
-          requester:requester_id (full_name, avatar_url),
-          receiver:receiver_id (full_name, avatar_url)
+          user:user_id (full_name, avatar_url),
+          connected:connected_user_id (full_name, avatar_url)
         `)
-        .or(`requester_id.eq.${user!.id},receiver_id.eq.${user!.id}`)
+        .or(`user_id.eq.${user!.id},connected_user_id.eq.${user!.id}`)
         .eq('status', 'accepted')
         .order("created_at", { ascending: false });
       if (error) throw error;
 
       // Normalize to show the other person
-      const connections = (data as any[]).map((conn) => ({
-        ...conn,
-        connected_user_id:
-          conn.requester_id === user!.id
-            ? conn.receiver_id
-            : conn.requester_id,
-        connected_user_profile:
-          conn.requester_id === user!.id
-            ? conn.receiver
-            : conn.requester,
-      }));
-
-      return connections.map((c) => ({
-        other_id: c.connected_user_id,
-        other_profile: c.connected_user_profile,
-        status: c.status,
-        created_at: c.created_at,
-      }));
+      return (data as any[]).map((c) => {
+        const other = c.user_id === user!.id ? c.connected : c.user;
+        const otherId = c.user_id === user!.id ? c.connected_user_id : c.user_id;
+        return { other_id: otherId, other_profile: other, status: c.status, created_at: c.created_at };
+      });
     },
   });
 };
@@ -209,8 +247,8 @@ export const useAddConnection = () => {
       const { data, error } = await supabase
         .from("user_connections" as any)
         .insert({
-          requester_id: user.id,
-          receiver_id: connectedUserId,
+          user_id: user.id,
+          connected_user_id: connectedUserId,
           status: "connected",
           created_at: new Date().toISOString(),
         })

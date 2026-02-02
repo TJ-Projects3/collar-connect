@@ -4,29 +4,27 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Loader2, UserPlus } from "lucide-react";
+import { Search, MapPin, Loader2, MessageCircle } from "lucide-react";
 import { useAllProfiles } from "@/hooks/useAllProfiles";
-import { useAddConnection } from "@/hooks/useMessaging";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const MyNetwork = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: profiles, isLoading } = useAllProfiles();
   const { user } = useAuth();
-  const addConnection = useAddConnection();
-  const [connectedUsers, setConnectedUsers] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
 
   // Filter users based on search
   const filteredUsers = useMemo(() => {
     if (!profiles) return [];
 
-    return profiles.filter((user) => {
+    return profiles.filter((profile) => {
       const matchesSearch =
         searchQuery === "" ||
-        user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.job_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.location?.toLowerCase().includes(searchQuery.toLowerCase());
+        profile.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        profile.job_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        profile.location?.toLowerCase().includes(searchQuery.toLowerCase());
 
       return matchesSearch;
     });
@@ -42,13 +40,8 @@ const MyNetwork = () => {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const handleConnect = (userId: string) => {
-    if (!user?.id) return;
-    addConnection.mutate(userId, {
-      onSuccess: () => {
-        setConnectedUsers((prev) => new Set([...prev, userId]));
-      },
-    });
+  const handleMessage = (userId: string) => {
+    navigate(`/messages?recipientId=${userId}`);
   };
 
   return (
@@ -90,49 +83,46 @@ const MyNetwork = () => {
           </div>
         ) : filteredUsers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredUsers.map((user) => (
-              <Link key={user.id} to={`/profile?userId=${user.id}`} className="no-underline">
-                <Card
-                  className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50 h-full cursor-pointer"
-                >
+            {filteredUsers.map((profile) => (
+              <Card
+                key={profile.id}
+                className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50 h-full"
+              >
+                <Link to={`/profile?userId=${profile.id}`} className="no-underline">
                   <CardHeader className="space-y-4 pb-4">
                     <div className="flex flex-col items-center text-center">
                       <Avatar className="h-24 w-24 mb-3">
-                        <AvatarImage src={user.avatar_url || undefined} alt={user.full_name} />
+                        <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name || undefined} />
                         <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                          {getInitials(user.full_name)}
+                          {getInitials(profile.full_name)}
                         </AvatarFallback>
                       </Avatar>
                       <h3 className="font-semibold text-lg leading-tight mb-1">
-                        {user.full_name}
+                        {profile.full_name || "Unknown"}
                       </h3>
                       <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
-                        {user.job_title || "Tech Professional"}
+                        {profile.job_title || "Tech Professional"}
                       </p>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3 pt-0">
-                    {user.location && (
-                      <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-                        <span className="truncate">{user.location}</span>
-                      </div>
-                    )}
-                    <Button
-                      className="w-full"
-                      variant={connectedUsers.has(user.id) ? "default" : "outline"}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleConnect(user.id);
-                      }}
-                      disabled={connectedUsers.has(user.id) || addConnection.isPending}
-                    >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      {connectedUsers.has(user.id) ? "Connected" : "Connect"}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Link>
+                </Link>
+                <CardContent className="space-y-3 pt-0">
+                  {profile.location && (
+                    <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                      <span className="truncate">{profile.location}</span>
+                    </div>
+                  )}
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={() => handleMessage(profile.id)}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Message
+                  </Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
         ) : (
