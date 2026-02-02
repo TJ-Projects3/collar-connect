@@ -94,19 +94,33 @@ export const useConnections = () => {
         .from("user_connections" as any)
         .select(`
           *,
-          user:user_id (full_name, avatar_url),
-          connected:connected_user_id (full_name, avatar_url)
+          requester:requester_id (full_name, avatar_url),
+          receiver:receiver_id (full_name, avatar_url)
         `)
-        .or(`user_id.eq.${user!.id},connected_user_id.eq.${user!.id}`)
+        .or(`requester_id.eq.${user!.id},receiver_id.eq.${user!.id}`)
+        .eq('status', 'accepted')
         .order("created_at", { ascending: false });
       if (error) throw error;
 
       // Normalize to show the other person
-      return (data as any[]).map((c) => {
-        const other = c.user_id === user!.id ? c.connected : c.user;
-        const otherId = c.user_id === user!.id ? c.connected_user_id : c.user_id;
-        return { other_id: otherId, other_profile: other, status: c.status, created_at: c.created_at };
-      });
+      const connections = (data as any[]).map((conn) => ({
+        ...conn,
+        connected_user_id:
+          conn.requester_id === user!.id
+            ? conn.receiver_id
+            : conn.requester_id,
+        connected_user_profile:
+          conn.requester_id === user!.id
+            ? conn.receiver
+            : conn.requester,
+      }));
+
+      return connections.map((c) => ({
+        other_id: c.connected_user_id,
+        other_profile: c.connected_user_profile,
+        status: c.status,
+        created_at: c.created_at,
+      }));
     },
   });
 };
@@ -195,8 +209,8 @@ export const useAddConnection = () => {
       const { data, error } = await supabase
         .from("user_connections" as any)
         .insert({
-          user_id: user.id,
-          connected_user_id: connectedUserId,
+          requester_id: user.id,
+          receiver_id: connectedUserId,
           status: "connected",
           created_at: new Date().toISOString(),
         })
