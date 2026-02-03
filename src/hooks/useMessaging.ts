@@ -137,27 +137,39 @@ export const useConversationMessages = (recipientId: string | null) => {
 // List connections for current user
 export const useConnections = () => {
   const { user } = useAuth();
+
   return useQuery({
     queryKey: ["connections", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
+      if (!user?.id) return [];
+
       const { data, error } = await supabase
         .from("user_connections" as any)
         .select(`
-          *,
-          user:user_id (full_name, avatar_url),
-          connected:connected_user_id (full_name, avatar_url)
+          id,
+          requester_id,
+          receiver_id,
+          status,
+          created_at,
+          requester:requester_id (full_name, avatar_url),
+          receiver:receiver_id (full_name, avatar_url)
         `)
-        .or(`user_id.eq.${user!.id},connected_user_id.eq.${user!.id}`)
-        .eq('status', 'accepted')
+        .eq("status", "accepted")
+        .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order("created_at", { ascending: false });
+
       if (error) throw error;
 
-      // Normalize to show the other person
       return (data as any[]).map((c) => {
-        const other = c.user_id === user!.id ? c.connected : c.user;
-        const otherId = c.user_id === user!.id ? c.connected_user_id : c.user_id;
-        return { other_id: otherId, other_profile: other, status: c.status, created_at: c.created_at };
+        const isRequester = c.requester_id === user.id;
+
+        return {
+          other_id: isRequester ? c.receiver_id : c.requester_id,
+          other_profile: isRequester ? c.receiver : c.requester,
+          status: c.status,
+          created_at: c.created_at,
+        };
       });
     },
   });
@@ -241,40 +253,49 @@ export const useAddConnection = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
+
   return useMutation({
-    mutationFn: async (connectedUserId: string) => {
+    mutationFn: async (otherUserId: string) => {
       if (!user?.id) throw new Error("Not authenticated");
-      
-      // First check if connection already exists in either direction
+
+      // Check existing connection
       const { data: existing, error: checkError } = await supabase
         .from("user_connections" as any)
-        .select("id, status")
-        .or(`and(user_id.eq.${user.id},connected_user_id.eq.${connectedUserId}),and(user_id.eq.${connectedUserId},connected_user_id.eq.${user.id})`);
-      
+        .select("id")
+        .or(
+          `and(requester_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},receiver_id.eq.${user.id})`
+        );
+
       if (checkError) throw checkError;
-      
+
       if (existing && existing.length > 0) {
         throw new Error("Connection already exists");
       }
-      
-      // Create new connection
+
       const { data, error } = await supabase
         .from("user_connections" as any)
         .insert({
-          user_id: user.id,
-          connected_user_id: connectedUserId,
+          requester_id: user.id,
+          receiver_id: otherUserId,
           status: "pending",
-          created_at: new Date().toISOString(),
         })
         .select()
         .single();
+
       if (error) throw error;
       return data;
     },
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["connections", user?.id] });
       toast({ title: "Connection request sent!" });
     },
-    onError: (e: any) => toast({ title: "Failed to connect", description: e.message, variant: "destructive" }),
+
+    onError: (e: any) =>
+      toast({
+        title: "Failed to connect",
+        description: e.message,
+        variant: "destructive",
+      }),
   });
 };
