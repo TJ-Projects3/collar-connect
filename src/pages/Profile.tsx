@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Mail, MapPin, Link as LinkIcon, Briefcase, Calendar,
-  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2
+  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus
 } from "lucide-react";
 import { ProfileButton } from "@/components/ProfileButton";
 import { ReplyModal } from "@/components/ReplyModal";
@@ -23,7 +23,7 @@ import { usePostReplies } from "@/hooks/usePostReplies";
 import { useExperiences, useDeleteExperience, type Experience } from "@/hooks/useExperiences";
 import { formatDistanceToNow, format } from "date-fns";
 import { useSearchParams } from "react-router-dom";
-import { useSendMessage } from "@/hooks/useMessaging";
+import { useSendMessage, useAddConnection } from "@/hooks/useMessaging";
 import { useToast } from "@/hooks/use-toast";
 import { useAllProfiles } from "@/hooks/useAllProfiles";
 import { Link } from "react-router-dom";
@@ -72,6 +72,7 @@ const Profile = () => {
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const sendMessage = useSendMessage();
+  const addConnection = useAddConnection();
   const { toast } = useToast();
 
   // Experience state
@@ -305,14 +306,25 @@ const Profile = () => {
                     </div>
                     <div className="flex gap-3 pb-2">
                       {!isOwnProfile && (
-                        <Button
-                          variant="outline"
-                          className="gap-2"
-                          onClick={() => setMessageDialogOpen(true)}
-                        >
-                          <Mail className="h-4 w-4" />
-                          Message
-                        </Button>
+                        <>
+                          <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => setMessageDialogOpen(true)}
+                          >
+                            <Mail className="h-4 w-4" />
+                            Message
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => addConnection.mutate(viewedUserId!)}
+                            disabled={addConnection.isPending}
+                          >
+                            <UserPlus className="h-4 w-4" />
+                            Connect
+                          </Button>
+                        </>
                       )}
                       {isOwnProfile && <ProfileButton />}
                     </div>
