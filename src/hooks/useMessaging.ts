@@ -244,12 +244,26 @@ export const useAddConnection = () => {
   return useMutation({
     mutationFn: async (connectedUserId: string) => {
       if (!user?.id) throw new Error("Not authenticated");
+      
+      // First check if connection already exists in either direction
+      const { data: existing, error: checkError } = await supabase
+        .from("user_connections" as any)
+        .select("id, status")
+        .or(`and(user_id.eq.${user.id},connected_user_id.eq.${connectedUserId}),and(user_id.eq.${connectedUserId},connected_user_id.eq.${user.id})`);
+      
+      if (checkError) throw checkError;
+      
+      if (existing && existing.length > 0) {
+        throw new Error("Connection already exists");
+      }
+      
+      // Create new connection
       const { data, error } = await supabase
         .from("user_connections" as any)
         .insert({
           user_id: user.id,
           connected_user_id: connectedUserId,
-          status: "connected",
+          status: "pending",
           created_at: new Date().toISOString(),
         })
         .select()
@@ -259,7 +273,7 @@ export const useAddConnection = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["connections", user?.id] });
-      toast({ title: "Connection added!" });
+      toast({ title: "Connection request sent!" });
     },
     onError: (e: any) => toast({ title: "Failed to connect", description: e.message, variant: "destructive" }),
   });
