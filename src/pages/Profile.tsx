@@ -22,7 +22,7 @@ import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
 import { usePostReplies } from "@/hooks/usePostReplies";
 import { useExperiences, useDeleteExperience, type Experience } from "@/hooks/useExperiences";
 import { formatDistanceToNow, format } from "date-fns";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSendMessage, useAddConnection } from "@/hooks/useMessaging";
 import { useToast } from "@/hooks/use-toast";
 import { useAllProfiles } from "@/hooks/useAllProfiles";
@@ -30,6 +30,7 @@ import { Link } from "react-router-dom";
 
 const Profile = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const viewedUserId = searchParams.get("userId") || user?.id || null;
 
@@ -153,7 +154,7 @@ const Profile = () => {
           setMessageDialogOpen(false);
           setMessageText("");
           // Navigate to messages page with this conversation active
-          window.location.href = `/messages?recipientId=${viewedUserId}`;
+          navigate(`/messages?recipientId=${viewedUserId}`);
         },
       }
     );

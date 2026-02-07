@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { 
   Home, Users, Briefcase, MessageSquare, 
   Settings, ThumbsUp, MessageCircle, Share2, 
-  TrendingUp, Award, Sparkles, BookOpen, Calendar
+  TrendingUp, Award, Sparkles, BookOpen, Calendar, Trash2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CreatePostModal } from "@/components/CreatePostModal";
@@ -15,12 +15,14 @@ import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
 import { InlineReplies } from "@/components/InlineReplies";
 import { Navbar } from "@/components/Navbar";
-import { usePosts } from "@/hooks/usePosts";
+import { usePosts, useDeletePost } from "@/hooks/usePosts";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { formatDistanceToNow } from "date-fns";
 
 const Feed = () => {
+  const { user } = useAuth();
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [replyModalState, setReplyModalState] = useState<{
     isOpen: boolean;
@@ -72,6 +74,7 @@ const Feed = () => {
 
   const PostCard = ({ post }: { post: any }) => {
     const toggleLike = useToggleLike();
+    const deletePost = useDeletePost();
     const { data: likesData } = usePostLikes(post.id);
 
     const handleLike = () => {
@@ -79,6 +82,12 @@ const Feed = () => {
         postId: post.id,
         hasLiked: likesData?.hasLiked || false,
       });
+    };
+
+    const handleDelete = () => {
+      if (window.confirm("Are you sure you want to delete this post?")) {
+        deletePost.mutate(post.id);
+      }
     };
 
     return (
@@ -102,6 +111,17 @@ const Feed = () => {
                 </p>
               </div>
             </Link>
+            {user?.id === post.author_id && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDelete}
+                disabled={deletePost.isPending}
+                className="text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
