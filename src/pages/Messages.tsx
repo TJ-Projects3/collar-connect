@@ -6,7 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useConversations, useConversationMessages, useSendMessage } from "@/hooks/useMessaging";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow, format, isToday } from "date-fns";
+
+const formatMessageTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  if (isToday(date)) {
+    return format(date, "h:mm a");
+  }
+  return format(date, "M/d/yyyy, h:mm a");
+};
 import { useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Send } from "lucide-react";
@@ -186,7 +194,7 @@ const Messages = () => {
                                   isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
                                 }`}
                               >
-                                {format(new Date(msg.created_at), "h:mm a")}
+{formatMessageTime(msg.created_at)}
                               </p>
                             </div>
                           </div>
@@ -328,7 +336,7 @@ const NewConversationView = ({
                         isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
                       }`}
                     >
-                      {format(new Date(msg.created_at), "h:mm a")}
+{formatMessageTime(msg.created_at)}
                     </p>
                   </div>
                 </div>
