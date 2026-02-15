@@ -56,3 +56,30 @@ export const useCreatePost = () => {
     },
   });
 };
+
+export const useDeletePost = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const { error } = await supabase
+        .from("posts")
+        .delete()
+        .eq("id", postId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Post deleted successfully!" });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to delete post",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};

@@ -4,10 +4,20 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Home, Users, Briefcase, MessageSquare, 
-  Settings, ThumbsUp, MessageCircle, Share2, 
-  TrendingUp, Award, Sparkles, BookOpen, Calendar
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Home, Users, Briefcase, MessageSquare,
+  Settings, ThumbsUp, MessageCircle, Share2,
+  TrendingUp, Award, Sparkles, BookOpen, Calendar, Trash2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CreatePostModal } from "@/components/CreatePostModal";
@@ -15,8 +25,9 @@ import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
 import { InlineReplies } from "@/components/InlineReplies";
 import { Navbar } from "@/components/Navbar";
-import { usePosts } from "@/hooks/usePosts";
+import { usePosts, useDeletePost } from "@/hooks/usePosts";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { formatDistanceToNow } from "date-fns";
 
@@ -71,8 +82,11 @@ const Feed = () => {
   };
 
   const PostCard = ({ post }: { post: any }) => {
+    const { user } = useAuth();
     const toggleLike = useToggleLike();
+    const deletePost = useDeletePost();
     const { data: likesData } = usePostLikes(post.id);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const handleLike = () => {
       toggleLike.mutate({
@@ -80,6 +94,17 @@ const Feed = () => {
         hasLiked: likesData?.hasLiked || false,
       });
     };
+
+    const handleDeleteClick = () => {
+      setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = () => {
+      deletePost.mutate(post.id);
+      setShowDeleteConfirm(false);
+    };
+
+    const isOwnPost = user?.id === post.author_id;
 
     return (
       <Card key={post.id}>
@@ -102,6 +127,16 @@ const Feed = () => {
                 </p>
               </div>
             </Link>
+            {isOwnPost && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDeleteClick}
+                className="text-muted-foreground hover:text-destructive hover:bg-muted/50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -140,6 +175,26 @@ const Feed = () => {
             <span>Share</span>
           </Button>
         </CardFooter>
+
+        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Post</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this post? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </Card>
     );
   };
