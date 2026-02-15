@@ -42,18 +42,21 @@ export type Database = {
       }
       conversations: {
         Row: {
+          conversation_key: string | null
           created_at: string | null
           id: string
           last_message: string | null
           last_message_at: string | null
         }
         Insert: {
+          conversation_key?: string | null
           created_at?: string | null
           id?: string
           last_message?: string | null
           last_message_at?: string | null
         }
         Update: {
+          conversation_key?: string | null
           created_at?: string | null
           id?: string
           last_message?: string | null
@@ -348,7 +351,7 @@ export type Database = {
       messages: {
         Row: {
           content: string
-          conversation_id: string | null
+          conversation_id: string
           created_at: string
           id: string
           is_read: boolean
@@ -360,7 +363,7 @@ export type Database = {
         }
         Insert: {
           content: string
-          conversation_id?: string | null
+          conversation_id: string
           created_at?: string
           id?: string
           is_read?: boolean
@@ -372,7 +375,7 @@ export type Database = {
         }
         Update: {
           content?: string
-          conversation_id?: string | null
+          conversation_id?: string
           created_at?: string
           id?: string
           is_read?: boolean
@@ -590,6 +593,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_connections: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_id: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -613,7 +643,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_connections_with_connected_user: {
+        Row: {
+          connected_user_id: string | null
+          created_at: string | null
+          id: string | null
+          receiver_id: string | null
+          requester_id: string | null
+          status: string | null
+        }
+        Insert: {
+          connected_user_id?: never
+          created_at?: string | null
+          id?: string | null
+          receiver_id?: string | null
+          requester_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          connected_user_id?: never
+          created_at?: string | null
+          id?: string | null
+          receiver_id?: string | null
+          requester_id?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -624,25 +680,8 @@ export type Database = {
         Returns: boolean
       }
       send_dm: {
-        Args: { message_text: string; recipient: string; sender: string }
-        Returns: {
-          content: string
-          conversation_id: string | null
-          created_at: string
-          id: string
-          is_read: boolean
-          recipient_deleted: boolean
-          recipient_id: string
-          sender_deleted: boolean
-          sender_id: string
-          updated_at: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "messages"
-          isOneToOne: false
-          isSetofReturn: true
-        }
+        Args: { p_content: string; p_recipient: string; p_sender: string }
+        Returns: Json
       }
     }
     Enums: {
