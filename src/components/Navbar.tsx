@@ -198,6 +198,8 @@ export const Navbar = () => {
               />
             ))}
 
+            <NotificationBell currentPath={currentPath} />
+
             {isAdmin && (
               <NavItem
                 to="/admin"
