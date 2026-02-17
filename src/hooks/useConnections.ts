@@ -29,13 +29,6 @@ export const useSendConnectionRequest = () => {
         );
       }
 
-      // Get user's profile for the notification
-      const { data: userProfile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .single();
-
       // Create connection request
       const { data: connection, error: connError } = await supabase
         .from("connections" as any)
@@ -50,17 +43,12 @@ export const useSendConnectionRequest = () => {
       if (connError) throw connError;
 
       // Create notification for recipient
-      const { error: notifError } = await supabase
-        .from("notifications" as any)
-        .insert({
-          user_id: recipientId,
-          type: "connection_request",
-          title: "New Connection Request",
-          body: `${userProfile?.full_name || "Someone"} wants to connect with you`,
-          reference_id: (connection as any).id,
-        });
-
-      if (notifError) console.error("Failed to create notification:", notifError);
+      await supabase.from("notifications" as any).insert({
+        user_id: recipientId,
+        type: "connection_request",
+        reference_id: (connection as any).id,
+        content: "You have a new connection request",
+      });
 
       return connection;
     },
@@ -102,25 +90,13 @@ export const useAcceptConnectionRequest = () => {
 
       if (updateError) throw updateError;
 
-      // Get recipient's profile for the notification
-      const { data: userProfile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .single();
-
       // Notify the requester that their request was accepted
-      const { error: notifError } = await supabase
-        .from("notifications" as any)
-        .insert({
-          user_id: (connection as any).requester_id,
-          type: "connection_accepted",
-          title: "Connection Request Accepted",
-          body: `${userProfile?.full_name || "Someone"} accepted your connection request`,
-          reference_id: connectionId,
-        });
-
-      if (notifError) console.error("Failed to create notification:", notifError);
+      await supabase.from("notifications" as any).insert({
+        user_id: (connection as any).requester_id,
+        type: "connection_accepted",
+        reference_id: connectionId,
+        content: "Your connection request was accepted",
+      });
 
       return connection;
     },

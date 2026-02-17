@@ -3,10 +3,9 @@ CREATE TABLE public.notifications (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   type text NOT NULL, -- 'connection_request', 'connection_accepted', 'message', etc.
-  title text NOT NULL,
-  body text NOT NULL,
+  content text NOT NULL,
   reference_id uuid, -- ID of related entity (connection, message, etc.)
-  read boolean NOT NULL DEFAULT false,
+  is_read boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -53,7 +52,7 @@ CREATE POLICY "Users can delete own connection requests" ON public.connections
 
 -- Indexes for performance
 CREATE INDEX idx_notifications_user_id_created ON public.notifications(user_id, created_at DESC);
-CREATE INDEX idx_notifications_read ON public.notifications(user_id, read);
+CREATE INDEX idx_notifications_is_read ON public.notifications(user_id, is_read);
 CREATE INDEX idx_connections_requester ON public.connections(requester_id);
 CREATE INDEX idx_connections_recipient ON public.connections(recipient_id);
 CREATE INDEX idx_connections_status ON public.connections(status);

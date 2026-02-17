@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -6,33 +7,60 @@ export interface Notification {
   id: string;
   user_id: string;
   type: string;
-  title: string;
-  body: string;
+  content: string;
   reference_id: string | null;
-  read: boolean;
+  is_read: boolean;
   created_at: string;
 }
 
 // Get all notifications for the current user
 export const useNotifications = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["notifications", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      if (!user?.id) return [];
-
       const { data, error } = await supabase
         .from("notifications" as any)
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return (data || []) as any as Notification[];
+      return data || [];
     },
   });
+
+  // Real-time subscription for new notifications
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const subscription = supabase
+      .channel("notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({
+            queryKey: ["notifications", user.id],
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [user?.id, queryClient]);
+
+  return query;
 };
 
 // Get unread notification count
@@ -49,7 +77,7 @@ export const useUnreadNotificationCount = () => {
         .from("notifications" as any)
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("read", false);
+        .eq("is_read", false);
 
       if (error) throw error;
       return count || 0;
@@ -63,12 +91,10 @@ export const useMarkNotificationRead = () => {
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
+      await supabase
         .from("notifications" as any)
-        .update({ read: true })
+        .update({ is_read: true })
         .eq("id", notificationId);
-
-      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["notifications"] });
@@ -88,9 +114,9 @@ export const useMarkAllNotificationsRead = () => {
 
       const { error } = await supabase
         .from("notifications" as any)
-        .update({ read: true })
+        .update({ is_read: true })
         .eq("user_id", user.id)
-        .eq("read", false);
+        .eq("is_read", false);
 
       if (error) throw error;
     },
