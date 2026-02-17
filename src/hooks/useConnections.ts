@@ -18,7 +18,7 @@ export const useSendConnectionRequest = () => {
       const { data: existing } = await supabase
         .from("user_connections" as any)
         .select("id, status")
-        .or(`and(requester_id.eq.${user.id},recipient_id.eq.${recipientId}),and(requester_id.eq.${recipientId},recipient_id.eq.${user.id})`)
+        .or(`and(requester_id.eq.${user.id},receiver_id.eq.${recipientId}),and(requester_id.eq.${recipientId},receiver_id.eq.${user.id})`)
         .maybeSingle();
 
       if (existing) {
@@ -34,7 +34,7 @@ export const useSendConnectionRequest = () => {
         .from("user_connections" as any)
         .insert({
           requester_id: user.id,
-          recipient_id: recipientId,
+          receiver_id: recipientId,
           status: "pending",
         })
         .select()
@@ -84,7 +84,7 @@ export const useAcceptConnectionRequest = () => {
         .from("user_connections" as any)
         .update({ status: "accepted" })
         .eq("id", connectionId)
-        .eq("recipient_id", user.id) // Ensure only recipient can accept
+        .eq("receiver_id", user.id) // Ensure only recipient can accept
         .select()
         .single();
 
@@ -132,7 +132,7 @@ export const useRejectConnectionRequest = () => {
         .from("user_connections" as any)
         .update({ status: "rejected" })
         .eq("id", connectionId)
-        .eq("recipient_id", user.id);
+        .eq("receiver_id", user.id);
 
       if (error) throw error;
     },
@@ -166,7 +166,7 @@ export const useConnectionStatus = (otherUserId: string | null) => {
       const { data } = await supabase
         .from("user_connections" as any)
         .select("id, status, requester_id")
-        .or(`and(requester_id.eq.${user.id},recipient_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},recipient_id.eq.${user.id})`)
+        .or(`and(requester_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
         .maybeSingle();
 
       return data;
@@ -189,13 +189,13 @@ export const useMyConnections = () => {
         .select(`
           id,
           requester_id,
-          recipient_id,
+          receiver_id,
           status,
           created_at,
           requester:requester_id(full_name, avatar_url),
-          recipient:recipient_id(full_name, avatar_url)
+          receiver:receiver_id(full_name, avatar_url)
         `)
-        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`)
+        .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .eq("status", "accepted")
         .order("created_at", { ascending: false });
 
@@ -223,7 +223,7 @@ export const usePendingConnectionRequests = () => {
           created_at,
           requester:requester_id(full_name, avatar_url, job_title)
         `)
-        .eq("recipient_id", user.id)
+        .eq("receiver_id", user.id)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
