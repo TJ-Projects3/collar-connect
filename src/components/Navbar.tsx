@@ -33,9 +33,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SearchDialog } from "@/components/SearchDialog";
+import { Badge } from "@/components/ui/badge";
 
 interface NavItemProps {
   to: string;
@@ -43,6 +45,30 @@ interface NavItemProps {
   label: string;
   isActive?: boolean;
 }
+
+const NotificationBell = ({ currentPath }: { currentPath: string }) => {
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
+
+  return (
+    <Link
+      to="/notifications"
+      className={cn(
+        "p-2 rounded-lg transition-colors relative",
+        currentPath === "/notifications" ? "text-foreground bg-muted" : "text-muted-foreground"
+      )}
+    >
+      <Bell className="h-5 w-5" />
+      {unreadCount > 0 && (
+        <Badge
+          variant="destructive"
+          className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+        >
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </Badge>
+      )}
+    </Link>
+  );
+};
 
 const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
   <Link
@@ -111,7 +137,7 @@ export const Navbar = () => {
     { to: "/my-network", icon: Users, label: "My Network" },
     { to: "/jobs", icon: Briefcase, label: "Jobs" },
     { to: "/messages", icon: MessageSquare, label: "Messaging" },
-    { to: "/notifications", icon: Bell, label: "Notifications" },
+
   ];
 
   const getInitials = (name: string | null | undefined) => {
@@ -264,15 +290,7 @@ export const Navbar = () => {
             >
               <MessageSquare className="h-5 w-5" />
             </Link>
-            <Link
-              to="/notifications"
-              className={cn(
-                "p-2 rounded-lg transition-colors",
-                currentPath === "/notifications" ? "text-foreground bg-muted" : "text-muted-foreground"
-              )}
-            >
-              <Bell className="h-5 w-5" />
-            </Link>
+            <NotificationBell currentPath={currentPath} />
 
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>

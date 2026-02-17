@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -103,6 +104,7 @@ export const useAcceptConnectionRequest = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["connections"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["pending-connections"] });
       toast({
         title: "Connection accepted",
         description: "You are now connected.",
@@ -139,6 +141,7 @@ export const useRejectConnectionRequest = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["connections"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["pending-connections"] });
       toast({
         title: "Request rejected",
       });
@@ -208,8 +211,9 @@ export const useMyConnections = () => {
 // Get pending connection requests (received)
 export const usePendingConnectionRequests = () => {
   const { user } = useAuth();
+  const qc = useQueryClient();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["pending-connections", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
@@ -231,4 +235,47 @@ export const usePendingConnectionRequests = () => {
       return data || [];
     },
   });
+
+  // Real-time subscription for new pending connection requests
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const subscription = supabase
+      .channel("pending-connections")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "user_connections",
+          filter: `receiver_id=eq.${user.id},status=eq.pending`,
+        },
+        () => {
+          qc.invalidateQueries({
+            queryKey: ["pending-connections", user.id],
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "user_connections",
+          filter: `receiver_id=eq.${user.id}`,
+        },
+        () => {
+          qc.invalidateQueries({
+            queryKey: ["pending-connections", user.id],
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [user?.id, qc]);
+
+  return query;
 };

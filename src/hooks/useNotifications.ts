@@ -66,8 +66,9 @@ export const useNotifications = () => {
 // Get unread notification count
 export const useUnreadNotificationCount = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["notifications-unread-count", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
@@ -83,6 +84,49 @@ export const useUnreadNotificationCount = () => {
       return count || 0;
     },
   });
+
+  // Real-time subscription for unread count changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const subscription = supabase
+      .channel("notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({
+            queryKey: ["notifications-unread-count", user.id],
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({
+            queryKey: ["notifications-unread-count", user.id],
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [user?.id, queryClient]);
+
+  return query;
 };
 
 // Mark notification as read
