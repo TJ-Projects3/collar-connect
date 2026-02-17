@@ -9,20 +9,35 @@ CREATE TABLE public.notifications (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Create connections table (separate from user_connections)
-CREATE TABLE public.connections (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  requester_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-  recipient_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(requester_id, recipient_id)
-);
+-- Modify existing user_connections table to support request flow
+ALTER TABLE public.user_connections 
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 
--- Enable RLS
+-- Update status column to remove default and add check constraint
+ALTER TABLE public.user_connections 
+  ALTER COLUMN status DROP DEFAULT;
+
+ALTER TABLE public.user_connections 
+  DROP CONSTRAINT IF EXISTS user_connections_status_check;
+
+ALTER TABLE public.user_connections 
+  ADD CONSTRAINT user_connections_status_check 
+  CHECK (status IN ('pending', 'accepted', 'rejected'));
+
+-- Rename columns for clarity (requester sends the request, recipient receives it)
+ALTER TABLE public.user_connections 
+  RENAME COLUMN user_id TO requester_id;
+
+ALTER TABLE public.user_connections 
+  RENAME COLUMN connected_user_id TO recipient_id;
+
+-- Enable RLS (notifications already has it, just ensure it's enabled)
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.connections ENABLE ROW LEVEL SECURITY;
+
+-- Drop old RLS policies on user_connections if they exist
+DROP POLICY IF EXISTS "Users can view own connections" ON public.user_connections;
+DROP POLICY IF EXISTS "Users can create connections" ON public.user_connections;
+DROP POLICY IF EXISTS "Users can delete own connections" ON public.user_connections;
 
 -- RLS Policies for notifications
 CREATE POLICY "Users can view own notifications" ON public.notifications
@@ -37,25 +52,25 @@ CREATE POLICY "System can insert notifications" ON public.notifications
 CREATE POLICY "Users can delete own notifications" ON public.notifications
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for connections
-CREATE POLICY "Users can view connections involving them" ON public.connections
+-- RLS Policies for user_connections (updated for request flow)
+CREATE POLICY "Users can view connections involving them" ON public.user_connections
   FOR SELECT USING (auth.uid() = requester_id OR auth.uid() = recipient_id);
 
-CREATE POLICY "Users can create connection requests" ON public.connections
+CREATE POLICY "Users can create connection requests" ON public.user_connections
   FOR INSERT WITH CHECK (auth.uid() = requester_id);
 
-CREATE POLICY "Recipients can update connection status" ON public.connections
+CREATE POLICY "Recipients can update connection status" ON public.user_connections
   FOR UPDATE USING (auth.uid() = recipient_id);
 
-CREATE POLICY "Users can delete own connection requests" ON public.connections
+CREATE POLICY "Users can delete own connection requests" ON public.user_connections
   FOR DELETE USING (auth.uid() = requester_id);
 
 -- Indexes for performance
-CREATE INDEX idx_notifications_user_id_created ON public.notifications(user_id, created_at DESC);
-CREATE INDEX idx_notifications_is_read ON public.notifications(user_id, is_read);
-CREATE INDEX idx_connections_requester ON public.connections(requester_id);
-CREATE INDEX idx_connections_recipient ON public.connections(recipient_id);
-CREATE INDEX idx_connections_status ON public.connections(status);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id_created ON public.notifications(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON public.notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_user_connections_requester ON public.user_connections(requester_id);
+CREATE INDEX IF NOT EXISTS idx_user_connections_recipient ON public.user_connections(recipient_id);
+CREATE INDEX IF NOT EXISTS idx_user_connections_status ON public.user_connections(status);
 
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -66,5 +81,6 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_connections_updated_at BEFORE UPDATE ON public.connections
+DROP TRIGGER IF EXISTS update_user_connections_updated_at ON public.user_connections;
+CREATE TRIGGER update_user_connections_updated_at BEFORE UPDATE ON public.user_connections
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

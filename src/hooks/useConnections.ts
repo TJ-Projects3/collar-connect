@@ -16,7 +16,7 @@ export const useSendConnectionRequest = () => {
 
       // Check if connection already exists
       const { data: existing } = await supabase
-        .from("connections" as any)
+        .from("user_connections" as any)
         .select("id, status")
         .or(`and(requester_id.eq.${user.id},recipient_id.eq.${recipientId}),and(requester_id.eq.${recipientId},recipient_id.eq.${user.id})`)
         .maybeSingle();
@@ -31,7 +31,7 @@ export const useSendConnectionRequest = () => {
 
       // Create connection request
       const { data: connection, error: connError } = await supabase
-        .from("connections" as any)
+        .from("user_connections" as any)
         .insert({
           requester_id: user.id,
           recipient_id: recipientId,
@@ -81,7 +81,7 @@ export const useAcceptConnectionRequest = () => {
 
       // Update connection status
       const { data: connection, error: updateError } = await supabase
-        .from("connections" as any)
+        .from("user_connections" as any)
         .update({ status: "accepted" })
         .eq("id", connectionId)
         .eq("recipient_id", user.id) // Ensure only recipient can accept
@@ -129,7 +129,7 @@ export const useRejectConnectionRequest = () => {
       if (!user?.id) throw new Error("Not authenticated");
 
       const { error } = await supabase
-        .from("connections" as any)
+        .from("user_connections" as any)
         .update({ status: "rejected" })
         .eq("id", connectionId)
         .eq("recipient_id", user.id);
@@ -164,7 +164,7 @@ export const useConnectionStatus = (otherUserId: string | null) => {
       if (!user?.id || !otherUserId) return null;
 
       const { data } = await supabase
-        .from("connections" as any)
+        .from("user_connections" as any)
         .select("id, status, requester_id")
         .or(`and(requester_id.eq.${user.id},recipient_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},recipient_id.eq.${user.id})`)
         .maybeSingle();
@@ -185,7 +185,7 @@ export const useMyConnections = () => {
       if (!user?.id) return [];
 
       const { data, error } = await supabase
-        .from("connections" as any)
+        .from("user_connections" as any)
         .select(`
           id,
           requester_id,
@@ -216,7 +216,7 @@ export const usePendingConnectionRequests = () => {
       if (!user?.id) return [];
 
       const { data, error } = await supabase
-        .from("connections" as any)
+        .from("user_connections" as any)
         .select(`
           id,
           requester_id,
