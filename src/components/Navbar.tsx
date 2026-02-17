@@ -53,11 +53,12 @@ const NotificationBell = ({ currentPath }: { currentPath: string }) => {
     <Link
       to="/notifications"
       className={cn(
-        "p-2 rounded-lg transition-colors relative",
-        currentPath === "/notifications" ? "text-foreground bg-muted" : "text-muted-foreground"
+        "flex flex-col items-center justify-center px-2 md:px-3 py-1 min-w-[60px] md:min-w-[80px] border-b-2 transition-colors hover:text-foreground relative",
+        currentPath === "/notifications" ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"
       )}
     >
-      <Bell className="h-5 w-5" />
+      <Bell className="h-5 w-5 md:h-6 md:w-6" />
+      <span className="text-[10px] md:text-xs mt-1 hidden md:block">Notifications</span>
       {unreadCount > 0 && (
         <Badge
           variant="destructive"
