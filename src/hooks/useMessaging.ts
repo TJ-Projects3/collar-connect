@@ -254,6 +254,16 @@ export const useSendMessage = () => {
 
       const inserted = (data as Message[])?.[0];
 
+      // Create notification for recipient
+      if (inserted) {
+        await supabase.from("notifications" as any).insert({
+          user_id: recipientId,
+          type: "message",
+          reference_id: inserted.id,
+          content: `New message from ${user?.user_metadata?.full_name || "Someone"}`,
+        });
+      }
+
       // Instant UI update: inject or update the counterpart in Recent Chats
       qc.setQueryData(["conversations", user?.id], (old: Conversation[] | undefined) => {
         const lastMessage = inserted
