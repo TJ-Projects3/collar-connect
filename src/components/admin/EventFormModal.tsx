@@ -27,11 +27,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TIMEZONES, getTimezoneLabel } from "@/lib/timezones";
+
+// Convert a UTC ISO string to the "YYYY-MM-DDTHH:mm" format in a given timezone
+// (suitable as the value for a datetime-local input)
+function utcToLocalInput(utcStr: string, timezone: string): string {
+  const date = new Date(utcStr);
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(date)
+      .filter((p) => p.type !== "literal")
+      .map((p) => [p.type, p.value])
+  );
+  // Some locales return "24" for midnight with hour12:false
+  const hour = parts.hour === "24" ? "00" : parts.hour;
+  return `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}`;
+}
+
+// Convert a "YYYY-MM-DDTHH:mm" string (from a datetime-local input) treated as
+// a local time in the given IANA timezone, returning a UTC ISO string.
+function localInputToUTC(localDateStr: string, timezone: string): string {
+  // Treat the input as if it were UTC to establish a reference point
+  const asIfUTC = new Date(localDateStr + ":00.000Z");
+
+  // Format that UTC instant in the target timezone to see what local time it corresponds to
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(asIfUTC)
+      .filter((p) => p.type !== "literal")
+      .map((p) => [p.type, p.value])
+  );
+  const hour = parts.hour === "24" ? "00" : parts.hour;
+  const tzAsUTC = new Date(
+    `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}:${parts.second}Z`
+  );
+
+  // The offset between "asIfUTC" and "the timezone's local representation of asIfUTC"
+  // tells us how far to shift to get the true UTC for the entered local time
+  const offsetMs = asIfUTC.getTime() - tzAsUTC.getTime();
+  return new Date(asIfUTC.getTime() + offsetMs).toISOString();
+}
 
 const eventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   event_type: z.enum(["virtual", "in_person", "hybrid"]),
+  timezone: z.string().min(1, "Timezone is required"),
   start_time: z.string().min(1, "Start time is required"),
   end_time: z.string().min(1, "End time is required"),
   location: z.string().optional(),
@@ -48,6 +106,7 @@ interface Event {
   title: string;
   description: string | null;
   event_type: "virtual" | "in_person" | "hybrid";
+  timezone: string;
   start_time: string;
   end_time: string;
   location: string | null;
@@ -64,10 +123,8 @@ interface EventFormModalProps {
   onSubmit: (data: EventFormData) => void;
 }
 
-const formatDateTimeLocal = (dateStr: string) => {
-  const date = new Date(dateStr);
-  return date.toISOString().slice(0, 16);
-};
+const getBrowserTimezone = () =>
+  Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export const EventFormModal = ({
   event,
@@ -75,14 +132,21 @@ export const EventFormModal = ({
   onOpenChange,
   onSubmit,
 }: EventFormModalProps) => {
+  const defaultTimezone = event?.timezone || getBrowserTimezone() || "UTC";
+
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
       title: event?.title || "",
       description: event?.description || "",
       event_type: event?.event_type || "virtual",
-      start_time: event?.start_time ? formatDateTimeLocal(event.start_time) : "",
-      end_time: event?.end_time ? formatDateTimeLocal(event.end_time) : "",
+      timezone: defaultTimezone,
+      start_time: event?.start_time
+        ? utcToLocalInput(event.start_time, defaultTimezone)
+        : "",
+      end_time: event?.end_time
+        ? utcToLocalInput(event.end_time, defaultTimezone)
+        : "",
       location: event?.location || "",
       virtual_link: event?.virtual_link || "",
       capacity: event?.capacity ?? undefined,
@@ -92,16 +156,19 @@ export const EventFormModal = ({
   });
 
   const eventType = form.watch("event_type");
+  const selectedTimezone = form.watch("timezone");
 
   // Reset form when event prop changes (for editing)
   useEffect(() => {
     if (event) {
+      const tz = event.timezone || getBrowserTimezone() || "UTC";
       form.reset({
         title: event.title || "",
         description: event.description || "",
         event_type: event.event_type || "virtual",
-        start_time: event.start_time ? formatDateTimeLocal(event.start_time) : "",
-        end_time: event.end_time ? formatDateTimeLocal(event.end_time) : "",
+        timezone: tz,
+        start_time: event.start_time ? utcToLocalInput(event.start_time, tz) : "",
+        end_time: event.end_time ? utcToLocalInput(event.end_time, tz) : "",
         location: event.location || "",
         virtual_link: event.virtual_link || "",
         capacity: event.capacity ?? undefined,
@@ -109,10 +176,12 @@ export const EventFormModal = ({
         is_published: event.is_published ?? false,
       });
     } else {
+      const tz = getBrowserTimezone() || "UTC";
       form.reset({
         title: "",
         description: "",
         event_type: "virtual",
+        timezone: tz,
         start_time: "",
         end_time: "",
         location: "",
@@ -125,7 +194,13 @@ export const EventFormModal = ({
   }, [event, form]);
 
   const handleSubmit = (data: EventFormData) => {
-    onSubmit(data);
+    // Convert the entered local times to UTC before saving
+    const utcData = {
+      ...data,
+      start_time: localInputToUTC(data.start_time, data.timezone),
+      end_time: localInputToUTC(data.end_time, data.timezone),
+    };
+    onSubmit(utcData);
     onOpenChange(false);
     form.reset();
   };
@@ -160,7 +235,7 @@ export const EventFormModal = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Event Type *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
@@ -191,13 +266,43 @@ export const EventFormModal = ({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="timezone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Timezone *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select timezone" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {TIMEZONES.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="start_time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time *</FormLabel>
+                    <FormLabel>
+                      Start Time *{" "}
+                      <span className="text-xs text-muted-foreground font-normal">
+                        ({getTimezoneLabel(selectedTimezone)})
+                      </span>
+                    </FormLabel>
                     <FormControl>
                       <Input {...field} type="datetime-local" />
                     </FormControl>
@@ -211,7 +316,12 @@ export const EventFormModal = ({
                 name="end_time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time *</FormLabel>
+                    <FormLabel>
+                      End Time *{" "}
+                      <span className="text-xs text-muted-foreground font-normal">
+                        ({getTimezoneLabel(selectedTimezone)})
+                      </span>
+                    </FormLabel>
                     <FormControl>
                       <Input {...field} type="datetime-local" />
                     </FormControl>

@@ -4,7 +4,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, MapPin, Clock, Loader2 } from "lucide-react";
-import { format, isSameDay, parseISO } from "date-fns";
+import { format, isSameDay } from "date-fns";
+
+function formatInTimezone(utcStr: string, timezone: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone || "UTC",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZoneName: "short",
+  }).format(new Date(utcStr));
+}
+
+function parseEventDate(utcStr: string, timezone: string): Date {
+  // Returns a Date that represents the event's local date in its timezone,
+  // normalized so calendar day comparisons work correctly.
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone || "UTC",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(new Date(utcStr))
+      .filter((p) => p.type !== "literal")
+      .map((p) => [p.type, p.value])
+  );
+  return new Date(`${parts.year}-${parts.month}-${parts.day}T00:00:00`);
+}
 import { Navbar } from "@/components/Navbar";
 import { useEvents } from "@/hooks/useEvents";
 
@@ -12,10 +39,10 @@ const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const { data: events = [], isLoading } = useEvents();
 
-  const eventDates = events.map(event => parseISO(event.start_time));
-  
-  const selectedDateEvents = selectedDate 
-    ? events.filter(event => isSameDay(parseISO(event.start_time), selectedDate))
+  const eventDates = events.map(event => parseEventDate(event.start_time, event.timezone));
+
+  const selectedDateEvents = selectedDate
+    ? events.filter(event => isSameDay(parseEventDate(event.start_time, event.timezone), selectedDate))
     : [];
 
   const getEventTypeColor = (type: string) => {
@@ -95,7 +122,7 @@ const Calendar = () => {
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {format(parseISO(event.start_time), "h:mm a")}
+                            {formatInTimezone(event.start_time, event.timezone)}
                           </span>
                           {event.location && (
                             <span className="flex items-center gap-1">
@@ -145,11 +172,11 @@ const Calendar = () => {
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <CalendarIcon className="h-4 w-4" />
-                          <span>{format(parseISO(event.start_time), "EEEE, MMMM d, yyyy")}</span>
+                          <span>{format(parseEventDate(event.start_time, event.timezone), "EEEE, MMMM d, yyyy")}</span>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Clock className="h-4 w-4" />
-                          <span>{format(parseISO(event.start_time), "h:mm a")}</span>
+                          <span>{formatInTimezone(event.start_time, event.timezone)}</span>
                         </div>
                         {event.location && (
                           <div className="flex items-center gap-2 text-muted-foreground">

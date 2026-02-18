@@ -12,8 +12,20 @@ import {
 } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { EventFormModal } from "./EventFormModal";
-import { format } from "date-fns";
 import { useAdminEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, type Event } from "@/hooks/useAdminEvents";
+import { getTimezoneLabel } from "@/lib/timezones";
+
+function formatInTimezone(utcStr: string, timezone: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone || "UTC",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(utcStr));
+}
 
 const eventTypeColors: Record<string, string> = {
   virtual: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -59,6 +71,7 @@ export const EventsTab = () => {
       title: data.title,
       description: data.description || null,
       event_type: data.event_type,
+      timezone: data.timezone || "UTC",
       start_time: data.start_time,
       end_time: data.end_time,
       location: data.location || null,
@@ -117,7 +130,8 @@ export const EventsTab = () => {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {format(new Date(event.start_time), "MMM d, yyyy h:mm a")}
+                  <div>{formatInTimezone(event.start_time, event.timezone)}</div>
+                  <div className="text-xs opacity-60">{getTimezoneLabel(event.timezone || "UTC")}</div>
                 </TableCell>
                 <TableCell className="text-muted-foreground max-w-[150px] truncate">
                   {event.location || (event.virtual_link ? "Virtual" : "—")}

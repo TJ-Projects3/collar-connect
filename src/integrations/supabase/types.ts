@@ -163,6 +163,7 @@ export type Database = {
           is_published: boolean | null
           location: string | null
           start_time: string
+          timezone: string
           title: string
           updated_at: string
           virtual_link: string | null
@@ -179,6 +180,7 @@ export type Database = {
           is_published?: boolean | null
           location?: string | null
           start_time: string
+          timezone?: string
           title: string
           updated_at?: string
           virtual_link?: string | null
@@ -195,6 +197,7 @@ export type Database = {
           is_published?: boolean | null
           location?: string | null
           start_time?: string
+          timezone?: string
           title?: string
           updated_at?: string
           virtual_link?: string | null

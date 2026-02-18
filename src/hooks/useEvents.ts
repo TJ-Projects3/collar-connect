@@ -7,6 +7,7 @@ export interface Event {
   description: string | null;
   start_time: string;
   end_time: string;
+  timezone: string;
   location: string | null;
   virtual_link: string | null;
   event_type: "virtual" | "in_person" | "hybrid";
