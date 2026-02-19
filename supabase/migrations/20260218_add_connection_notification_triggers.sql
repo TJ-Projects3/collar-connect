@@ -4,9 +4,10 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- Only create notification for pending connection requests
   IF NEW.status = 'pending' THEN
-    INSERT INTO public.notifications (user_id, type, content, reference_id)
+    INSERT INTO public.notifications (user_id, sender_id, type, content, reference_id)
     VALUES (
       NEW.receiver_id,
+      NEW.requester_id,
       'connection_request',
       'You have a new connection request',
       NEW.id
@@ -31,9 +32,10 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- If status changed to pending, create notification
   IF NEW.status = 'pending' AND OLD.status != 'pending' THEN
-    INSERT INTO public.notifications (user_id, type, content, reference_id)
+    INSERT INTO public.notifications (user_id, sender_id, type, content, reference_id)
     VALUES (
       NEW.receiver_id,
+      NEW.requester_id,
       'connection_request',
       'You have a new connection request',
       NEW.id

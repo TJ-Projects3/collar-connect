@@ -3,9 +3,10 @@ CREATE OR REPLACE FUNCTION public.create_notification_for_message()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Get sender's full name for the notification content
-  INSERT INTO public.notifications (user_id, type, content, reference_id)
+  INSERT INTO public.notifications (user_id, sender_id, type, content, reference_id)
   SELECT 
     NEW.recipient_id,
+    NEW.sender_id,
     'message',
     'You have a new message from ' || COALESCE(p.full_name, 'Someone'),
     NEW.id

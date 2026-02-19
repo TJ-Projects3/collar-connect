@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface Notification {
   id: string;
   user_id: string;
+  sender_id: string | null;
   type: string;
   content: string;
   reference_id: string | null;
@@ -24,7 +25,14 @@ export const useNotifications = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notifications" as any)
-        .select("*")
+        .select(`
+          *,
+          sender:sender_id(
+            id,
+            full_name,
+            avatar_url
+          )
+        `)
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
 

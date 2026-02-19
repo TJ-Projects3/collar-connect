@@ -258,6 +258,7 @@ export const useSendMessage = () => {
       if (inserted) {
         await supabase.from("notifications" as any).insert({
           user_id: recipientId,
+          sender_id: user?.id ?? null,
           type: "message",
           reference_id: inserted.id,
           content: `New message from ${user?.user_metadata?.full_name || "Someone"}`,

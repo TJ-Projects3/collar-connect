@@ -184,10 +184,30 @@ const Notifications = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 flex-1">
+                          {notification.sender && (
+                            <Avatar className="h-9 w-9">
+                              <AvatarImage
+                                src={notification.sender.avatar_url}
+                                alt={notification.sender.full_name}
+                              />
+                              <AvatarFallback>
+                                {notification.sender.full_name
+                                  ?.split(" ")
+                                  .map((n: string) => n[0])
+                                  .join("")
+                                  .toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
                           <div className="flex-shrink-0">
                             {getNotificationIcon(notification.type)}
                           </div>
                           <div className="flex-1 min-w-0">
+                            {notification.sender?.full_name && (
+                              <p className="text-sm font-medium">
+                                {notification.sender.full_name}
+                              </p>
+                            )}
                             <div className="flex items-center gap-2 flex-wrap">
                               <Badge
                                 className={`text-xs ${getNotificationBadgeColor(notification.type)}`}
