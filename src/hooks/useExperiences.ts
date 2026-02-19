@@ -37,6 +37,7 @@ export const useExperiences = (userId: string | null) => {
         .from("experiences")
         .select("*")
         .eq("user_id", userId)
+        .order("is_current", { ascending: false })
         .order("start_date", { ascending: false });
 
       if (error) throw error;
