@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, MapPin, Building2, ExternalLink, Loader2, Filter, X } from "lucide-react";
+import { differenceInDays, differenceInHours } from "date-fns";
 import { useJobs } from "@/hooks/useJobs";
 import { useSearchParams } from "react-router-dom";
 
@@ -242,11 +243,24 @@ const Jobs = () => {
           </div>
         ) : filteredJobs.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredJobs.map((job) => (
-              <Card
-                key={job.id}
-                className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50"
-              >
+            {filteredJobs.map((job) => {
+              const postedLabel = job.created_at
+                ? (() => {
+                    const createdAt = new Date(job.created_at);
+                    const days = differenceInDays(new Date(), createdAt);
+                    if (days >= 1) {
+                      return `Posted ${days} day${days === 1 ? "" : "s"} ago`;
+                    }
+                    const hours = Math.max(1, differenceInHours(new Date(), createdAt));
+                    return `Posted ${hours} hour${hours === 1 ? "" : "s"} ago`;
+                  })()
+                : null;
+
+              return (
+                <Card
+                  key={job.id}
+                  className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50"
+                >
                 <CardHeader className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
@@ -265,12 +279,15 @@ const Jobs = () => {
                       </Badge>
                     </div>
                   </div>
-                  {job.location && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5" />
-                      {job.location}
-                    </div>
-                  )}
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                    {job.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {job.location}
+                      </span>
+                    )}
+                    {postedLabel && <span>{postedLabel}</span>}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {job.description && (
@@ -288,7 +305,8 @@ const Jobs = () => {
                   )}
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-12">
