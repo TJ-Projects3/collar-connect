@@ -88,6 +88,10 @@ export const JobsTab = () => {
       work_arrangement: data.work_arrangement,
       external_url: data.external_url || null,
       is_published: data.is_published ?? false,
+      contact_name: data.contact_name || null,
+      contact_email: data.contact_email || null,
+      contact_phone: data.contact_phone || null,
+      contact_url: data.contact_url || null,
     };
 
     if (editingJob) {

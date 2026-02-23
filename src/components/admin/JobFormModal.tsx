@@ -37,6 +37,10 @@ const jobSchema = z.object({
   work_arrangement: z.enum(["remote", "hybrid", "on_site"]),
   external_url: z.string().url().optional().or(z.literal("")),
   is_published: z.boolean(),
+  contact_name: z.string().optional(),
+  contact_email: z.string().email().optional().or(z.literal("")),
+  contact_phone: z.string().optional(),
+  contact_url: z.string().url().optional().or(z.literal("")),
 });
 
 type JobFormData = z.infer<typeof jobSchema>;
@@ -51,6 +55,10 @@ interface Job {
   work_arrangement: "remote" | "hybrid" | "on_site";
   external_url: string | null;
   is_published: boolean | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  contact_url: string | null;
 }
 
 interface JobFormModalProps {
@@ -92,6 +100,10 @@ export const JobFormModal = ({
       work_arrangement: "on_site",
       external_url: "",
       is_published: false,
+      contact_name: "",
+      contact_email: "",
+      contact_phone: "",
+      contact_url: "",
     },
   });
 
@@ -107,6 +119,10 @@ export const JobFormModal = ({
         work_arrangement: job.work_arrangement || "on_site",
         external_url: job.external_url || "",
         is_published: job.is_published ?? false,
+        contact_name: job.contact_name || "",
+        contact_email: job.contact_email || "",
+        contact_phone: job.contact_phone || "",
+        contact_url: job.contact_url || "",
       });
     } else {
       form.reset({
@@ -118,6 +134,10 @@ export const JobFormModal = ({
         work_arrangement: "on_site",
         external_url: "",
         is_published: false,
+        contact_name: "",
+        contact_email: "",
+        contact_phone: "",
+        contact_url: "",
       });
     }
   }, [job, form]);
@@ -258,6 +278,68 @@ export const JobFormModal = ({
                 </FormItem>
               )}
             />
+
+            <div className="space-y-4 rounded-lg border border-dashed border-border p-4">
+              <h3 className="text-sm font-medium">Point of Contact (Optional)</h3>
+              
+              <FormField
+                control={form.control}
+                name="contact_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g., Jane Smith" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="contact_email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" placeholder="contact@company.com" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="contact_phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Phone</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="tel" placeholder="(555) 123-4567" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="contact_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact URL</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="url" placeholder="https://company.com/contact" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}

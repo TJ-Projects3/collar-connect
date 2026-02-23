@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MapPin, Building2, ExternalLink, Loader2, Filter, X } from "lucide-react";
+import { Search, MapPin, Building2, ExternalLink, Loader2, Filter, X, Mail, Phone, Link as LinkIcon } from "lucide-react";
 import { differenceInDays, differenceInHours } from "date-fns";
 import { useJobs } from "@/hooks/useJobs";
 import { useSearchParams } from "react-router-dom";
@@ -295,6 +295,47 @@ const Jobs = () => {
                       {job.description}
                     </CardDescription>
                   )}
+                  
+                  {(job.contact_name || job.contact_email || job.contact_phone || job.contact_url) && (
+                    <div className="space-y-2 rounded-lg border border-dashed border-border p-3 bg-muted/30">
+                      <h4 className="text-sm font-medium">Point of Contact</h4>
+                      <div className="space-y-1.5 text-sm">
+                        {job.contact_name && (
+                          <p className="text-muted-foreground">{job.contact_name}</p>
+                        )}
+                        {job.contact_email && (
+                          <a 
+                            href={`mailto:${job.contact_email}`}
+                            className="flex items-center gap-2 text-primary hover:underline"
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                            {job.contact_email}
+                          </a>
+                        )}
+                        {job.contact_phone && (
+                          <a 
+                            href={`tel:${job.contact_phone}`}
+                            className="flex items-center gap-2 text-primary hover:underline"
+                          >
+                            <Phone className="h-3.5 w-3.5" />
+                            {job.contact_phone}
+                          </a>
+                        )}
+                        {job.contact_url && (
+                          <a 
+                            href={job.contact_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-primary hover:underline"
+                          >
+                            <LinkIcon className="h-3.5 w-3.5" />
+                            Contact Page
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
                   {job.external_url && (
                     <Button asChild className="w-full sm:w-auto">
                       <a href={job.external_url} target="_blank" rel="noopener noreferrer">
