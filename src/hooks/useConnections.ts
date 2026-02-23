@@ -163,7 +163,7 @@ export const useConnectionStatus = (otherUserId: string | null) => {
   return useQuery({
     queryKey: ["connection-status", user?.id, otherUserId],
     enabled: !!user?.id && !!otherUserId && user.id !== otherUserId,
-    queryFn: async () => {
+    queryFn: async (): Promise<{ id: string; status: string; requester_id: string } | null> => {
       if (!user?.id || !otherUserId) return null;
 
       const { data } = await supabase
@@ -172,7 +172,7 @@ export const useConnectionStatus = (otherUserId: string | null) => {
         .or(`and(requester_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
         .maybeSingle();
 
-      return data;
+      return data as unknown as { id: string; status: string; requester_id: string } | null;
     },
   });
 };
