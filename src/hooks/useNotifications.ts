@@ -26,19 +26,30 @@ export const useNotifications = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notifications" as any)
-        .select(`
-          *,
-          sender:sender_id(
-            id,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      const notifications = (data || []) as any[];
+
+      // Batch-fetch sender profiles
+      const senderIds = [...new Set(notifications.map(n => n.sender_id).filter(Boolean))];
+      let sendersMap: Record<string, any> = {};
+      if (senderIds.length > 0) {
+        const { data: senders } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url")
+          .in("id", senderIds);
+        if (senders) {
+          sendersMap = Object.fromEntries(senders.map(s => [s.id, s]));
+        }
+      }
+
+      return notifications.map(n => ({
+        ...n,
+        sender: n.sender_id ? sendersMap[n.sender_id] || null : null,
+      }));
     },
   });
 
