@@ -261,6 +261,10 @@ export type Database = {
         Row: {
           career_level: Database["public"]["Enums"]["career_level"]
           company: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          contact_url: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -275,6 +279,10 @@ export type Database = {
         Insert: {
           career_level: Database["public"]["Enums"]["career_level"]
           company: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -289,6 +297,10 @@ export type Database = {
         Update: {
           career_level?: Database["public"]["Enums"]["career_level"]
           company?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -397,6 +409,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          reference_id: string | null
+          sender_id: string | null
+          title: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          reference_id?: string | null
+          sender_id?: string | null
+          title?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          reference_id?: string | null
+          sender_id?: string | null
+          title?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       post_likes: {
         Row: {
