@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,6 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useConversations, useConversationMessages, useSendMessage } from "@/hooks/useMessaging";
 import { formatDistanceToNow, format, isToday } from "date-fns";
+import { useSearchParams, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Send } from "lucide-react";
 
 const formatMessageTime = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -15,13 +20,10 @@ const formatMessageTime = (dateStr: string) => {
   }
   return format(date, "M/d/yyyy, h:mm a");
 };
-import { useSearchParams, Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { Send } from "lucide-react";
 
 const Messages = () => {
   const { user } = useAuth();
-  const { data: conversations = [], refetch } = useConversations();
+  const { data: conversations = [] } = useConversations();
   const sendMessage = useSendMessage();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -35,12 +37,6 @@ const Messages = () => {
   // Fetch messages for active conversation
   const { data: messages = [], isLoading: messagesLoading } = useConversationMessages(activeRecipient);
 
-  // Ensure Recent Chats are fetched when user is loaded
-  useEffect(() => {
-    if (user?.id) {
-      refetch();
-    }
-  }, [user?.id, refetch]);
 
   // Initialize from URL recipientId
   useEffect(() => {
@@ -370,9 +366,5 @@ const NewConversationView = ({
     </>
   );
 };
-
-// Need to import these for NewConversationView
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 export default Messages;
