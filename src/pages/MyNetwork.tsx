@@ -4,10 +4,78 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Loader2, MessageCircle } from "lucide-react";
+import { Search, MapPin, Loader2, MessageCircle, UserPlus, UserCheck, Clock, Check, X } from "lucide-react";
 import { useAllProfiles } from "@/hooks/useAllProfiles";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import { useConnectionStatus, useSendConnectionRequest, useAcceptConnectionRequest, useRejectConnectionRequest } from "@/hooks/useConnections";
+
+// Connection button for each user card
+const ConnectionButton = ({ profileId }: { profileId: string }) => {
+  const { user } = useAuth();
+  const { data: connectionStatus, isLoading } = useConnectionStatus(profileId);
+  const sendRequest = useSendConnectionRequest();
+  const acceptRequest = useAcceptConnectionRequest();
+  const rejectRequest = useRejectConnectionRequest();
+
+  if (isLoading || profileId === user?.id) return null;
+
+  if (connectionStatus?.status === "accepted") {
+    return (
+      <Button variant="outline" size="sm" className="w-full" disabled>
+        <UserCheck className="h-4 w-4 mr-2" />
+        Connected
+      </Button>
+    );
+  }
+
+  if (connectionStatus?.status === "pending" && connectionStatus.receiver_id === user?.id) {
+    return (
+      <div className="flex gap-2 w-full">
+        <Button
+          size="sm"
+          className="flex-1"
+          onClick={(e) => { e.preventDefault(); acceptRequest.mutate(connectionStatus.id); }}
+          disabled={acceptRequest.isPending}
+        >
+          <Check className="h-4 w-4 mr-1" />
+          Accept
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          onClick={(e) => { e.preventDefault(); rejectRequest.mutate(connectionStatus.id); }}
+          disabled={rejectRequest.isPending}
+        >
+          <X className="h-4 w-4 mr-1" />
+          Ignore
+        </Button>
+      </div>
+    );
+  }
+
+  if (connectionStatus?.status === "pending") {
+    return (
+      <Button variant="outline" size="sm" className="w-full" disabled>
+        <Clock className="h-4 w-4 mr-2" />
+        Pending
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      size="sm"
+      className="w-full"
+      onClick={(e) => { e.preventDefault(); sendRequest.mutate(profileId); }}
+      disabled={sendRequest.isPending}
+    >
+      <UserPlus className="h-4 w-4 mr-2" />
+      Connect
+    </Button>
+  );
+};
 
 const MyNetwork = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,9 +181,11 @@ const MyNetwork = () => {
                       <span className="truncate">{profile.location}</span>
                     </div>
                   )}
+                  <ConnectionButton profileId={profile.id} />
                   <Button
                     className="w-full"
                     variant="outline"
+                    size="sm"
                     onClick={() => handleMessage(profile.id)}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
