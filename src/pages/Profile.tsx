@@ -25,9 +25,9 @@ import { formatDistanceToNow, format } from "date-fns";
 import { useSearchParams } from "react-router-dom";
 import { useSendMessage } from "@/hooks/useMessaging";
 import { useToast } from "@/hooks/use-toast";
-import { useAllProfiles } from "@/hooks/useAllProfiles";
+
 import { Link } from "react-router-dom";
-import { useSendConnectionRequest, useConnectionStatus } from "@/hooks/useConnections";
+import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useMyConnections } from "@/hooks/useConnections";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -77,7 +77,10 @@ const Profile = () => {
   
   // Connection state
   const sendConnectionRequest = useSendConnectionRequest();
+  const acceptConnection = useAcceptConnectionRequest();
+  const rejectConnection = useRejectConnectionRequest();
   const { data: connectionStatus } = useConnectionStatus(viewedUserId);
+  const { data: connectionCount } = useConnectionCount(viewedUserId);
 
   // Experience state
   const [experienceModalOpen, setExperienceModalOpen] = useState(false);
@@ -165,15 +168,17 @@ const Profile = () => {
 
   // Connections sidebar component
   const ConnectionsSidebar = ({ currentUserId }: { currentUserId: string | null }) => {
-    const { data: allProfiles, isLoading } = useAllProfiles();
+    const { data: myConnections, isLoading } = useMyConnections();
     
-    // Filter out the current user and limit to 5 connections
     const connections = useMemo(() => {
-      if (!allProfiles) return [];
-      return allProfiles
-        .filter(p => p.id !== currentUserId)
-        .slice(0, 5);
-    }, [allProfiles, currentUserId]);
+      if (!myConnections) return [];
+      return myConnections.slice(0, 5).map((conn: any) => {
+        const isRequester = conn.requester_id === user?.id;
+        const otherProfile = isRequester ? conn.receiver : conn.requester;
+        const otherId = isRequester ? conn.receiver_id : conn.requester_id;
+        return { ...otherProfile, id: otherId };
+      });
+    }, [myConnections, user?.id]);
 
     const getInitials = (name: string | null) => {
       if (!name) return "??";
@@ -188,7 +193,7 @@ const Profile = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Connections</h3>
+            <h3 className="font-semibold">Connections ({myConnections?.length ?? 0})</h3>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/my-network">View all</Link>
             </Button>
@@ -200,7 +205,7 @@ const Profile = () => {
           ) : connections.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center">No connections yet</p>
           ) : (
-            connections.map((connection) => (
+            connections.map((connection: any) => (
               <Link
                 key={connection.id}
                 to={`/profile?userId=${connection.id}`}
@@ -306,28 +311,53 @@ const Profile = () => {
                         <p className="text-xl text-muted-foreground">
                           {[profile?.job_title, profile?.company].filter(Boolean).join(" @ ") || "Welcome to NextGenCollar!"}
                         </p>
+                        <Link to="/my-network" className="text-sm text-primary hover:underline font-medium">
+                          {connectionCount ?? 0} connection{connectionCount !== 1 ? "s" : ""}
+                        </Link>
                       </div>
                     </div>
                     <div className="flex gap-3 pb-2">
                       {!isOwnProfile && (
                         <>
-                          <Button
-                            variant={connectionStatus?.status === "accepted" ? "outline" : "default"}
-                            className="gap-2"
-                            onClick={() => viewedUserId && sendConnectionRequest.mutate(viewedUserId)}
-                            disabled={
-                              sendConnectionRequest.isPending ||
-                              connectionStatus?.status === "pending" ||
-                              connectionStatus?.status === "accepted"
-                            }
-                          >
-                            <UserPlus className="h-4 w-4" />
-                            {connectionStatus?.status === "accepted"
-                              ? "Connected"
-                              : connectionStatus?.status === "pending"
-                              ? "Request Sent"
-                              : "Connect"}
-                          </Button>
+                          {/* Connection button logic */}
+                          {connectionStatus?.status === "accepted" ? (
+                            <Button variant="outline" className="gap-2" disabled>
+                              <UserPlus className="h-4 w-4" />
+                              Connected
+                            </Button>
+                          ) : connectionStatus?.status === "pending" && connectionStatus.receiver_id === user?.id ? (
+                            <>
+                              <Button
+                                className="gap-2"
+                                onClick={() => acceptConnection.mutate(connectionStatus.id)}
+                                disabled={acceptConnection.isPending}
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="gap-2"
+                                onClick={() => rejectConnection.mutate(connectionStatus.id)}
+                                disabled={rejectConnection.isPending}
+                              >
+                                Ignore
+                              </Button>
+                            </>
+                          ) : connectionStatus?.status === "pending" ? (
+                            <Button variant="outline" className="gap-2" disabled>
+                              <UserPlus className="h-4 w-4" />
+                              Pending
+                            </Button>
+                          ) : (
+                            <Button
+                              className="gap-2"
+                              onClick={() => viewedUserId && sendConnectionRequest.mutate(viewedUserId)}
+                              disabled={sendConnectionRequest.isPending}
+                            >
+                              <UserPlus className="h-4 w-4" />
+                              Connect
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             className="gap-2"

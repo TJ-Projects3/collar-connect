@@ -15,24 +15,22 @@ export const useSendConnectionRequest = () => {
       if (!user?.id) throw new Error("Not authenticated");
       if (recipientId === user.id) throw new Error("Cannot connect with yourself");
 
-      // Check if connection already exists
       const { data: existing } = await supabase
-        .from("user_connections" as any)
+        .from("user_connections")
         .select("id, status")
         .or(`and(requester_id.eq.${user.id},receiver_id.eq.${recipientId}),and(requester_id.eq.${recipientId},receiver_id.eq.${user.id})`)
         .maybeSingle();
 
       if (existing) {
         throw new Error(
-          (existing as any).status === "pending"
+          existing.status === "pending"
             ? "Connection request already sent"
             : "Already connected"
         );
       }
 
-      // Create connection request
       const { data: connection, error: connError } = await supabase
-        .from("user_connections" as any)
+        .from("user_connections")
         .insert({
           requester_id: user.id,
           receiver_id: recipientId,
@@ -42,11 +40,12 @@ export const useSendConnectionRequest = () => {
         .single();
 
       if (connError) throw connError;
-
       return connection;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["connections"] });
+      qc.invalidateQueries({ queryKey: ["connection-status"] });
+      qc.invalidateQueries({ queryKey: ["connection-count"] });
       toast({
         title: "Connection request sent",
         description: "Your request has been sent successfully.",
@@ -72,21 +71,21 @@ export const useAcceptConnectionRequest = () => {
     mutationFn: async (connectionId: string) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      // Update connection status
       const { data: connection, error: updateError } = await supabase
-        .from("user_connections" as any)
+        .from("user_connections")
         .update({ status: "accepted" })
         .eq("id", connectionId)
-        .eq("receiver_id", user.id) // Ensure only recipient can accept
+        .eq("receiver_id", user.id)
         .select()
         .single();
 
       if (updateError) throw updateError;
-
       return connection;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["connections"] });
+      qc.invalidateQueries({ queryKey: ["connection-status"] });
+      qc.invalidateQueries({ queryKey: ["connection-count"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
       qc.invalidateQueries({ queryKey: ["pending-connections"] });
       toast({
@@ -115,7 +114,7 @@ export const useRejectConnectionRequest = () => {
       if (!user?.id) throw new Error("Not authenticated");
 
       const { error } = await supabase
-        .from("user_connections" as any)
+        .from("user_connections")
         .update({ status: "rejected" })
         .eq("id", connectionId)
         .eq("receiver_id", user.id);
@@ -124,6 +123,8 @@ export const useRejectConnectionRequest = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["connections"] });
+      qc.invalidateQueries({ queryKey: ["connection-status"] });
+      qc.invalidateQueries({ queryKey: ["connection-count"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
       qc.invalidateQueries({ queryKey: ["pending-connections"] });
       toast({
@@ -140,23 +141,43 @@ export const useRejectConnectionRequest = () => {
   });
 };
 
-// Get connection status between two users
+// Get connection status between two users (includes receiver_id for accept logic)
 export const useConnectionStatus = (otherUserId: string | null) => {
   const { user } = useAuth();
 
   return useQuery({
     queryKey: ["connection-status", user?.id, otherUserId],
     enabled: !!user?.id && !!otherUserId && user.id !== otherUserId,
-    queryFn: async (): Promise<{ id: string; status: string; requester_id: string } | null> => {
+    queryFn: async (): Promise<{ id: string; status: string; requester_id: string; receiver_id: string } | null> => {
       if (!user?.id || !otherUserId) return null;
 
       const { data } = await supabase
-        .from("user_connections" as any)
-        .select("id, status, requester_id")
+        .from("user_connections")
+        .select("id, status, requester_id, receiver_id")
         .or(`and(requester_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
         .maybeSingle();
 
-      return data as unknown as { id: string; status: string; requester_id: string } | null;
+      return data as { id: string; status: string; requester_id: string; receiver_id: string } | null;
+    },
+  });
+};
+
+// Get connection count for a user
+export const useConnectionCount = (userId: string | null) => {
+  return useQuery({
+    queryKey: ["connection-count", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) return 0;
+
+      const { count, error } = await supabase
+        .from("user_connections")
+        .select("*", { count: "exact", head: true })
+        .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`)
+        .eq("status", "accepted");
+
+      if (error) throw error;
+      return count || 0;
     },
   });
 };
@@ -172,15 +193,15 @@ export const useMyConnections = () => {
       if (!user?.id) return [];
 
       const { data, error } = await supabase
-        .from("user_connections" as any)
+        .from("user_connections")
         .select(`
           id,
           requester_id,
           receiver_id,
           status,
           created_at,
-          requester:requester_id(full_name, avatar_url),
-          receiver:receiver_id(full_name, avatar_url)
+          requester:profiles!user_connections_requester_id_fkey(id, full_name, avatar_url, job_title),
+          receiver:profiles!user_connections_receiver_id_fkey(id, full_name, avatar_url, job_title)
         `)
         .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .eq("status", "accepted")
@@ -204,12 +225,12 @@ export const usePendingConnectionRequests = () => {
       if (!user?.id) return [];
 
       const { data, error } = await supabase
-        .from("user_connections" as any)
+        .from("user_connections")
         .select(`
           id,
           requester_id,
           created_at,
-          requester:requester_id(full_name, avatar_url, job_title)
+          requester:profiles!user_connections_requester_id_fkey(full_name, avatar_url, job_title)
         `)
         .eq("receiver_id", user.id)
         .eq("status", "pending")
@@ -232,12 +253,12 @@ export const usePendingConnectionRequests = () => {
           event: "INSERT",
           schema: "public",
           table: "user_connections",
-          filter: `receiver_id=eq.${user.id},status=eq.pending`,
+          filter: `receiver_id=eq.${user.id}`,
         },
         () => {
-          qc.invalidateQueries({
-            queryKey: ["pending-connections", user.id],
-          });
+          qc.invalidateQueries({ queryKey: ["pending-connections", user.id] });
+          qc.invalidateQueries({ queryKey: ["connection-status"] });
+          qc.invalidateQueries({ queryKey: ["connection-count"] });
         }
       )
       .on(
@@ -249,9 +270,9 @@ export const usePendingConnectionRequests = () => {
           filter: `receiver_id=eq.${user.id}`,
         },
         () => {
-          qc.invalidateQueries({
-            queryKey: ["pending-connections", user.id],
-          });
+          qc.invalidateQueries({ queryKey: ["pending-connections", user.id] });
+          qc.invalidateQueries({ queryKey: ["connection-status"] });
+          qc.invalidateQueries({ queryKey: ["connection-count"] });
         }
       )
       .subscribe();
