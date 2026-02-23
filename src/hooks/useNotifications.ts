@@ -8,7 +8,8 @@ export interface Notification {
   user_id: string;
   sender_id: string | null;
   type: string;
-  content: string;
+  title: string | null;
+  body: string | null;
   reference_id: string | null;
   is_read: boolean;
   created_at: string;
@@ -98,7 +99,7 @@ export const useUnreadNotificationCount = () => {
     if (!user?.id) return;
 
     const subscription = supabase
-      .channel("notifications")
+      .channel("notifications-unread-count")
       .on(
         "postgres_changes",
         {

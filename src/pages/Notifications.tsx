@@ -216,7 +216,12 @@ const Notifications = () => {
                                 {notification.type}
                               </Badge>
                             </div>
-                            <p className="text-sm mt-1">{notification.content}</p>
+                            {notification.title && (
+                              <p className="text-sm font-semibold mt-1">{notification.title}</p>
+                            )}
+                            {notification.body && (
+                              <p className="text-sm text-muted-foreground">{notification.body}</p>
+                            )}
                             <p className="text-xs text-muted-foreground mt-2">
                               {format(new Date(notification.created_at), "MMM d, yyyy 'at' h:mm a")}
                             </p>

@@ -43,14 +43,6 @@ export const useSendConnectionRequest = () => {
 
       if (connError) throw connError;
 
-      // Create notification for recipient
-      await supabase.from("notifications" as any).insert({
-        user_id: recipientId,
-        type: "connection_request",
-        reference_id: (connection as any).id,
-        content: "You have a new connection request",
-      });
-
       return connection;
     },
     onSuccess: () => {
@@ -90,14 +82,6 @@ export const useAcceptConnectionRequest = () => {
         .single();
 
       if (updateError) throw updateError;
-
-      // Notify the requester that their request was accepted
-      await supabase.from("notifications" as any).insert({
-        user_id: (connection as any).requester_id,
-        type: "connection_accepted",
-        reference_id: connectionId,
-        content: "Your connection request was accepted",
-      });
 
       return connection;
     },
