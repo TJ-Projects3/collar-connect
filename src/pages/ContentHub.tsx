@@ -163,27 +163,64 @@ const ContentHub = () => {
       );
     }
 
+    const hasImage = resource.image_url && isSafeUrl(resource.image_url);
+
     return (
-      <Card key={resource.id} className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50 flex flex-col">
-        <CardHeader className="pb-2">
-          {/* Badges row — no overlap */}
-          <div className="flex items-center gap-2 mb-2">
-            {resource.is_featured && (
-              <Badge className="bg-amber-500 text-white border-0">
-                <Star className="h-3 w-3 mr-1 fill-current" />
-                Featured
+      <Card key={resource.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 rounded-xl border-border/50 flex flex-col">
+        {hasImage && (
+          <div className="relative aspect-video bg-muted flex-shrink-0">
+            <img
+              src={resource.image_url!}
+              alt={resource.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute top-3 left-3 flex items-center gap-2">
+              {resource.is_featured && (
+                <Badge className="bg-amber-500 text-white border-0">
+                  <Star className="h-3 w-3 mr-1 fill-current" />
+                  Featured
+                </Badge>
+              )}
+              <Badge className="bg-primary/90 text-primary-foreground border-0">
+                <Icon className="h-3 w-3 mr-1" />
+                {getResourceBadgeLabel(resource.resource_type)}
               </Badge>
-            )}
-            <Badge variant="secondary">
-              {getResourceBadgeLabel(resource.resource_type)}
-            </Badge>
-          </div>
-          {/* Icon + title */}
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Icon className="h-5 w-5 text-primary" />
             </div>
-            <div className="flex-1 min-w-0">
+          </div>
+        )}
+        <CardHeader className="pb-2">
+          {!hasImage && (
+            <>
+              {/* Badges row — no overlap */}
+              <div className="flex items-center gap-2 mb-2">
+                {resource.is_featured && (
+                  <Badge className="bg-amber-500 text-white border-0">
+                    <Star className="h-3 w-3 mr-1 fill-current" />
+                    Featured
+                  </Badge>
+                )}
+                <Badge variant="secondary">
+                  {getResourceBadgeLabel(resource.resource_type)}
+                </Badge>
+              </div>
+              {/* Icon + title */}
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base leading-snug">{resource.title}</CardTitle>
+                  {resource.description && (
+                    <CardDescription className="text-sm mt-1 line-clamp-2">
+                      {resource.description}
+                    </CardDescription>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+          {hasImage && (
+            <div>
               <CardTitle className="text-base leading-snug">{resource.title}</CardTitle>
               {resource.description && (
                 <CardDescription className="text-sm mt-1 line-clamp-2">
@@ -191,7 +228,7 @@ const ContentHub = () => {
                 </CardDescription>
               )}
             </div>
-          </div>
+          )}
         </CardHeader>
         <CardContent className="mt-auto pt-0 space-y-3">
           {resource.resource_type === "article" && (
