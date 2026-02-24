@@ -154,7 +154,16 @@ const Calendar = () => {
             ) : (
               <div className="space-y-4">
                 {events.map(event => (
-                  <Card key={event.id}>
+                  <Card key={event.id} className="overflow-hidden">
+                    {event.image_url && (
+                      <div className="aspect-video bg-muted">
+                        <img
+                          src={event.image_url}
+                          alt={event.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
