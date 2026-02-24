@@ -185,7 +185,11 @@ const Calendar = () => {
                           </div>
                         )}
                       </div>
-                      <Button className="w-full mt-4">Register</Button>
+                      {event.virtual_link && (
+                        <Button className="w-full mt-4" asChild>
+                          <a href={event.virtual_link} target="_blank" rel="noopener noreferrer">Register</a>
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ))}

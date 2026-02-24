@@ -347,21 +347,19 @@ export const EventFormModal = ({
               />
             )}
 
-            {(eventType === "virtual" || eventType === "hybrid") && (
-              <FormField
-                control={form.control}
-                name="virtual_link"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Virtual Link</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="url" placeholder="https://zoom.us/..." />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="virtual_link"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Link</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="url" placeholder="https://..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
