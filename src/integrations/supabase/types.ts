@@ -753,6 +753,13 @@ export type Database = {
       }
     }
     Functions: {
+      get_trending_hashtags: {
+        Args: { limit_count?: number }
+        Returns: {
+          hashtag: string
+          post_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

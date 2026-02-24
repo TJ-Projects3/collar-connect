@@ -17,8 +17,10 @@ import {
 import {
   Home, Users, Briefcase, MessageSquare,
   Settings, ThumbsUp, MessageCircle, Share2,
-  TrendingUp, Award, Sparkles, BookOpen, Calendar, Trash2
+  TrendingUp, Sparkles, BookOpen, Calendar, Trash2, FileText, Video, Download, Globe, Hash
 } from "lucide-react";
+import { useFeaturedResources } from "@/hooks/useFeaturedResources";
+import { useTrendingHashtags } from "@/hooks/useTrendingHashtags";
 import { Link } from "react-router-dom";
 import { CreatePostModal } from "@/components/CreatePostModal";
 import { ReplyModal } from "@/components/ReplyModal";
@@ -53,12 +55,18 @@ const Feed = () => {
   });
   const { data: posts, isLoading } = usePosts();
 
-  const trendingTopics = [
-    { topic: "Diversity in Tech", posts: "1.2K posts" },
-    { topic: "Inclusive Leadership", posts: "856 posts" },
-    { topic: "Tech Mentorship", posts: "2.1K posts" },
-    { topic: "Career Growth", posts: "3.4K posts" }
-  ];
+  const { data: featuredResources, isLoading: featuredLoading } = useFeaturedResources(3);
+  const { data: trendingHashtags, isLoading: trendingLoading } = useTrendingHashtags(5);
+
+  const resourceIcon = (type: string) => {
+    switch (type) {
+      case "article": return <FileText className="h-5 w-5 text-primary" />;
+      case "video": return <Video className="h-5 w-5 text-accent" />;
+      case "download": return <Download className="h-5 w-5 text-secondary" />;
+      case "website": return <Globe className="h-5 w-5 text-primary" />;
+      default: return <Sparkles className="h-5 w-5 text-primary" />;
+    }
+  };
 
   const getInitials = (name: string | null) => {
     if (!name) return "U";
@@ -300,7 +308,7 @@ const Feed = () => {
 
           {/* Right Sidebar */}
           <aside className="lg:col-span-3 space-y-4">
-            {/* Featured */}
+            {/* Featured Resources */}
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
@@ -309,42 +317,58 @@ const Feed = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex gap-3 items-start">
-                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                    <Award className="h-5 w-5 text-secondary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Diversity Awards 2025</p>
-                    <p className="text-xs text-muted-foreground">Nominations open</p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-start">
-                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-                    <Users className="h-5 w-5 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Tech Inclusion Summit</p>
-                    <p className="text-xs text-muted-foreground">March 15-17, 2025</p>
-                  </div>
-                </div>
+                {featuredLoading ? (
+                  <p className="text-xs text-muted-foreground">Loading...</p>
+                ) : featuredResources && featuredResources.length > 0 ? (
+                  featuredResources.map((r) => (
+                    <a
+                      key={r.id}
+                      href={r.external_url || "#"}
+                      target={r.external_url ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      className="flex gap-3 items-start hover:bg-muted/50 p-2 rounded-md transition-colors -mx-2"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        {resourceIcon(r.resource_type)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{r.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{r.description || r.resource_type}</p>
+                      </div>
+                    </a>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No featured resources yet.</p>
+                )}
               </CardContent>
             </Card>
 
-            {/* Trending Topics */}
+            {/* Trending Hashtags */}
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Trending Topics</h3>
+                  <h3 className="font-semibold">Trending</h3>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {trendingTopics.map((item, index) => (
-                  <div key={index} className="cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
-                    <p className="font-medium text-sm">#{item.topic}</p>
-                    <p className="text-xs text-muted-foreground">{item.posts}</p>
-                  </div>
-                ))}
+                {trendingLoading ? (
+                  <p className="text-xs text-muted-foreground">Loading...</p>
+                ) : trendingHashtags && trendingHashtags.length > 0 ? (
+                  trendingHashtags.map((item) => (
+                    <div key={item.hashtag} className="cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors -mx-2">
+                      <p className="font-medium text-sm flex items-center gap-1.5">
+                        <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+                        {item.hashtag}
+                      </p>
+                      <p className="text-xs text-muted-foreground ml-5">
+                        {item.post_count} {item.post_count === 1 ? "post" : "posts"} this week
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No trending topics yet. Try using #hashtags in your posts!</p>
+                )}
               </CardContent>
             </Card>
           </aside>
