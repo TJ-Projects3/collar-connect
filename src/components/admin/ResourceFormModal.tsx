@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import {
   Select,
   SelectContent,
@@ -61,19 +62,7 @@ const resourceSchema = z.object({
     }, { message: "Only HTTP and HTTPS URLs are allowed" })
     .optional()
     .or(z.literal("")),
-  image_url: z.string()
-    .url()
-    .refine((url) => {
-      if (!url) return true;
-      try {
-        const parsed = new URL(url);
-        return ['http:', 'https:'].includes(parsed.protocol);
-      } catch {
-        return false;
-      }
-    }, { message: "Only HTTP and HTTPS URLs are allowed" })
-    .optional()
-    .or(z.literal("")),
+  image_url: z.string().optional().or(z.literal("")),
   tags: z.string().optional(),
   is_published: z.boolean(),
   is_featured: z.boolean(),
@@ -279,7 +268,7 @@ export const ResourceFormModal = ({
               />
             )}
 
-            {resourceType === "video" && (
+            {resourceType === "video" ? (
               <FormField
                 control={form.control}
                 name="image_url"
@@ -288,6 +277,25 @@ export const ResourceFormModal = ({
                     <FormLabel>Thumbnail URL</FormLabel>
                     <FormControl>
                       <Input {...field} type="url" placeholder="https://..." />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="image_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image</FormLabel>
+                    <FormControl>
+                      <ImageUpload
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        folder="resources"
+                        label="Image"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

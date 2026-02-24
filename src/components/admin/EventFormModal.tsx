@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TIMEZONES, getTimezoneLabel } from "@/lib/timezones";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 // Convert a UTC ISO string to the "YYYY-MM-DDTHH:mm" format in a given timezone
 // (suitable as the value for a datetime-local input)
@@ -95,7 +96,7 @@ const eventSchema = z.object({
   location: z.string().optional(),
   virtual_link: z.string().url().optional().or(z.literal("")),
   capacity: z.coerce.number().min(0).optional(),
-  image_url: z.string().url().optional().or(z.literal("")),
+  image_url: z.string().optional().or(z.literal("")),
   is_published: z.boolean(),
 });
 
@@ -380,9 +381,14 @@ export const EventFormModal = ({
               name="image_url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image URL</FormLabel>
+                  <FormLabel>Event Image</FormLabel>
                   <FormControl>
-                    <Input {...field} type="url" placeholder="https://..." />
+                    <ImageUpload
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      folder="events"
+                      label="Event Image"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
