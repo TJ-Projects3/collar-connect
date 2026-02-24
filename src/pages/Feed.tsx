@@ -22,6 +22,7 @@ import {
 import { useFeaturedResources } from "@/hooks/useFeaturedResources";
 import { useTrendingHashtags } from "@/hooks/useTrendingHashtags";
 import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { CreatePostModal } from "@/components/CreatePostModal";
 import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
@@ -35,6 +36,7 @@ import { formatDistanceToNow } from "date-fns";
 
 const Feed = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
   const [replyModalState, setReplyModalState] = useState<{
     isOpen: boolean;
     postId: string;
@@ -57,6 +59,13 @@ const Feed = () => {
 
   const { data: featuredResources, isLoading: featuredLoading } = useFeaturedResources(3);
   const { data: trendingHashtags, isLoading: trendingLoading } = useTrendingHashtags(5);
+
+  const filteredPosts = activeHashtag && posts
+    ? posts.filter((p) => {
+        const regex = new RegExp(`#${activeHashtag}\\b`, "i");
+        return regex.test(p.content);
+      })
+    : posts;
 
   const resourceIcon = (type: string) => {
     switch (type) {
@@ -288,6 +297,18 @@ const Feed = () => {
 
             <CreatePostModal open={isPostModalOpen} onOpenChange={setIsPostModalOpen} />
 
+            {/* Active filter indicator */}
+            {activeHashtag && (
+              <div className="flex items-center gap-2 px-1">
+                <span className="text-sm text-muted-foreground">Filtering by</span>
+                <Badge variant="secondary" className="gap-1">
+                  <Hash className="h-3 w-3" />
+                  {activeHashtag}
+                  <button onClick={() => setActiveHashtag(null)} className="ml-1 hover:text-destructive">✕</button>
+                </Badge>
+              </div>
+            )}
+
             {/* Posts Feed */}
             {isLoading ? (
               <Card>
@@ -295,12 +316,12 @@ const Feed = () => {
                   Loading posts...
                 </CardContent>
               </Card>
-            ) : posts && posts.length > 0 ? (
-              posts.map((post) => <PostCard key={post.id} post={post} />)
+            ) : filteredPosts && filteredPosts.length > 0 ? (
+              filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
             ) : (
               <Card>
                 <CardContent className="p-6 text-center text-muted-foreground">
-                  No posts yet. Be the first to share something!
+                  {activeHashtag ? `No posts with #${activeHashtag} yet.` : "No posts yet. Be the first to share something!"}
                 </CardContent>
               </Card>
             )}
@@ -356,7 +377,11 @@ const Feed = () => {
                   <p className="text-xs text-muted-foreground">Loading...</p>
                 ) : trendingHashtags && trendingHashtags.length > 0 ? (
                   trendingHashtags.map((item) => (
-                    <div key={item.hashtag} className="cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors -mx-2">
+                    <div
+                      key={item.hashtag}
+                      className={`cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors -mx-2 ${activeHashtag === item.hashtag ? "bg-primary/10 ring-1 ring-primary/30" : ""}`}
+                      onClick={() => setActiveHashtag(activeHashtag === item.hashtag ? null : item.hashtag)}
+                    >
                       <p className="font-medium text-sm flex items-center gap-1.5">
                         <Hash className="h-3.5 w-3.5 text-muted-foreground" />
                         {item.hashtag}
