@@ -115,7 +115,7 @@ const Calendar = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-semibold">{event.title}</h4>
-                          <Badge className={getEventTypeColor(event.event_type)}>
+                          <Badge className={`${getEventTypeColor(event.event_type)} text-xs whitespace-nowrap px-2 py-0.5`}>
                             {formatEventType(event.event_type)}
                           </Badge>
                         </div>
@@ -163,7 +163,7 @@ const Calendar = () => {
                             <CardDescription className="mt-1">{event.description}</CardDescription>
                           )}
                         </div>
-                        <Badge className={getEventTypeColor(event.event_type)}>
+                        <Badge className={`${getEventTypeColor(event.event_type)} text-xs whitespace-nowrap px-2 py-0.5`}>
                           {formatEventType(event.event_type)}
                         </Badge>
                       </div>
