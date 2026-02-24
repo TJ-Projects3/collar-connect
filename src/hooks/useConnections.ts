@@ -42,7 +42,11 @@ export const useSendConnectionRequest = () => {
       if (connError) throw connError;
       return connection;
     },
-    onSuccess: () => {
+    onSuccess: async (connection, recipientId) => {
+      // DB trigger (create_notification_for_connection_request) handles notification creation
+      // Email sending would be handled separately by backend service
+      // checking email_preferences table for user settings
+      
       qc.invalidateQueries({ queryKey: ["connections"] });
       qc.invalidateQueries({ queryKey: ["connection-status"] });
       qc.invalidateQueries({ queryKey: ["connection-count"] });
@@ -82,7 +86,11 @@ export const useAcceptConnectionRequest = () => {
       if (updateError) throw updateError;
       return connection;
     },
-    onSuccess: () => {
+    onSuccess: async (connection) => {
+      // DB trigger handles notification creation for connection acceptance
+      // Email sending would be handled separately by backend service
+      // checking email_preferences table
+      
       qc.invalidateQueries({ queryKey: ["connections"] });
       qc.invalidateQueries({ queryKey: ["connection-status"] });
       qc.invalidateQueries({ queryKey: ["connection-count"] });

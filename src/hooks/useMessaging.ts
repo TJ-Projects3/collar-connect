@@ -254,7 +254,10 @@ export const useSendMessage = () => {
 
       const inserted = (data as Message[])?.[0];
 
-      // DB trigger handles notification creation automatically
+      // DB trigger (trigger_notify_on_message) handles notification creation automatically
+      // Notification with title/body will be inserted into notifications table
+      // Email sending would be handled separately by backend service or Edge Function
+      // checking email_preferences table
 
       // Instant UI update: inject or update the counterpart in Recent Chats
       qc.setQueryData(["conversations", user?.id], (old: Conversation[] | undefined) => {
