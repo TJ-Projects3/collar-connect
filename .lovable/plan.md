@@ -1,129 +1,140 @@
 
 
-# Connections Feature - LinkedIn-Style Implementation
+# Career Mapping Feature -- 3-Phase Implementation Plan
+
+## Overview
+A 16-question career assessment quiz across 4 sections that matches users to career tracks (Cloud, Security, Data, Systems/DevOps) using a weighted scoring model. All questions contribute to scoring, with Section 4 carrying 3x weight.
+
+---
+
+## Phase 1: Frontend (UI and Scoring Logic)
+
+Build the complete quiz experience with local state only -- no database calls yet.
+
+### New Files
+
+**`src/lib/career-scoring.ts`**
+- Define all 16 questions as a structured array, grouped by section:
+  - Section 1: Technical Foundation (4 questions)
+  - Section 2: AI Exposure (4 questions)
+  - Section 3: Market Readiness (4 questions)
+  - Section 4: Directional Preference (4 questions)
+- Each question includes: section number, statement text, and a weight map (which tracks it contributes to and at what multiplier)
+- Weight mapping:
+  - Section 4 questions: 3x weight, one-to-one with tracks (Q1->Cloud, Q2->Security, Q3->Data, Q4->DevOps)
+  - Section 1-2 questions: 1x weight, mapped to relevant tracks (e.g., "security concepts" -> Security x1)
+  - Section 3 questions: readiness-only, no track contribution
+- `computeCareerResults(answers)` function returns:
+  - `tracks`: sorted array of `{ name, score, maxScore, percentage }` for each career track
+  - `readiness`: 0-100 percentage from Sections 1-3 average
+- Career track metadata: name, description string, associated Lucide icon name, and a color token
+
+**`src/pages/CareerMapping.tsx`**
+- Two views managed by local state:
+
+  **Quiz View (multi-step stepper):**
+  - Intro screen with a brief explanation and "Start Assessment" button
+  - Progress bar at the top showing current section (e.g., "Section 2 of 4 -- AI Exposure")
+  - Each step renders 4 statements with a 5-point radio group per statement (Strongly Disagree to Strongly Agree, values 1-5)
+  - Back / Next buttons; Next is disabled until all 4 questions in the current section are answered
+  - Final section shows "See My Results" instead of "Next"
+  - Clicking "See My Results" calls `computeCareerResults()` and switches to results view
+
+  **Results View:**
+  - Primary career match: large Card with track icon, name, description, and match percentage
+  - Secondary match: smaller Card below
+  - Readiness score: labeled Progress bar (percentage)
+  - Full breakdown: all 4 track scores as horizontal bars with percentages
+  - "Retake Assessment" button resets local state back to the intro screen
+
+- Uses existing components: Card, Button, RadioGroup, RadioGroupItem, Progress, Badge, Separator, Label
+
+### Modified Files
+
+**`src/App.tsx`**
+- Import CareerMapping page
+- Add `/career-mapping` as a protected route
+
+**`src/pages/Feed.tsx`**
+- Add a "Career Mapping" sidebar link with a Compass icon, placed between "Calendar" and the Settings separator
+
+At the end of Phase 1, the quiz is fully functional in-browser but nothing is persisted.
+
+---
+
+## Phase 2: Backend (Database Table and Hooks)
+
+Create the Supabase table and React Query hooks.
+
+### Database Migration
+
+```sql
+CREATE TABLE public.career_assessments (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  answers JSONB NOT NULL DEFAULT '{}',
+  results JSONB NOT NULL DEFAULT '{}',
+  completed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.career_assessments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own assessments"
+  ON public.career_assessments FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own assessments"
+  ON public.career_assessments FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own assessments"
+  ON public.career_assessments FOR DELETE
+  USING (auth.uid() = user_id);
+
+CREATE INDEX idx_career_assessments_user_id
+  ON public.career_assessments(user_id);
+```
+
+### New Files
+
+**`src/hooks/useCareerAssessment.ts`**
+- `useCareerAssessment()` -- React Query hook that fetches the most recent assessment for the current user (ordered by `completed_at` desc, limit 1)
+- `useSaveAssessment()` -- mutation that inserts a new row with the user's answers and computed results
+- `useDeleteAssessment()` -- mutation that deletes an assessment by ID (used for retake), invalidates the query cache
+
+### Modified Files
+
+**`src/integrations/supabase/types.ts`**
+- Add the `career_assessments` table type definitions (Row, Insert, Update, Relationships)
+
+At the end of Phase 2, the hooks exist but are not yet called from the UI.
+
+---
+
+## Phase 3: Connect Frontend to Backend
+
+Wire the hooks into the CareerMapping page so results persist and load on revisit.
+
+### Modified Files
+
+**`src/pages/CareerMapping.tsx`**
+- Import and call `useCareerAssessment()` on mount
+  - If a previous assessment exists, skip the quiz and show the results view immediately
+  - Show a loading state while fetching
+- After computing results on "See My Results", call `useSaveAssessment()` to persist answers and results to the database
+- "Retake Assessment" calls `useDeleteAssessment()`, then resets local state to the intro screen
+- Add toast notifications for save success/failure
+
+### No other files need changes in this phase.
+
+---
 
 ## Summary
-Implement a full connections system with connection counts on profiles, Accept/Reject buttons on profile pages for incoming requests, and Connect/Connected status buttons on My Network cards. This also includes backend fixes for broken foreign keys and database triggers.
 
----
-
-## Phase 1: Backend Fixes
-
-### 1.1 Fix foreign keys on `user_connections`
-The `requester_id` and `receiver_id` columns currently reference `auth.users(id)` instead of `public.profiles(id)`. PostgREST cannot join to `auth.users`, which means all connection queries that try to fetch profile data via joins silently fail. We need to drop the existing foreign keys and re-create them pointing to `profiles(id)`.
-
-**Database migration:**
-```sql
-ALTER TABLE public.user_connections
-  DROP CONSTRAINT user_connections_requester_id_fkey,
-  DROP CONSTRAINT user_connections_receiver_id_fkey;
-
-ALTER TABLE public.user_connections
-  ADD CONSTRAINT user_connections_requester_id_fkey
-    FOREIGN KEY (requester_id) REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD CONSTRAINT user_connections_receiver_id_fkey
-    FOREIGN KEY (receiver_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
-```
-
-### 1.2 Fix notification triggers using wrong column
-The `notify_on_connection_request()` and `notify_on_connection_accept()` triggers insert into a `content` column that does not exist on the `notifications` table. They need to use `title` and `body` instead.
-
-**Database migration:**
-```sql
-CREATE OR REPLACE FUNCTION public.notify_on_connection_request()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
-begin
-  insert into public.notifications (user_id, sender_id, type, title, body, reference_id)
-  values (
-    NEW.receiver_id,
-    NEW.requester_id,
-    'connection_request',
-    'Connection Request',
-    'You received a new connection request',
-    NEW.id
-  );
-  return NEW;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION public.notify_on_connection_accept()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
-begin
-  if NEW.status = 'accepted' and OLD.status = 'pending' then
-    insert into public.notifications (user_id, sender_id, type, title, body, reference_id)
-    values (
-      NEW.requester_id,
-      NEW.receiver_id,
-      'connection_accepted',
-      'Connection Accepted',
-      'Your connection request was accepted',
-      NEW.id
-    );
-  end if;
-  return NEW;
-end;
-$$;
-```
-
----
-
-## Phase 2: Frontend Changes
-
-### 2.1 Add `useConnectionCount` hook
-**File: `src/hooks/useConnections.ts`**
-- Add a new `useConnectionCount(userId)` hook that queries `user_connections` for accepted connections where the user is either requester or receiver, using `select("*", { count: "exact", head: true })` for efficiency.
-
-### 2.2 Update `useConnectionStatus` to include receiver_id
-**File: `src/hooks/useConnections.ts`**
-- Add `receiver_id` to the select so the profile page can determine if the current user is the receiver (and thus can accept the request).
-
-### 2.3 Profile page: Connection count + Accept/Reject buttons
-**File: `src/pages/Profile.tsx`**
-
-- **Connection count**: Display "X connections" below the user's name/headline, styled as a clickable link to `/my-network` (like LinkedIn).
-- **Accept/Reject buttons**: When viewing another user's profile and there is a pending incoming request (where the current user is the `receiver_id`), replace the "Connect" button with "Accept" and "Ignore" buttons. Use the existing `useAcceptConnectionRequest` and `useRejectConnectionRequest` hooks.
-
-The button states will be:
-| Scenario | Button(s) Shown |
-|---|---|
-| No connection exists | "Connect" button |
-| Current user sent pending request | "Pending" (disabled) |
-| Other user sent pending request to current user | "Accept" + "Ignore" buttons |
-| Already connected | "Connected" (disabled outline) |
-
-### 2.4 Profile page: Fix ConnectionsSidebar
-**File: `src/pages/Profile.tsx`**
-
-The sidebar currently shows random profiles instead of actual connections. It will be updated to:
-- Use `useMyConnections` to fetch real accepted connections
-- Display the connected user's profile (determine which side of the connection is the "other" user)
-- Show count in the sidebar header: "Connections (X)"
-
-### 2.5 My Network page: Add Connect/Connected buttons
-**File: `src/pages/MyNetwork.tsx`**
-
-Each user card will get a connection action button alongside the existing "Message" button. A new `ConnectionButton` component will be created within this file that:
-- Uses `useConnectionStatus` to check the relationship with each user
-- Shows "Connect", "Pending", "Accept", or "Connected" based on status
-- Calls `useSendConnectionRequest`, `useAcceptConnectionRequest` as needed
-
-### 2.6 Remove `as any` type casts
-**File: `src/hooks/useConnections.ts`**
-
-After the foreign key migration, PostgREST joins will work. Remove `as any` casts from `supabase.from("user_connections" as any)` calls and update the queries to use proper joins for profile data where needed.
-
----
-
-## Technical Details
-
-### Files to modify:
-| File | Changes |
-|---|---|
-| `src/hooks/useConnections.ts` | Add `useConnectionCount`, update `useConnectionStatus` to include `receiver_id`, remove `as any` casts |
-| `src/pages/Profile.tsx` | Add connection count display, Accept/Reject buttons for incoming requests, fix ConnectionsSidebar to use real connections |
-| `src/pages/MyNetwork.tsx` | Add Connect/Connected button to each user card |
-| Database (2 migrations) | Fix foreign keys on `user_connections`, fix notification trigger functions |
-
-### Query invalidation
-Accepting/rejecting connections already invalidates `["connections"]`, `["pending-connections"]`, and `["notifications"]` query keys. The new `useConnectionCount` will use `["connection-count", userId]` and will also be invalidated on accept.
+| Phase | What | Files touched |
+|-------|------|---------------|
+| 1 | UI stepper, scoring logic, routing, sidebar link | `career-scoring.ts` (new), `CareerMapping.tsx` (new), `App.tsx`, `Feed.tsx` |
+| 2 | Database table, RLS, React Query hooks, types | Migration SQL, `useCareerAssessment.ts` (new), `types.ts` |
+| 3 | Wire hooks into the page for persistence | `CareerMapping.tsx` |
 
