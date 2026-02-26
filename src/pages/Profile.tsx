@@ -296,96 +296,97 @@ const Profile = () => {
               <div className="h-56 bg-gradient-to-r from-primary via-secondary to-accent" />
               
               {/* Profile Info */}
-              <CardContent className="relative pt-0 px-8 pb-8">
-                <div className="flex flex-col gap-6 -mt-20">
-                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-                    <div className="flex flex-col sm:flex-row gap-6 sm:items-end">
-                      <Avatar className="h-40 w-40 border-4 border-card shadow-xl">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
-                          {getInitials(profile?.full_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-2 pb-2">
-                        <h1 className="text-4xl font-bold">{profile?.full_name || "Your Name"}</h1>
-                        <p className="text-xl text-muted-foreground">
-                          {[profile?.job_title, profile?.company].filter(Boolean).join(" @ ") || "Welcome to NextGenCollar!"}
-                        </p>
-                        <Link to="/my-network" className="text-sm text-primary hover:underline font-medium">
-                          {connectionCount ?? 0} connection{connectionCount !== 1 ? "s" : ""}
-                        </Link>
-                      </div>
-                    </div>
-                    <div className="flex gap-3 pb-2">
-                      {!isOwnProfile && (
-                        <>
-                          {/* Connection button logic */}
-                          {connectionStatus?.status === "accepted" ? (
-                            <Button variant="outline" className="gap-2" disabled>
-                              <UserPlus className="h-4 w-4" />
-                              Connected
-                            </Button>
-                          ) : connectionStatus?.status === "pending" && connectionStatus.receiver_id === user?.id ? (
-                            <>
-                              <Button
-                                className="gap-2"
-                                onClick={() => acceptConnection.mutate(connectionStatus.id)}
-                                disabled={acceptConnection.isPending}
-                              >
-                                Accept
-                              </Button>
-                              <Button
-                                variant="outline"
-                                className="gap-2"
-                                onClick={() => rejectConnection.mutate(connectionStatus.id)}
-                                disabled={rejectConnection.isPending}
-                              >
-                                Ignore
-                              </Button>
-                            </>
-                          ) : connectionStatus?.status === "pending" ? (
-                            <Button variant="outline" className="gap-2" disabled>
-                              <UserPlus className="h-4 w-4" />
-                              Pending
-                            </Button>
-                          ) : (
+              <CardContent className="relative pt-0 px-4 sm:px-8 pb-6 sm:pb-8">
+                {/* Avatar overlapping the banner */}
+                <div className="-mt-16 sm:-mt-20 mb-4">
+                  <Avatar className="h-28 w-28 sm:h-40 sm:w-40 border-4 border-card shadow-xl">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-3xl sm:text-5xl">
+                      {getInitials(profile?.full_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+
+                {/* Name and actions below the banner */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <h1 className="text-2xl sm:text-4xl font-bold">{profile?.full_name || "Your Name"}</h1>
+                    <p className="text-base sm:text-xl text-muted-foreground">
+                      {[profile?.job_title, profile?.company].filter(Boolean).join(" @ ") || "Welcome to NextGenCollar!"}
+                    </p>
+                    <Link to="/my-network" className="text-sm text-primary hover:underline font-medium inline-block">
+                      {connectionCount ?? 0} connection{connectionCount !== 1 ? "s" : ""}
+                    </Link>
+                  </div>
+                  <div className="flex gap-3">
+                    {!isOwnProfile && (
+                      <>
+                        {connectionStatus?.status === "accepted" ? (
+                          <Button variant="outline" className="gap-2" disabled>
+                            <UserPlus className="h-4 w-4" />
+                            Connected
+                          </Button>
+                        ) : connectionStatus?.status === "pending" && connectionStatus.receiver_id === user?.id ? (
+                          <>
                             <Button
                               className="gap-2"
-                              onClick={() => viewedUserId && sendConnectionRequest.mutate(viewedUserId)}
-                              disabled={sendConnectionRequest.isPending}
+                              onClick={() => acceptConnection.mutate(connectionStatus.id)}
+                              disabled={acceptConnection.isPending}
                             >
-                              <UserPlus className="h-4 w-4" />
-                              Connect
+                              Accept
                             </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            className="gap-2"
-                            onClick={() => setMessageDialogOpen(true)}
-                          >
-                            <Mail className="h-4 w-4" />
-                            Message
+                            <Button
+                              variant="outline"
+                              className="gap-2"
+                              onClick={() => rejectConnection.mutate(connectionStatus.id)}
+                              disabled={rejectConnection.isPending}
+                            >
+                              Ignore
+                            </Button>
+                          </>
+                        ) : connectionStatus?.status === "pending" ? (
+                          <Button variant="outline" className="gap-2" disabled>
+                            <UserPlus className="h-4 w-4" />
+                            Pending
                           </Button>
-                        </>
-                      )}
-                      {isOwnProfile && <ProfileButton />}
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-4 text-base text-muted-foreground">
-                    {profile?.location && (
-                      <span className="flex items-center gap-2">
-                        <MapPin className="h-5 w-5" />
-                        {profile.location}
-                      </span>
+                        ) : (
+                          <Button
+                            className="gap-2"
+                            onClick={() => viewedUserId && sendConnectionRequest.mutate(viewedUserId)}
+                            disabled={sendConnectionRequest.isPending}
+                          >
+                            <UserPlus className="h-4 w-4" />
+                            Connect
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => setMessageDialogOpen(true)}
+                        >
+                          <Mail className="h-4 w-4" />
+                          Message
+                        </Button>
+                      </>
                     )}
-                    {profile?.website && (
-                      <span className="flex items-center gap-2">
-                        <LinkIcon className="h-5 w-5" />
-                        {profile.website}
-                      </span>
-                    )}
+                    {isOwnProfile && <ProfileButton />}
                   </div>
+                </div>
+
+                {/* Location & Website */}
+                <div className="flex flex-wrap gap-4 text-sm sm:text-base text-muted-foreground mt-4">
+                  {profile?.location && (
+                    <span className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+                      {profile.location}
+                    </span>
+                  )}
+                  {profile?.website && (
+                    <span className="flex items-center gap-2">
+                      <LinkIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                      {profile.website}
+                    </span>
+                  )}
                 </div>
               </CardContent>
             </Card>
