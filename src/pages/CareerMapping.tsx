@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -7,7 +7,8 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
-import { Compass, Cloud, Shield, Database, Server, ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
+import { Compass, Cloud, Shield, Database, Server, ArrowLeft, ArrowRight, RotateCcw, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   QUESTIONS,
   SECTIONS,
@@ -15,30 +16,48 @@ import {
   computeCareerResults,
   TRACK_META,
   type CareerResults,
-  type TrackName } from
-"@/lib/career-scoring";
+  type TrackName,
+} from "@/lib/career-scoring";
+import {
+  useCareerAssessment,
+  useSaveAssessment,
+  useDeleteAssessment,
+} from "@/hooks/useCareerAssessment";
 
 const TRACK_ICONS: Record<TrackName, React.ReactNode> = {
   Cloud: <Cloud className="h-8 w-8" />,
   Security: <Shield className="h-8 w-8" />,
   Data: <Database className="h-8 w-8" />,
-  "Systems/DevOps": <Server className="h-8 w-8" />
+  "Systems/DevOps": <Server className="h-8 w-8" />,
 };
 
 const TRACK_ICONS_SM: Record<TrackName, React.ReactNode> = {
   Cloud: <Cloud className="h-5 w-5" />,
   Security: <Shield className="h-5 w-5" />,
   Data: <Database className="h-5 w-5" />,
-  "Systems/DevOps": <Server className="h-5 w-5" />
+  "Systems/DevOps": <Server className="h-5 w-5" />,
 };
 
 type View = "intro" | "quiz" | "results";
 
 const CareerMapping = () => {
   const [view, setView] = useState<View>("intro");
-  const [currentSection, setCurrentSection] = useState(0); // 0-indexed
+  const [currentSection, setCurrentSection] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [results, setResults] = useState<CareerResults | null>(null);
+
+  const { data: existingAssessment, isLoading } = useCareerAssessment();
+  const saveAssessment = useSaveAssessment();
+  const deleteAssessment = useDeleteAssessment();
+
+  // If a previous assessment exists, jump to results
+  useEffect(() => {
+    if (existingAssessment) {
+      setResults(existingAssessment.results as unknown as CareerResults);
+      setAnswers(existingAssessment.answers as unknown as Record<number, number>);
+      setView("results");
+    }
+  }, [existingAssessment]);
 
   const sectionQuestions = QUESTIONS.filter(
     (q) => q.section === SECTIONS[currentSection]?.number
@@ -54,10 +73,17 @@ const CareerMapping = () => {
     if (currentSection < SECTIONS.length - 1) {
       setCurrentSection((s) => s + 1);
     } else {
-      // Last section — compute results
       const computed = computeCareerResults(answers);
       setResults(computed);
       setView("results");
+
+      saveAssessment.mutate(
+        { answers, results: computed },
+        {
+          onSuccess: () => toast.success("Assessment saved!"),
+          onError: () => toast.error("Failed to save assessment. Please try again."),
+        }
+      );
     }
   };
 
@@ -66,11 +92,27 @@ const CareerMapping = () => {
   };
 
   const handleRetake = () => {
+    if (existingAssessment?.id) {
+      deleteAssessment.mutate(existingAssessment.id, {
+        onError: () => toast.error("Failed to delete previous assessment."),
+      });
+    }
     setAnswers({});
     setResults(null);
     setCurrentSection(0);
     setView("intro");
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-6 max-w-2xl flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -78,32 +120,36 @@ const CareerMapping = () => {
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         {view === "intro" && <IntroView onStart={() => setView("quiz")} />}
 
-        {view === "quiz" &&
-        <QuizView
-          section={SECTIONS[currentSection]}
-          sectionIndex={currentSection}
-          totalSections={SECTIONS.length}
-          questions={sectionQuestions}
-          answers={answers}
-          onAnswer={handleAnswer}
-          onNext={handleNext}
-          onBack={handleBack}
-          allAnswered={allSectionAnswered}
-          isLast={currentSection === SECTIONS.length - 1} />
+        {view === "quiz" && (
+          <QuizView
+            section={SECTIONS[currentSection]}
+            sectionIndex={currentSection}
+            totalSections={SECTIONS.length}
+            questions={sectionQuestions}
+            answers={answers}
+            onAnswer={handleAnswer}
+            onNext={handleNext}
+            onBack={handleBack}
+            allAnswered={allSectionAnswered}
+            isLast={currentSection === SECTIONS.length - 1}
+          />
+        )}
 
-        }
-
-        {view === "results" && results &&
-        <ResultsView results={results} onRetake={handleRetake} />
-        }
+        {view === "results" && results && (
+          <ResultsView
+            results={results}
+            onRetake={handleRetake}
+            isDeleting={deleteAssessment.isPending}
+          />
+        )}
       </div>
-    </div>);
-
+    </div>
+  );
 };
 
 /* ─── Intro ─── */
-const IntroView = ({ onStart }: {onStart: () => void;}) =>
-<Card className="text-center">
+const IntroView = ({ onStart }: { onStart: () => void }) => (
+  <Card className="text-center">
     <CardHeader className="pb-2">
       <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
         <Compass className="h-8 w-8 text-primary" />
@@ -116,14 +162,14 @@ const IntroView = ({ onStart }: {onStart: () => void;}) =>
     </CardHeader>
     <CardContent className="space-y-4 pb-2 my-[20px]">
       <div className="grid grid-cols-2 gap-3 text-left max-w-sm mx-auto">
-        {SECTIONS.map((s) =>
-      <div key={s.number} className="flex items-center gap-2 text-sm">
+        {SECTIONS.map((s) => (
+          <div key={s.number} className="flex items-center gap-2 text-sm">
             <Badge variant="secondary" className="h-6 w-6 p-0 flex items-center justify-center text-xs">
               {s.number}
             </Badge>
             <span className="text-muted-foreground">{s.title}</span>
           </div>
-      )}
+        ))}
       </div>
     </CardContent>
     <CardFooter className="justify-center pt-4">
@@ -131,8 +177,8 @@ const IntroView = ({ onStart }: {onStart: () => void;}) =>
         Start Assessment
       </Button>
     </CardFooter>
-  </Card>;
-
+  </Card>
+);
 
 /* ─── Quiz ─── */
 interface QuizViewProps {
@@ -158,66 +204,51 @@ const QuizView = ({
   onNext,
   onBack,
   allAnswered,
-  isLast
+  isLast,
 }: QuizViewProps) => {
-  const progress = (sectionIndex + 1) / totalSections * 100;
+  const progress = ((sectionIndex + 1) / totalSections) * 100;
 
   return (
     <div className="space-y-4">
-      {/* Progress */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
-          <span>
-            Section {sectionIndex + 1} of {totalSections}
-          </span>
+          <span>Section {sectionIndex + 1} of {totalSections}</span>
           <span>{section.title}</span>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
 
-      {/* Section header */}
       <Card>
         <CardHeader className="pb-3">
           <h2 className="text-xl font-semibold">{section.title}</h2>
           <p className="text-sm text-muted-foreground">{section.description}</p>
         </CardHeader>
         <CardContent className="space-y-6">
-          {questions.map((q) =>
-          <div key={q.id} className="space-y-3">
+          {questions.map((q) => (
+            <div key={q.id} className="space-y-3">
               <p className="text-sm font-medium leading-relaxed">
                 {q.id}. {q.statement}
               </p>
               <RadioGroup
-              value={answers[q.id]?.toString()}
-              onValueChange={(val) => onAnswer(q.id, parseInt(val))}
-              className="flex flex-wrap gap-2">
-
-                {LIKERT_OPTIONS.map((opt) =>
-              <div key={opt.value} className="flex items-center gap-1.5">
-                    <RadioGroupItem
-                  value={opt.value.toString()}
-                  id={`q${q.id}-${opt.value}`} />
-
-                    <Label
-                  htmlFor={`q${q.id}-${opt.value}`}
-                  className="text-xs cursor-pointer">
-
+                value={answers[q.id]?.toString()}
+                onValueChange={(val) => onAnswer(q.id, parseInt(val))}
+                className="flex flex-wrap gap-2"
+              >
+                {LIKERT_OPTIONS.map((opt) => (
+                  <div key={opt.value} className="flex items-center gap-1.5">
+                    <RadioGroupItem value={opt.value.toString()} id={`q${q.id}-${opt.value}`} />
+                    <Label htmlFor={`q${q.id}-${opt.value}`} className="text-xs cursor-pointer">
                       {opt.label}
                     </Label>
                   </div>
-              )}
+                ))}
               </RadioGroup>
               {q.id !== questions[questions.length - 1].id && <Separator />}
             </div>
-          )}
+          ))}
         </CardContent>
         <CardFooter className="flex justify-between pt-4">
-          <Button
-            variant="outline"
-            onClick={onBack}
-            disabled={sectionIndex === 0}
-            className="gap-2">
-
+          <Button variant="outline" onClick={onBack} disabled={sectionIndex === 0} className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Back
           </Button>
           <Button onClick={onNext} disabled={!allAnswered} className="gap-2">
@@ -226,18 +257,20 @@ const QuizView = ({
           </Button>
         </CardFooter>
       </Card>
-    </div>);
-
+    </div>
+  );
 };
 
 /* ─── Results ─── */
 const ResultsView = ({
   results,
-  onRetake
-
-
-
-}: {results: CareerResults;onRetake: () => void;}) => {
+  onRetake,
+  isDeleting,
+}: {
+  results: CareerResults;
+  onRetake: () => void;
+  isDeleting: boolean;
+}) => {
   const primary = results.tracks[0];
   const secondary = results.tracks[1];
 
@@ -313,8 +346,8 @@ const ResultsView = ({
           <h3 className="font-semibold">All Track Scores</h3>
         </CardHeader>
         <CardContent className="space-y-4">
-          {results.tracks.map((track) =>
-          <div key={track.name} className="space-y-1">
+          {results.tracks.map((track) => (
+            <div key={track.name} className="space-y-1">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">{TRACK_ICONS_SM[track.name]}</span>
@@ -324,18 +357,19 @@ const ResultsView = ({
               </div>
               <Progress value={track.percentage} className="h-2" />
             </div>
-          )}
+          ))}
         </CardContent>
       </Card>
 
       {/* Retake */}
       <div className="text-center">
-        <Button variant="outline" onClick={onRetake} className="gap-2">
-          <RotateCcw className="h-4 w-4" /> Retake Assessment
+        <Button variant="outline" onClick={onRetake} disabled={isDeleting} className="gap-2">
+          {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+          Retake Assessment
         </Button>
       </div>
-    </div>);
-
+    </div>
+  );
 };
 
 export default CareerMapping;
