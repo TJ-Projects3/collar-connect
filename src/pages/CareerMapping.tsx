@@ -15,21 +15,21 @@ import {
   computeCareerResults,
   TRACK_META,
   type CareerResults,
-  type TrackName,
-} from "@/lib/career-scoring";
+  type TrackName } from
+"@/lib/career-scoring";
 
 const TRACK_ICONS: Record<TrackName, React.ReactNode> = {
   Cloud: <Cloud className="h-8 w-8" />,
   Security: <Shield className="h-8 w-8" />,
   Data: <Database className="h-8 w-8" />,
-  "Systems/DevOps": <Server className="h-8 w-8" />,
+  "Systems/DevOps": <Server className="h-8 w-8" />
 };
 
 const TRACK_ICONS_SM: Record<TrackName, React.ReactNode> = {
   Cloud: <Cloud className="h-5 w-5" />,
   Security: <Shield className="h-5 w-5" />,
   Data: <Database className="h-5 w-5" />,
-  "Systems/DevOps": <Server className="h-5 w-5" />,
+  "Systems/DevOps": <Server className="h-5 w-5" />
 };
 
 type View = "intro" | "quiz" | "results";
@@ -78,32 +78,32 @@ const CareerMapping = () => {
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         {view === "intro" && <IntroView onStart={() => setView("quiz")} />}
 
-        {view === "quiz" && (
-          <QuizView
-            section={SECTIONS[currentSection]}
-            sectionIndex={currentSection}
-            totalSections={SECTIONS.length}
-            questions={sectionQuestions}
-            answers={answers}
-            onAnswer={handleAnswer}
-            onNext={handleNext}
-            onBack={handleBack}
-            allAnswered={allSectionAnswered}
-            isLast={currentSection === SECTIONS.length - 1}
-          />
-        )}
+        {view === "quiz" &&
+        <QuizView
+          section={SECTIONS[currentSection]}
+          sectionIndex={currentSection}
+          totalSections={SECTIONS.length}
+          questions={sectionQuestions}
+          answers={answers}
+          onAnswer={handleAnswer}
+          onNext={handleNext}
+          onBack={handleBack}
+          allAnswered={allSectionAnswered}
+          isLast={currentSection === SECTIONS.length - 1} />
 
-        {view === "results" && results && (
-          <ResultsView results={results} onRetake={handleRetake} />
-        )}
+        }
+
+        {view === "results" && results &&
+        <ResultsView results={results} onRetake={handleRetake} />
+        }
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 /* ─── Intro ─── */
-const IntroView = ({ onStart }: { onStart: () => void }) => (
-  <Card className="text-center">
+const IntroView = ({ onStart }: {onStart: () => void;}) =>
+<Card className="text-center">
     <CardHeader className="pb-2">
       <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
         <Compass className="h-8 w-8 text-primary" />
@@ -114,16 +114,16 @@ const IntroView = ({ onStart }: { onStart: () => void }) => (
         Answer 16 quick statements across 4 sections — it takes about 3 minutes.
       </p>
     </CardHeader>
-    <CardContent className="space-y-4 pb-2">
+    <CardContent className="space-y-4 pb-2 my-[20px]">
       <div className="grid grid-cols-2 gap-3 text-left max-w-sm mx-auto">
-        {SECTIONS.map((s) => (
-          <div key={s.number} className="flex items-center gap-2 text-sm">
+        {SECTIONS.map((s) =>
+      <div key={s.number} className="flex items-center gap-2 text-sm">
             <Badge variant="secondary" className="h-6 w-6 p-0 flex items-center justify-center text-xs">
               {s.number}
             </Badge>
             <span className="text-muted-foreground">{s.title}</span>
           </div>
-        ))}
+      )}
       </div>
     </CardContent>
     <CardFooter className="justify-center pt-4">
@@ -131,8 +131,8 @@ const IntroView = ({ onStart }: { onStart: () => void }) => (
         Start Assessment
       </Button>
     </CardFooter>
-  </Card>
-);
+  </Card>;
+
 
 /* ─── Quiz ─── */
 interface QuizViewProps {
@@ -158,9 +158,9 @@ const QuizView = ({
   onNext,
   onBack,
   allAnswered,
-  isLast,
+  isLast
 }: QuizViewProps) => {
-  const progress = ((sectionIndex + 1) / totalSections) * 100;
+  const progress = (sectionIndex + 1) / totalSections * 100;
 
   return (
     <div className="space-y-4">
@@ -182,42 +182,42 @@ const QuizView = ({
           <p className="text-sm text-muted-foreground">{section.description}</p>
         </CardHeader>
         <CardContent className="space-y-6">
-          {questions.map((q) => (
-            <div key={q.id} className="space-y-3">
+          {questions.map((q) =>
+          <div key={q.id} className="space-y-3">
               <p className="text-sm font-medium leading-relaxed">
                 {q.id}. {q.statement}
               </p>
               <RadioGroup
-                value={answers[q.id]?.toString()}
-                onValueChange={(val) => onAnswer(q.id, parseInt(val))}
-                className="flex flex-wrap gap-2"
-              >
-                {LIKERT_OPTIONS.map((opt) => (
-                  <div key={opt.value} className="flex items-center gap-1.5">
+              value={answers[q.id]?.toString()}
+              onValueChange={(val) => onAnswer(q.id, parseInt(val))}
+              className="flex flex-wrap gap-2">
+
+                {LIKERT_OPTIONS.map((opt) =>
+              <div key={opt.value} className="flex items-center gap-1.5">
                     <RadioGroupItem
-                      value={opt.value.toString()}
-                      id={`q${q.id}-${opt.value}`}
-                    />
+                  value={opt.value.toString()}
+                  id={`q${q.id}-${opt.value}`} />
+
                     <Label
-                      htmlFor={`q${q.id}-${opt.value}`}
-                      className="text-xs cursor-pointer"
-                    >
+                  htmlFor={`q${q.id}-${opt.value}`}
+                  className="text-xs cursor-pointer">
+
                       {opt.label}
                     </Label>
                   </div>
-                ))}
+              )}
               </RadioGroup>
               {q.id !== questions[questions.length - 1].id && <Separator />}
             </div>
-          ))}
+          )}
         </CardContent>
         <CardFooter className="flex justify-between pt-4">
           <Button
             variant="outline"
             onClick={onBack}
             disabled={sectionIndex === 0}
-            className="gap-2"
-          >
+            className="gap-2">
+
             <ArrowLeft className="h-4 w-4" /> Back
           </Button>
           <Button onClick={onNext} disabled={!allAnswered} className="gap-2">
@@ -226,18 +226,18 @@ const QuizView = ({
           </Button>
         </CardFooter>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 /* ─── Results ─── */
 const ResultsView = ({
   results,
-  onRetake,
-}: {
-  results: CareerResults;
-  onRetake: () => void;
-}) => {
+  onRetake
+
+
+
+}: {results: CareerResults;onRetake: () => void;}) => {
   const primary = results.tracks[0];
   const secondary = results.tracks[1];
 
@@ -313,8 +313,8 @@ const ResultsView = ({
           <h3 className="font-semibold">All Track Scores</h3>
         </CardHeader>
         <CardContent className="space-y-4">
-          {results.tracks.map((track) => (
-            <div key={track.name} className="space-y-1">
+          {results.tracks.map((track) =>
+          <div key={track.name} className="space-y-1">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">{TRACK_ICONS_SM[track.name]}</span>
@@ -324,7 +324,7 @@ const ResultsView = ({
               </div>
               <Progress value={track.percentage} className="h-2" />
             </div>
-          ))}
+          )}
         </CardContent>
       </Card>
 
@@ -334,8 +334,8 @@ const ResultsView = ({
           <RotateCcw className="h-4 w-4" /> Retake Assessment
         </Button>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default CareerMapping;
