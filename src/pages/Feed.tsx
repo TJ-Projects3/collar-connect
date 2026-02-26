@@ -17,7 +17,7 @@ import {
 import {
   Home, Users, Briefcase, MessageSquare,
   Settings, ThumbsUp, MessageCircle, Share2,
-  TrendingUp, Sparkles, BookOpen, Calendar, Trash2, FileText, Video, Download, Globe, Hash
+  TrendingUp, Sparkles, BookOpen, Calendar, Trash2, FileText, Video, Download, Globe, Hash, Compass
 } from "lucide-react";
 import { useFeaturedResources } from "@/hooks/useFeaturedResources";
 import { useTrendingHashtags } from "@/hooks/useTrendingHashtags";
@@ -258,6 +258,12 @@ const Feed = () => {
                   <Link to="/calendar">
                     <Calendar className="h-5 w-5" />
                     <span>Calendar</span>
+                  </Link>
+                </Button>
+                <Button variant="ghost" className="w-full justify-start gap-3" asChild>
+                  <Link to="/career-mapping">
+                    <Compass className="h-5 w-5" />
+                    <span>Career Mapping</span>
                   </Link>
                 </Button>
                 <Separator className="my-2" />
