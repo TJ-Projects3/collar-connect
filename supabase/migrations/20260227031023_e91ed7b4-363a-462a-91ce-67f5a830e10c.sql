@@ -1,0 +1,1 @@
+ALTER VIEW public.user_connections_with_connected_user SET (security_invoker = on);
