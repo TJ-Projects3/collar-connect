@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -55,11 +55,26 @@ const ConnectionButton = ({ profileId }: { profileId: string }) => {
     );
   }
 
-  if (connectionStatus?.status === "pending") {
+  // Handle rejected state with cool-down
+  if (connectionStatus?.status === "rejected") {
+    const rejectedAt = new Date(connectionStatus.updated_at).getTime();
+    const cooldownMs = 10 * 60 * 1000;
+    const remaining = cooldownMs - (Date.now() - rejectedAt);
+
+    if (remaining > 0) {
+      return <CooldownButton remainingMs={remaining} />;
+    }
+
+    // Cool-down passed, show Connect button
     return (
-      <Button variant="outline" size="sm" className="w-full" disabled>
-        <Clock className="h-4 w-4 mr-2" />
-        Pending
+      <Button
+        size="sm"
+        className="w-full"
+        onClick={(e) => { e.preventDefault(); sendRequest.mutate(profileId); }}
+        disabled={sendRequest.isPending}
+      >
+        <UserPlus className="h-4 w-4 mr-2" />
+        Connect
       </Button>
     );
   }
@@ -73,6 +88,45 @@ const ConnectionButton = ({ profileId }: { profileId: string }) => {
     >
       <UserPlus className="h-4 w-4 mr-2" />
       Connect
+    </Button>
+  );
+};
+
+// Shows a countdown timer during cool-down period
+const CooldownButton = ({ remainingMs }: { remainingMs: number }) => {
+  const [timeLeft, setTimeLeft] = useState(remainingMs);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        const next = prev - 1000;
+        if (next <= 0) {
+          clearInterval(interval);
+          return 0;
+        }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (timeLeft <= 0) {
+    // Force re-render by returning connect-like state
+    return (
+      <Button size="sm" className="w-full" disabled>
+        <UserPlus className="h-4 w-4 mr-2" />
+        Connect
+      </Button>
+    );
+  }
+
+  const minutes = Math.floor(timeLeft / 60000);
+  const seconds = Math.floor((timeLeft % 60000) / 1000);
+
+  return (
+    <Button variant="outline" size="sm" className="w-full" disabled>
+      <Clock className="h-4 w-4 mr-2" />
+      Retry in {minutes}:{seconds.toString().padStart(2, "0")}
     </Button>
   );
 };

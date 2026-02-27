@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+const COOLDOWN_MINUTES = 10;
+
 // Send a connection request
 export const useSendConnectionRequest = () => {
   const { user } = useAuth();
@@ -17,16 +19,28 @@ export const useSendConnectionRequest = () => {
 
       const { data: existing } = await supabase
         .from("user_connections")
-        .select("id, status")
+        .select("id, status, updated_at")
         .or(`and(requester_id.eq.${user.id},receiver_id.eq.${recipientId}),and(requester_id.eq.${recipientId},receiver_id.eq.${user.id})`)
         .maybeSingle();
 
       if (existing) {
-        throw new Error(
-          existing.status === "pending"
-            ? "Connection request already sent"
-            : "Already connected"
-        );
+        if (existing.status === "rejected") {
+          const rejectedAt = new Date(existing.updated_at).getTime();
+          const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
+          if (Date.now() - rejectedAt < cooldownMs) {
+            const remainingMs = cooldownMs - (Date.now() - rejectedAt);
+            const remainingMin = Math.ceil(remainingMs / 60000);
+            throw new Error(`Please wait ${remainingMin} minute${remainingMin !== 1 ? "s" : ""} before sending another request`);
+          }
+          // Cool-down passed — delete old record and allow re-send
+          await supabase.from("user_connections").delete().eq("id", existing.id);
+        } else {
+          throw new Error(
+            existing.status === "pending"
+              ? "Connection request already sent"
+              : "Already connected"
+          );
+        }
       }
 
       const { data: connection, error: connError } = await supabase
@@ -156,16 +170,16 @@ export const useConnectionStatus = (otherUserId: string | null) => {
   return useQuery({
     queryKey: ["connection-status", user?.id, otherUserId],
     enabled: !!user?.id && !!otherUserId && user.id !== otherUserId,
-    queryFn: async (): Promise<{ id: string; status: string; requester_id: string; receiver_id: string } | null> => {
+    queryFn: async (): Promise<{ id: string; status: string; requester_id: string; receiver_id: string; updated_at: string } | null> => {
       if (!user?.id || !otherUserId) return null;
 
       const { data } = await supabase
         .from("user_connections")
-        .select("id, status, requester_id, receiver_id")
+        .select("id, status, requester_id, receiver_id, updated_at")
         .or(`and(requester_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
         .maybeSingle();
 
-      return data as { id: string; status: string; requester_id: string; receiver_id: string } | null;
+      return data as { id: string; status: string; requester_id: string; receiver_id: string; updated_at: string } | null;
     },
   });
 };
