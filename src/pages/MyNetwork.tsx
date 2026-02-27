@@ -55,6 +55,17 @@ const ConnectionButton = ({ profileId }: { profileId: string }) => {
     );
   }
 
+  if (connectionStatus?.status === "pending" && connectionStatus.requester_id !== user?.id) {
+    // Already handled above (accept/ignore for incoming)
+  } else if (connectionStatus?.status === "pending") {
+    return (
+      <Button variant="outline" size="sm" className="w-full" disabled>
+        <Clock className="h-4 w-4 mr-2" />
+        Pending
+      </Button>
+    );
+  }
+
   // Handle rejected state with cool-down
   if (connectionStatus?.status === "rejected") {
     const rejectedAt = new Date(connectionStatus.updated_at).getTime();
