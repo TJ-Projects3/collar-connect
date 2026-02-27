@@ -31,10 +31,12 @@ import { Navbar } from "@/components/Navbar";
 import { usePosts, useDeletePost } from "@/hooks/usePosts";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 
 import { formatDistanceToNow } from "date-fns";
 
 const Feed = () => {
+  const { data: profile } = useProfile();
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
   const [replyModalState, setReplyModalState] = useState<{
@@ -285,7 +287,10 @@ const Feed = () => {
                 <div className="flex gap-3">
                   <Link to="/profile">
                     <Avatar className="cursor-pointer">
-                      <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials(profile?.full_name)}
+                      </AvatarFallback>
                     </Avatar>
                   </Link>
                   <Textarea
