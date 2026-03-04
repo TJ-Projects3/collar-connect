@@ -15,6 +15,7 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { InlineReplies } from "@/components/InlineReplies";
 import { ExperienceFormModal } from "@/components/ExperienceFormModal";
 import { Navbar } from "@/components/Navbar";
+import { LinkifyText } from "@/components/LinkifyText";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -399,7 +400,7 @@ const Profile = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-                    {profile.bio}
+                    <LinkifyText>{profile.bio}</LinkifyText>
                   </p>
                 </CardContent>
               </Card>
@@ -516,7 +517,7 @@ const Profile = () => {
                                 </p>
                               </div>
                             </div>
-                            <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+                            <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap"><LinkifyText>{post.content}</LinkifyText></p>
 
                             {/* Inline Replies */}
                             <InlineReplies postId={post.id} replyCount={post.reply_count || 0} />
