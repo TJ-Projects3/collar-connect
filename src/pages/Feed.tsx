@@ -29,6 +29,7 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { InlineReplies } from "@/components/InlineReplies";
 import { Navbar } from "@/components/Navbar";
 import { usePosts, useDeletePost } from "@/hooks/usePosts";
+import { LinkifyText } from "@/components/LinkifyText";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
@@ -159,7 +160,7 @@ const Feed = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
+          <p className="text-foreground leading-relaxed whitespace-pre-wrap"><LinkifyText>{post.content}</LinkifyText></p>
 
           {/* Inline Replies */}
           <InlineReplies postId={post.id} replyCount={post.reply_count || 0} />

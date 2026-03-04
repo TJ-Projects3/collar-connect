@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { usePostReplies } from "@/hooks/usePostReplies";
 import { formatDistanceToNow } from "date-fns";
+import { LinkifyText } from "@/components/LinkifyText";
 
 interface InlineRepliesProps {
   postId: string;
@@ -85,7 +86,7 @@ export const InlineReplies = ({ postId, replyCount }: InlineRepliesProps) => {
 
                     {/* Reply Content */}
                     <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                      {reply.content}
+                      <LinkifyText>{reply.content}</LinkifyText>
                     </p>
                   </div>
                 </div>

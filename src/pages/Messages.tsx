@@ -12,6 +12,7 @@ import { formatDistanceToNow, format, isToday } from "date-fns";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Send } from "lucide-react";
+import { LinkifyText } from "@/components/LinkifyText";
 
 const formatMessageTime = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -184,7 +185,7 @@ const Messages = () => {
                                   : "bg-muted text-foreground"
                               }`}
                             >
-                              <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                              <p className="text-sm whitespace-pre-wrap break-words"><LinkifyText>{msg.content}</LinkifyText></p>
                               <p
                                 className={`text-xs mt-1 ${
                                   isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
@@ -326,7 +327,7 @@ const NewConversationView = ({
                       isOwn ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                    <p className="text-sm whitespace-pre-wrap break-words"><LinkifyText>{msg.content}</LinkifyText></p>
                     <p
                       className={`text-xs mt-1 ${
                         isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
