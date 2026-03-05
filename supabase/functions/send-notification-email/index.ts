@@ -48,6 +48,30 @@ serve(async (req) => {
       );
     }
 
+    // Fetch user's email preferences (default to true if not found)
+    const { data: preferences } = await supabase
+      .from("email_preferences")
+      .select("email_on_message, email_on_connection_request, email_on_connection_accepted")
+      .eq("user_id", notification.user_id)
+      .single();
+
+    // Check if user wants emails for this notification type
+    const preferencesMap: Record<string, boolean> = {
+      message: preferences?.email_on_message ?? true,
+      connection_request: preferences?.email_on_connection_request ?? true,
+      connection_accepted: preferences?.email_on_connection_accepted ?? true,
+    };
+
+    const shouldSendEmail = preferencesMap[notification.type] ?? true;
+
+    if (!shouldSendEmail) {
+      // User has disabled notifications for this type
+      return new Response(
+        JSON.stringify({ message: "Email notification disabled by user" }),
+        { status: 200 }
+      );
+    }
+
     // Fetch sender profile
     let senderName = "Someone";
 
