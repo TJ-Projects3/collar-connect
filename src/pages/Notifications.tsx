@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, MessageCircle, Users, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { useEffect, useRef } from "react";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/useNotifications";
 import { usePendingConnectionRequests, useAcceptConnectionRequest, useRejectConnectionRequest } from "@/hooks/useConnections";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,16 @@ const Notifications = () => {
   const { mutate: acceptRequest, isPending: accepting } = useAcceptConnectionRequest();
   const { mutate: rejectRequest, isPending: rejecting } = useRejectConnectionRequest();
   const { toast } = useToast();
+  const hasMarkedRead = useRef(false);
+
+  // Auto-mark all notifications as read when visiting the page
+  useEffect(() => {
+    const unreadNotifications = (notifications as any[]).filter((n) => !n.is_read);
+    if (unreadNotifications.length > 0 && !hasMarkedRead.current) {
+      hasMarkedRead.current = true;
+      markAllRead();
+    }
+  }, [notifications, markAllRead]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
