@@ -173,13 +173,23 @@ export const useConnectionStatus = (otherUserId: string | null) => {
     queryFn: async (): Promise<{ id: string; status: string; requester_id: string; receiver_id: string; updated_at: string } | null> => {
       if (!user?.id || !otherUserId) return null;
 
+      // Use limit(1) ordered by created_at desc instead of maybeSingle()
+      // to handle potential duplicate records between the same user pair.
+      // Prioritize accepted connections by ordering status (accepted < pending < rejected alphabetically works in our favor).
       const { data } = await supabase
         .from("user_connections")
         .select("id, status, requester_id, receiver_id, updated_at")
         .or(`and(requester_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
-        .maybeSingle();
+        .order("created_at", { ascending: false });
 
-      return data as { id: string; status: string; requester_id: string; receiver_id: string; updated_at: string } | null;
+      if (!data || data.length === 0) return null;
+
+      // If there are multiple records, prefer accepted > pending > rejected
+      const prioritized = data.find(d => d.status === "accepted")
+        || data.find(d => d.status === "pending")
+        || data[0];
+
+      return prioritized as { id: string; status: string; requester_id: string; receiver_id: string; updated_at: string };
     },
   });
 };
