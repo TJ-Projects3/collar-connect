@@ -17,29 +17,37 @@ export const useSendConnectionRequest = () => {
       if (!user?.id) throw new Error("Not authenticated");
       if (recipientId === user.id) throw new Error("Cannot connect with yourself");
 
-      const { data: existing } = await supabase
+      // Fetch ALL existing connection records between these two users
+      const { data: existingRecords } = await supabase
         .from("user_connections")
         .select("id, status, updated_at")
-        .or(`and(requester_id.eq.${user.id},receiver_id.eq.${recipientId}),and(requester_id.eq.${recipientId},receiver_id.eq.${user.id})`)
-        .maybeSingle();
+        .or(`and(requester_id.eq.${user.id},receiver_id.eq.${recipientId}),and(requester_id.eq.${recipientId},receiver_id.eq.${user.id})`);
 
-      if (existing) {
-        if (existing.status === "rejected") {
-          const rejectedAt = new Date(existing.updated_at).getTime();
-          const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
-          if (Date.now() - rejectedAt < cooldownMs) {
-            const remainingMs = cooldownMs - (Date.now() - rejectedAt);
-            const remainingMin = Math.ceil(remainingMs / 60000);
-            throw new Error(`Please wait ${remainingMin} minute${remainingMin !== 1 ? "s" : ""} before sending another request`);
-          }
-          // Cool-down passed — delete old record and allow re-send
-          await supabase.from("user_connections").delete().eq("id", existing.id);
-        } else {
-          throw new Error(
-            existing.status === "pending"
-              ? "Connection request already sent"
-              : "Already connected"
-          );
+      if (existingRecords && existingRecords.length > 0) {
+        // If any record is already accepted, block
+        if (existingRecords.some(r => r.status === "accepted")) {
+          throw new Error("Already connected");
+        }
+        // If any record is pending, block
+        if (existingRecords.some(r => r.status === "pending")) {
+          throw new Error("Connection request already sent");
+        }
+        // All remaining must be rejected — check cooldown on the most recent one
+        const mostRecent = existingRecords.sort((a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        )[0];
+
+        const rejectedAt = new Date(mostRecent.updated_at).getTime();
+        const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
+        if (Date.now() - rejectedAt < cooldownMs) {
+          const remainingMs = cooldownMs - (Date.now() - rejectedAt);
+          const remainingMin = Math.ceil(remainingMs / 60000);
+          throw new Error(`Please wait ${remainingMin} minute${remainingMin !== 1 ? "s" : ""} before sending another request`);
+        }
+
+        // Cool-down passed — delete ALL old records between these users
+        for (const record of existingRecords) {
+          await supabase.from("user_connections").delete().eq("id", record.id);
         }
       }
 
@@ -173,13 +181,23 @@ export const useConnectionStatus = (otherUserId: string | null) => {
     queryFn: async (): Promise<{ id: string; status: string; requester_id: string; receiver_id: string; updated_at: string } | null> => {
       if (!user?.id || !otherUserId) return null;
 
+      // Use limit(1) ordered by created_at desc instead of maybeSingle()
+      // to handle potential duplicate records between the same user pair.
+      // Prioritize accepted connections by ordering status (accepted < pending < rejected alphabetically works in our favor).
       const { data } = await supabase
         .from("user_connections")
         .select("id, status, requester_id, receiver_id, updated_at")
         .or(`and(requester_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
-        .maybeSingle();
+        .order("created_at", { ascending: false });
 
-      return data as { id: string; status: string; requester_id: string; receiver_id: string; updated_at: string } | null;
+      if (!data || data.length === 0) return null;
+
+      // If there are multiple records, prefer accepted > pending > rejected
+      const prioritized = data.find(d => d.status === "accepted")
+        || data.find(d => d.status === "pending")
+        || data[0];
+
+      return prioritized as { id: string; status: string; requester_id: string; receiver_id: string; updated_at: string };
     },
   });
 };
