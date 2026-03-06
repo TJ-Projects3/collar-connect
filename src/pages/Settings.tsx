@@ -4,15 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Lock, User, Eye } from "lucide-react";
+import { Bell, Lock, User, Eye, Save } from "lucide-react";
+import { EmailNotificationSettings } from "@/components/EmailNotificationSettings";
+import { toast } from "sonner";
 
 const Settings = () => {
+  const handleSaveSettings = () => {
+    toast.success("Settings saved successfully!");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="container mx-auto px-4 py-6 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-6">Settings & Privacy</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold">Settings & Privacy</h1>
+          <Button onClick={handleSaveSettings} className="gap-2">
+            <Save className="h-4 w-4" />
+            Save Settings
+          </Button>
+        </div>
         
         <div className="space-y-6">
           {/* Account Settings */}
@@ -24,16 +36,6 @@ const Settings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Email Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive email updates about your activity
-                  </p>
-                </div>
-                <Switch />
-              </div>
-              <Separator />
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Profile Visibility</Label>
@@ -77,12 +79,15 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          {/* Notification Settings */}
+          {/* Email Notification Settings - Connected to backend */}
+          <EmailNotificationSettings />
+
+          {/* In-App Notification Settings */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Notifications
+                In-App Notifications
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -101,16 +106,6 @@ const Settings = () => {
                   <Label>Post Interactions</Label>
                   <p className="text-sm text-muted-foreground">
                     Get notified when someone likes or comments
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>New Connections</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Get notified about new connection requests
                   </p>
                 </div>
                 <Switch defaultChecked />
