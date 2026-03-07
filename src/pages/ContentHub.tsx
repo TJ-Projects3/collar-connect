@@ -145,11 +145,7 @@ const ContentHub = () => {
               <CardDescription className="line-clamp-2">{resource.description}</CardDescription>
             )}
           </CardHeader>
-          <CardContent className="mt-auto pt-0 space-y-3">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Eye className="h-3 w-3" />
-              {resource.view_count || 0} views
-            </div>
+          <CardContent className="mt-auto pt-2 space-y-3">
             {isSafeUrl(resource.external_url) && (
               <Button asChild size="sm" className="w-full sm:w-auto">
                 <a href={resource.external_url} target="_blank" rel="noopener noreferrer">
@@ -234,12 +230,6 @@ const ContentHub = () => {
           {resource.resource_type === "article" && (
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <span>{format(new Date(resource.created_at), "MMM d, yyyy")}</span>
-              {resource.view_count !== null && resource.view_count > 0 && (
-                <>
-                  <span>•</span>
-                  <span>{resource.view_count} views</span>
-                </>
-              )}
             </div>
           )}
           {resource.resource_type === "download" && resource.view_count !== null && resource.view_count > 0 && (

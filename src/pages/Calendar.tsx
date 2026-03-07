@@ -94,11 +94,9 @@ const Calendar = () => {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   className="rounded-md border"
-                  modifiers={{
-                    hasEvent: eventDates,
-                  }}
-                  modifiersClassNames={{
-                    hasEvent: "bg-primary text-primary-foreground font-bold",
+                  classNames={{
+                    day_today: "bg-primary/20 text-foreground font-semibold rounded-md",
+                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-md",
                   }}
                 />
               </CardContent>
