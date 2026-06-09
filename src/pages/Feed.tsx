@@ -165,7 +165,45 @@ const Feed = () => {
           {/* Inline Replies */}
           <InlineReplies postId={post.id} replyCount={post.reply_count || 0} />
         </CardContent>
-        <CardFooter className="flex items-center justify-between border-t pt-3">
+        <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3">
+          {likesData && likesData.likeCount > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="text-xs text-muted-foreground hover:text-primary hover:underline text-left">
+                  {(() => {
+                    const names = likesData.likes
+                      .map((l) => l.profile?.full_name)
+                      .filter(Boolean) as string[];
+                    if (names.length === 0) return `${likesData.likeCount} like${likesData.likeCount === 1 ? "" : "s"}`;
+                    if (names.length === 1) return `Liked by ${names[0]}`;
+                    if (names.length === 2) return `Liked by ${names[0]} and ${names[1]}`;
+                    return `Liked by ${names[0]}, ${names[1]} and ${names.length - 2} other${names.length - 2 === 1 ? "" : "s"}`;
+                  })()}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2">
+                <p className="text-sm font-semibold px-2 py-1">Liked by</p>
+                <div className="max-h-64 overflow-y-auto">
+                  {likesData.likes.map((like) => (
+                    <Link
+                      key={like.user_id}
+                      to={`/profile?userId=${like.user_id}`}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50"
+                    >
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={like.profile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                          {getInitials(like.profile?.full_name || null)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm truncate">{like.profile?.full_name || "Unknown user"}</span>
+                    </Link>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+          <div className="flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
