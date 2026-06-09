@@ -10,17 +10,38 @@ export const usePostLikes = (postId: string) => {
   return useQuery({
     queryKey: ["post-likes", postId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: likesData, error } = await supabase
         .from("post_likes")
-        .select("*")
-        .eq("post_id", postId);
+        .select("user_id, created_at")
+        .eq("post_id", postId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const likeCount = data?.length || 0;
-      const hasLiked = user ? data?.some((like: any) => like.user_id === user.id) : false;
+      const rows = likesData || [];
+      const userIds = Array.from(new Set(rows.map((r: any) => r.user_id)));
+      let profilesById: Record<string, { full_name: string | null; avatar_url: string | null }> = {};
 
-      return { likeCount, hasLiked };
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url")
+          .in("id", userIds);
+        profilesById = Object.fromEntries(
+          (profilesData || []).map((p: any) => [p.id, { full_name: p.full_name, avatar_url: p.avatar_url }])
+        );
+      }
+
+      const likes = rows.map((r: any) => ({
+        user_id: r.user_id,
+        created_at: r.created_at,
+        profile: profilesById[r.user_id] || null,
+      }));
+
+      const likeCount = likes.length;
+      const hasLiked = user ? likes.some((like) => like.user_id === user.id) : false;
+
+      return { likeCount, hasLiked, likes };
     },
   });
 };
