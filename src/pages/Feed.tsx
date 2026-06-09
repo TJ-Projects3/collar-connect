@@ -232,6 +232,7 @@ const Feed = () => {
             <Share2 className="h-4 w-4" />
             <span>Share</span>
           </Button>
+          </div>
         </CardFooter>
 
         <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
