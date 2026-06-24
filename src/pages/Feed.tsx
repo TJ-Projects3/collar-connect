@@ -32,6 +32,7 @@ import { Navbar } from "@/components/Navbar";
 import { usePosts, useDeletePost } from "@/hooks/usePosts";
 import { LinkifyText } from "@/components/LinkifyText";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
+import { usePostReplies } from "@/hooks/usePostReplies";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -113,6 +114,8 @@ const Feed = () => {
     const toggleLike = useToggleLike();
     const deletePost = useDeletePost();
     const { data: likesData } = usePostLikes(post.id);
+    const { data: repliesData } = usePostReplies(post.id);
+    const liveReplyCount = repliesData?.length ?? post.reply_count ?? 0;
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const handleQuickToggle = () => {
@@ -190,7 +193,7 @@ const Feed = () => {
           <div className="text-foreground text-[15px]">{renderPostContent(post.content)}</div>
 
           {/* Inline Replies */}
-          <InlineReplies postId={post.id} replyCount={post.reply_count || 0} />
+          <InlineReplies postId={post.id} replyCount={liveReplyCount} />
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 px-6 pb-5 md:px-8">
           {/* Reaction summary + counts */}
@@ -254,7 +257,7 @@ const Feed = () => {
               </Popover>
             ) : <span />}
             <div className="flex items-center gap-3">
-              <span>{post.reply_count || 0} {post.reply_count === 1 ? "comment" : "comments"}</span>
+              <span>{liveReplyCount} {liveReplyCount === 1 ? "comment" : "comments"}</span>
             </div>
           </div>
 
@@ -319,7 +322,7 @@ const Feed = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:items-start">
           {/* Left Sidebar */}
           <aside className="lg:col-span-3">
             <Card className="sticky top-20">
@@ -443,7 +446,7 @@ const Feed = () => {
           </main>
 
           {/* Right Sidebar */}
-          <aside className="lg:col-span-3 space-y-4">
+          <aside className="lg:col-span-3 space-y-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
             {/* Featured Resources */}
             <Card>
               <CardHeader className="pb-3">

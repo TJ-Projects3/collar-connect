@@ -107,6 +107,32 @@ export const useCreateReply = () => {
   });
 };
 
+// Hook to update a reply
+export const useUpdateReply = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ replyId, postId, content }: { replyId: string; postId: string; content: string }) => {
+      const { data, error } = await supabase
+        .from("post_replies")
+        .update({ content })
+        .eq("id", replyId)
+        .select()
+        .single();
+      if (error) throw error;
+      return { data, postId };
+    },
+    onSuccess: ({ postId }) => {
+      toast({ title: "Comment updated" });
+      queryClient.invalidateQueries({ queryKey: ["post-replies", postId] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to update comment", description: error.message, variant: "destructive" });
+    },
+  });
+};
+
 // Hook to delete a reply
 export const useDeleteReply = () => {
   const { toast } = useToast();
