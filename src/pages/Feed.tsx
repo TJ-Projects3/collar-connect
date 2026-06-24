@@ -114,6 +114,8 @@ const Feed = () => {
     const toggleLike = useToggleLike();
     const deletePost = useDeletePost();
     const { data: likesData } = usePostLikes(post.id);
+    const { data: repliesData } = usePostReplies(post.id);
+    const liveReplyCount = repliesData?.length ?? post.reply_count ?? 0;
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const handleQuickToggle = () => {
