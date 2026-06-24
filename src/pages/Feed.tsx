@@ -36,6 +36,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 
 import { formatDistanceToNow } from "date-fns";
+import { ReactionPicker, REACTIONS, reactionMeta } from "@/components/ReactionPicker";
+import { CommentInput } from "@/components/CommentInput";
+import { renderPostContent } from "@/lib/post-formatting";
+
+const SUGGESTED_HASHTAGS = ["DiversityInTech", "Cybersecurity", "Internships", "CareerMapping"];
 
 const Feed = () => {
   const { data: profile } = useProfile();
