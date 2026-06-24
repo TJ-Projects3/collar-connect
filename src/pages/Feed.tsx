@@ -36,10 +36,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 
 import { formatDistanceToNow } from "date-fns";
+import { ReactionPicker, REACTIONS, reactionMeta } from "@/components/ReactionPicker";
+import { CommentInput } from "@/components/CommentInput";
+import { renderPostContent } from "@/lib/post-formatting";
+
+const SUGGESTED_HASHTAGS = ["DiversityInTech", "Cybersecurity", "Internships", "CareerMapping"];
 
 const Feed = () => {
   const { data: profile } = useProfile();
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [postInitialContent, setPostInitialContent] = useState<string>("");
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
   const [replyModalState, setReplyModalState] = useState<{
     isOpen: boolean;
@@ -109,10 +115,21 @@ const Feed = () => {
     const { data: likesData } = usePostLikes(post.id);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    const handleLike = () => {
+    const handleQuickToggle = () => {
       toggleLike.mutate({
         postId: post.id,
         hasLiked: likesData?.hasLiked || false,
+        reaction: likesData?.userReaction ?? "like",
+        currentReaction: likesData?.userReaction ?? null,
+      });
+    };
+
+    const handleSelectReaction = (reaction: any) => {
+      toggleLike.mutate({
+        postId: post.id,
+        hasLiked: likesData?.hasLiked || false,
+        reaction,
+        currentReaction: likesData?.userReaction ?? null,
       });
     };
 
@@ -127,9 +144,18 @@ const Feed = () => {
 
     const isOwnPost = user?.id === post.author_id;
 
+    // Top 3 reaction types present, ordered by count desc
+    const topReactionTypes = likesData
+      ? (Object.entries(likesData.breakdown) as [any, number][])
+          .filter(([, n]) => n > 0)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([type]) => type)
+      : [];
+
     return (
       <Card key={post.id}>
-        <CardHeader>
+        <CardHeader className="px-6 pt-6 pb-3 md:px-8 md:pt-7">
           <div className="flex items-start justify-between">
             <Link to={`/profile?userId=${post.author_id}`} className="flex gap-3">
               <Avatar className="cursor-pointer">
@@ -160,81 +186,110 @@ const Feed = () => {
             )}
           </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-foreground leading-relaxed whitespace-pre-wrap"><LinkifyText>{post.content}</LinkifyText></p>
+        <CardContent className="px-6 pb-3 md:px-8">
+          <div className="text-foreground text-[15px]">{renderPostContent(post.content)}</div>
 
           {/* Inline Replies */}
           <InlineReplies postId={post.id} replyCount={post.reply_count || 0} />
         </CardContent>
-        <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3">
-          {likesData && likesData.likeCount > 0 && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="text-xs text-muted-foreground hover:text-primary hover:underline text-left">
-                  {(() => {
-                    const names = likesData.likes
-                      .map((l) => l.profile?.full_name)
-                      .filter(Boolean) as string[];
-                    if (names.length === 0) return `${likesData.likeCount} like${likesData.likeCount === 1 ? "" : "s"}`;
-                    if (names.length === 1) return `Liked by ${names[0]}`;
-                    if (names.length === 2) return `Liked by ${names[0]} and ${names[1]}`;
-                    return `Liked by ${names[0]}, ${names[1]} and ${names.length - 2} other${names.length - 2 === 1 ? "" : "s"}`;
-                  })()}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-2">
-                <p className="text-sm font-semibold px-2 py-1">Liked by</p>
-                <div className="max-h-64 overflow-y-auto">
-                  {likesData.likes.map((like) => (
-                    <Link
-                      key={like.user_id}
-                      to={`/profile?userId=${like.user_id}`}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50"
-                    >
-                      <Avatar className="h-7 w-7">
-                        <AvatarImage src={like.profile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                          {getInitials(like.profile?.full_name || null)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm truncate">{like.profile?.full_name || "Unknown user"}</span>
-                    </Link>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-          <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`gap-2 ${likesData?.hasLiked ? "text-primary" : ""}`}
-            onClick={handleLike}
-            disabled={toggleLike.isPending}
-          >
-            <ThumbsUp className={`h-4 w-4 ${likesData?.hasLiked ? "fill-current" : ""}`} />
-            <span>{likesData?.likeCount || 0}</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() => handleReplyClick(post.id, post.content, post.profiles?.full_name || "Unknown User")}
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>{post.reply_count || 0}</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() => handleShareClick(post.id)}
-          >
-            <Share2 className="h-4 w-4" />
-            <span>Share</span>
-          </Button>
+        <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 px-6 pb-5 md:px-8">
+          {/* Reaction summary + counts */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            {likesData && likesData.likeCount > 0 ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="flex items-center gap-1.5 hover:text-primary hover:underline">
+                    <span className="flex -space-x-1">
+                      {topReactionTypes.map((t) => {
+                        const meta = reactionMeta(t);
+                        const Icon = meta.Icon;
+                        return (
+                          <span
+                            key={t}
+                            className={`inline-flex h-4 w-4 items-center justify-center rounded-full bg-background ring-1 ring-border ${meta.colorClass}`}
+                          >
+                            <Icon className="h-2.5 w-2.5 fill-current" />
+                          </span>
+                        );
+                      })}
+                    </span>
+                    <span>
+                      {(() => {
+                        const names = likesData.likes
+                          .map((l) => l.profile?.full_name)
+                          .filter(Boolean) as string[];
+                        if (names.length === 0) return likesData.likeCount;
+                        if (names.length === 1) return names[0];
+                        if (names.length === 2) return `${names[0]} and ${names[1]}`;
+                        return `${names[0]}, ${names[1]} and ${names.length - 2} other${names.length - 2 === 1 ? "" : "s"}`;
+                      })()}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2">
+                  <p className="text-sm font-semibold px-2 py-1">Reactions</p>
+                  <div className="max-h-64 overflow-y-auto">
+                    {likesData.likes.map((like) => {
+                      const meta = reactionMeta(like.reaction_type);
+                      const Icon = meta.Icon;
+                      return (
+                        <Link
+                          key={like.user_id}
+                          to={`/profile?userId=${like.user_id}`}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50"
+                        >
+                          <Avatar className="h-7 w-7">
+                            <AvatarImage src={like.profile?.avatar_url || undefined} />
+                            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                              {getInitials(like.profile?.full_name || null)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm truncate flex-1">{like.profile?.full_name || "Unknown user"}</span>
+                          <Icon className={`h-3.5 w-3.5 fill-current ${meta.colorClass}`} />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : <span />}
+            <div className="flex items-center gap-3">
+              <span>{post.reply_count || 0} {post.reply_count === 1 ? "comment" : "comments"}</span>
+            </div>
           </div>
+
+          {/* Action bar */}
+          <div className="flex items-center justify-between border-t pt-2 -mx-2">
+            <ReactionPicker
+              current={likesData?.userReaction ?? null}
+              disabled={toggleLike.isPending}
+              onSelect={handleSelectReaction}
+              onQuickToggle={handleQuickToggle}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground"
+              onClick={() => handleReplyClick(post.id, post.content, post.profiles?.full_name || "Unknown User")}
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span>Comment</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground"
+              onClick={() => handleShareClick(post.id)}
+            >
+              <Share2 className="h-4 w-4" />
+              <span>Share</span>
+            </Button>
+          </div>
+
+          {/* Permanent comment input */}
+          <CommentInput postId={post.id} />
         </CardFooter>
+
 
         <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
           <AlertDialogContent>
@@ -321,7 +376,7 @@ const Feed = () => {
           </aside>
 
           {/* Main Feed */}
-          <main className="lg:col-span-6 space-y-4">
+          <main className="lg:col-span-6 space-y-4 lg:max-w-[640px] lg:mx-auto w-full">
             {/* Create Post */}
             <Card>
               <CardHeader className="pb-3">
@@ -337,17 +392,25 @@ const Feed = () => {
                   <Textarea
                     placeholder="Share your thoughts on diversity and inclusion in tech..."
                     className="min-h-[80px]"
-                    onFocus={() => setIsPostModalOpen(true)}
+                    onFocus={() => {
+                      setPostInitialContent("");
+                      setIsPostModalOpen(true);
+                    }}
                     readOnly
                   />
                 </div>
               </CardHeader>
               <CardFooter className="pt-0">
-                <Button className="ml-auto" onClick={() => setIsPostModalOpen(true)}>Post</Button>
+                <Button className="ml-auto" onClick={() => { setPostInitialContent(""); setIsPostModalOpen(true); }}>Post</Button>
               </CardFooter>
             </Card>
 
-            <CreatePostModal open={isPostModalOpen} onOpenChange={setIsPostModalOpen} />
+            <CreatePostModal
+              open={isPostModalOpen}
+              onOpenChange={setIsPostModalOpen}
+              initialContent={postInitialContent}
+            />
+
 
             {/* Active filter indicator */}
             {activeHashtag && (
@@ -444,7 +507,27 @@ const Feed = () => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-muted-foreground">No trending topics yet. Try using #hashtags in your posts!</p>
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      No trending topics yet. Try one of these to start a conversation:
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {SUGGESTED_HASHTAGS.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => {
+                            setPostInitialContent(`#${tag} `);
+                            setIsPostModalOpen(true);
+                          }}
+                          className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 px-2.5 py-1 text-xs font-medium transition-colors"
+                        >
+                          <Hash className="h-3 w-3" />
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>

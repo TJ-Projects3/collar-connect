@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -34,20 +34,27 @@ type PostFormData = z.infer<typeof postSchema>;
 interface CreatePostModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialContent?: string;
 }
 
-export const CreatePostModal = ({ open, onOpenChange }: CreatePostModalProps) => {
+export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePostModalProps) => {
   const { data: profile } = useProfile();
   const createPost = useCreatePost();
 
   const form = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
-    defaultValues: { content: "" },
+    defaultValues: { content: initialContent ?? "" },
   });
+
+  useEffect(() => {
+    if (open) {
+      form.reset({ content: initialContent ?? "" });
+    }
+  }, [open, initialContent]);
 
   const onSubmit = async (data: PostFormData) => {
     await createPost.mutateAsync(data.content);
-    form.reset();
+    form.reset({ content: "" });
     onOpenChange(false);
   };
 
