@@ -32,6 +32,7 @@ import { Navbar } from "@/components/Navbar";
 import { usePosts, useDeletePost } from "@/hooks/usePosts";
 import { LinkifyText } from "@/components/LinkifyText";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
+import { usePostReplies } from "@/hooks/usePostReplies";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 
