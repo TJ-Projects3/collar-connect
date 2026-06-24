@@ -507,7 +507,27 @@ const Feed = () => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-muted-foreground">No trending topics yet. Try using #hashtags in your posts!</p>
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      No trending topics yet. Try one of these to start a conversation:
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {SUGGESTED_HASHTAGS.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => {
+                            setPostInitialContent(`#${tag} `);
+                            setIsPostModalOpen(true);
+                          }}
+                          className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 px-2.5 py-1 text-xs font-medium transition-colors"
+                        >
+                          <Hash className="h-3 w-3" />
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
