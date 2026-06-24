@@ -193,7 +193,7 @@ const Feed = () => {
           <div className="text-foreground text-[15px]">{renderPostContent(post.content)}</div>
 
           {/* Inline Replies */}
-          <InlineReplies postId={post.id} replyCount={post.reply_count || 0} />
+          <InlineReplies postId={post.id} replyCount={liveReplyCount} />
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 px-6 pb-5 md:px-8">
           {/* Reaction summary + counts */}
