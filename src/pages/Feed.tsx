@@ -257,7 +257,7 @@ const Feed = () => {
               </Popover>
             ) : <span />}
             <div className="flex items-center gap-3">
-              <span>{post.reply_count || 0} {post.reply_count === 1 ? "comment" : "comments"}</span>
+              <span>{liveReplyCount} {liveReplyCount === 1 ? "comment" : "comments"}</span>
             </div>
           </div>
 
