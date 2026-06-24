@@ -376,7 +376,7 @@ const Feed = () => {
           </aside>
 
           {/* Main Feed */}
-          <main className="lg:col-span-6 space-y-4">
+          <main className="lg:col-span-6 space-y-4 lg:max-w-[640px] lg:mx-auto w-full">
             {/* Create Post */}
             <Card>
               <CardHeader className="pb-3">
@@ -392,17 +392,25 @@ const Feed = () => {
                   <Textarea
                     placeholder="Share your thoughts on diversity and inclusion in tech..."
                     className="min-h-[80px]"
-                    onFocus={() => setIsPostModalOpen(true)}
+                    onFocus={() => {
+                      setPostInitialContent("");
+                      setIsPostModalOpen(true);
+                    }}
                     readOnly
                   />
                 </div>
               </CardHeader>
               <CardFooter className="pt-0">
-                <Button className="ml-auto" onClick={() => setIsPostModalOpen(true)}>Post</Button>
+                <Button className="ml-auto" onClick={() => { setPostInitialContent(""); setIsPostModalOpen(true); }}>Post</Button>
               </CardFooter>
             </Card>
 
-            <CreatePostModal open={isPostModalOpen} onOpenChange={setIsPostModalOpen} />
+            <CreatePostModal
+              open={isPostModalOpen}
+              onOpenChange={setIsPostModalOpen}
+              initialContent={postInitialContent}
+            />
+
 
             {/* Active filter indicator */}
             {activeHashtag && (
