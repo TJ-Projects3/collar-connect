@@ -45,6 +45,7 @@ const SUGGESTED_HASHTAGS = ["DiversityInTech", "Cybersecurity", "Internships", "
 const Feed = () => {
   const { data: profile } = useProfile();
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [postInitialContent, setPostInitialContent] = useState<string>("");
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
   const [replyModalState, setReplyModalState] = useState<{
     isOpen: boolean;
