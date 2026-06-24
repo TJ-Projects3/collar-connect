@@ -1,0 +1,1 @@
+ALTER TABLE public.post_likes ADD COLUMN IF NOT EXISTS reaction_type text NOT NULL DEFAULT 'like';
