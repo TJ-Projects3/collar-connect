@@ -82,7 +82,7 @@ const Messages = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Recent Chats */}
-        <aside className="lg:col-span-4">
+        <aside className={`lg:col-span-4 ${activeRecipient ? "hidden lg:block" : "block"}`}>
           <Card className="h-[calc(100vh-8rem)]">
             <CardHeader className="border-b">
               <h3 className="font-semibold">Recent Chats</h3>
