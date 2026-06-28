@@ -135,7 +135,7 @@ const Messages = () => {
         </aside>
 
         {/* Right: Chat Area */}
-        <main className="lg:col-span-8">
+        <main className={`lg:col-span-8 ${activeRecipient ? "block" : "hidden lg:block"}`}>
           <Card className="h-[calc(100vh-8rem)] flex flex-col">
             {activeRecipient && activeConversation ? (
               <>
