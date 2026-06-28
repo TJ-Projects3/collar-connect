@@ -11,7 +11,7 @@ import { useConversations, useConversationMessages, useSendMessage } from "@/hoo
 import { formatDistanceToNow, format, isToday } from "date-fns";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Send } from "lucide-react";
+import { Send, ArrowLeft } from "lucide-react";
 import { LinkifyText } from "@/components/LinkifyText";
 
 const formatMessageTime = (dateStr: string) => {
@@ -140,7 +140,23 @@ const Messages = () => {
             {activeRecipient && activeConversation ? (
               <>
                 {/* Chat Header */}
-                <CardHeader className="border-b flex flex-row items-center gap-3 py-3">
+                <CardHeader className="border-b flex flex-row items-center gap-2 py-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden h-9 w-9 -ml-2"
+                    onClick={() => {
+                      setActiveRecipient(null);
+                      setSearchParams((prev) => {
+                        const params = new URLSearchParams(prev);
+                        params.delete("recipientId");
+                        return params;
+                      });
+                    }}
+                    aria-label="Back to conversations"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
                   <Link to={`/profile?userId=${activeRecipient}`}>
                     <Avatar className="h-10 w-10">
                       <AvatarImage
