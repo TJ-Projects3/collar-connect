@@ -102,4 +102,16 @@ All colors MUST be HSL.
   }
 }
 
+@layer base {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  /* Prevent long unbroken strings (URLs, etc.) from forcing horizontal scroll on mobile */
+  p, span, h1, h2, h3, h4, h5, h6, a {
+    overflow-wrap: anywhere;
+  }
+}
+
+
 
