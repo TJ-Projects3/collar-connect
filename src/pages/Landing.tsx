@@ -269,7 +269,7 @@ const Landing = () => {
                 size="lg"
                 variant="outline"
                 onClick={() => navigate("/auth")}
-                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:scale-105 transition-all duration-300"
+                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:scale-105 transition-all duration-300"
               >
                 Find Top Talent
               </Button>
