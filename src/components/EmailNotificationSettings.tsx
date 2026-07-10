@@ -99,6 +99,40 @@ export function EmailNotificationSettings() {
               disabled={updatePreferences.isPending}
             />
           </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="email-post-like" className="text-base">
+                Post Reaction Notifications
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Get notified when someone reacts to your post
+              </p>
+            </div>
+            <Switch
+              id="email-post-like"
+              checked={(preferences as any).email_on_post_like ?? true}
+              onCheckedChange={(value) => handleToggle("email_on_post_like", value)}
+              disabled={updatePreferences.isPending}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="email-post-reply" className="text-base">
+                Post Reply Notifications
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Get notified when someone replies to your post
+              </p>
+            </div>
+            <Switch
+              id="email-post-reply"
+              checked={(preferences as any).email_on_post_reply ?? true}
+              onCheckedChange={(value) => handleToggle("email_on_post_reply", value)}
+              disabled={updatePreferences.isPending}
+            />
+          </div>
         </div>
 
         <div className="border-t pt-4">
