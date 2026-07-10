@@ -154,6 +154,8 @@ export type Database = {
           email_on_connection_accepted: boolean | null
           email_on_connection_request: boolean | null
           email_on_message: boolean | null
+          email_on_post_like: boolean
+          email_on_post_reply: boolean
           id: string
           updated_at: string
           user_id: string
@@ -165,6 +167,8 @@ export type Database = {
           email_on_connection_accepted?: boolean | null
           email_on_connection_request?: boolean | null
           email_on_message?: boolean | null
+          email_on_post_like?: boolean
+          email_on_post_reply?: boolean
           id?: string
           updated_at?: string
           user_id: string
@@ -176,6 +180,8 @@ export type Database = {
           email_on_connection_accepted?: boolean | null
           email_on_connection_request?: boolean | null
           email_on_message?: boolean | null
+          email_on_post_like?: boolean
+          email_on_post_reply?: boolean
           id?: string
           updated_at?: string
           user_id?: string
