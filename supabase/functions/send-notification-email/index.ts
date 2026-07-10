@@ -51,7 +51,7 @@ serve(async (req) => {
     // Fetch user's email preferences (default to true if not found)
     const { data: preferences } = await supabase
       .from("email_preferences")
-      .select("email_on_message, email_on_connection_request, email_on_connection_accepted")
+      .select("email_on_message, email_on_connection_request, email_on_connection_accepted, email_on_post_like, email_on_post_reply")
       .eq("user_id", notification.user_id)
       .single();
 
@@ -60,6 +60,8 @@ serve(async (req) => {
       message: preferences?.email_on_message ?? true,
       connection_request: preferences?.email_on_connection_request ?? true,
       connection_accepted: preferences?.email_on_connection_accepted ?? true,
+      post_like: preferences?.email_on_post_like ?? true,
+      post_reply: preferences?.email_on_post_reply ?? true,
     };
 
     const shouldSendEmail = preferencesMap[notification.type] ?? true;
