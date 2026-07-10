@@ -51,7 +51,7 @@ serve(async (req) => {
     // Fetch user's email preferences (default to true if not found)
     const { data: preferences } = await supabase
       .from("email_preferences")
-      .select("email_on_message, email_on_connection_request, email_on_connection_accepted")
+      .select("email_on_message, email_on_connection_request, email_on_connection_accepted, email_on_post_like, email_on_post_reply")
       .eq("user_id", notification.user_id)
       .single();
 
@@ -60,6 +60,8 @@ serve(async (req) => {
       message: preferences?.email_on_message ?? true,
       connection_request: preferences?.email_on_connection_request ?? true,
       connection_accepted: preferences?.email_on_connection_accepted ?? true,
+      post_like: preferences?.email_on_post_like ?? true,
+      post_reply: preferences?.email_on_post_reply ?? true,
     };
 
     const shouldSendEmail = preferencesMap[notification.type] ?? true;
@@ -144,6 +146,41 @@ serve(async (req) => {
           </p>
         </div>
       `;
+    } else if (notification.type === "post_like") {
+      subject = `${senderName} reacted to your post`;
+      html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2>New reaction on your post</h2>
+          <p><strong>${senderName}</strong> reacted to your post.</p>
+          <p>
+            <a href="${appUrl}/feed" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px;">
+              View Post
+            </a>
+          </p>
+          <p style="color: #666; font-size: 12px; margin-top: 30px;">
+            You received this email because you have post like notifications enabled. Update your preferences in Settings.
+          </p>
+        </div>
+      `;
+    } else if (notification.type === "post_reply") {
+      subject = `${senderName} replied to your post`;
+      html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2>New reply on your post</h2>
+          <p><strong>${senderName}</strong> replied to your post:</p>
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p>${notification.body || ""}</p>
+          </div>
+          <p>
+            <a href="${appUrl}/feed" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px;">
+              View Reply
+            </a>
+          </p>
+          <p style="color: #666; font-size: 12px; margin-top: 30px;">
+            You received this email because you have post reply notifications enabled. Update your preferences in Settings.
+          </p>
+        </div>
+      `;
     }
 
     if (!subject) {
@@ -152,7 +189,7 @@ serve(async (req) => {
 
     // Send email
     const emailResponse = await resend.emails.send({
-      from: "NextGen Collar <onboarding@resend.dev>",
+      from: "NextGen Collar <notifications@nextgencollar.com>",
       to: recipient.user.email,
       subject,
       html,

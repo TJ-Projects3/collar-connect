@@ -8,6 +8,8 @@ interface EmailPreferences {
   email_on_message: boolean;
   email_on_connection_request: boolean;
   email_on_connection_accepted: boolean;
+  email_on_post_like: boolean;
+  email_on_post_reply: boolean;
   email_digest: boolean;
   digest_frequency: string;
   created_at: string;
@@ -39,6 +41,8 @@ export const useEmailPreferences = () => {
             email_on_message: true,
             email_on_connection_request: true,
             email_on_connection_accepted: true,
+            email_on_post_like: true,
+            email_on_post_reply: true,
             email_digest: false,
             digest_frequency: "daily",
             created_at: new Date().toISOString(),
@@ -56,6 +60,8 @@ export const useEmailPreferences = () => {
           email_on_message: true,
           email_on_connection_request: true,
           email_on_connection_accepted: true,
+          email_on_post_like: true,
+          email_on_post_reply: true,
           email_digest: false,
           digest_frequency: "daily",
           created_at: new Date().toISOString(),
