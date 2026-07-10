@@ -8,6 +8,8 @@ interface EmailPreferences {
   email_on_message: boolean;
   email_on_connection_request: boolean;
   email_on_connection_accepted: boolean;
+  email_on_post_like: boolean;
+  email_on_post_reply: boolean;
   email_digest: boolean;
   digest_frequency: string;
   created_at: string;
