@@ -678,10 +678,15 @@ export type Database = {
           bio: string | null
           company: string | null
           created_at: string
+          featured_projects: Json | null
           full_name: string | null
+          github_url: string | null
           id: string
           job_title: string | null
+          linkedin_url: string | null
           location: string | null
+          portfolio_url: string | null
+          resume_url: string | null
           updated_at: string
           website: string | null
         }
@@ -690,10 +695,15 @@ export type Database = {
           bio?: string | null
           company?: string | null
           created_at?: string
+          featured_projects?: Json | null
           full_name?: string | null
+          github_url?: string | null
           id: string
           job_title?: string | null
+          linkedin_url?: string | null
           location?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -702,10 +712,15 @@ export type Database = {
           bio?: string | null
           company?: string | null
           created_at?: string
+          featured_projects?: Json | null
           full_name?: string | null
+          github_url?: string | null
           id?: string
           job_title?: string | null
+          linkedin_url?: string | null
           location?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
           updated_at?: string
           website?: string | null
         }
