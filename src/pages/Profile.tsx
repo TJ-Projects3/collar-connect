@@ -16,6 +16,7 @@ import { InlineReplies } from "@/components/InlineReplies";
 import { ExperienceFormModal } from "@/components/ExperienceFormModal";
 import { Navbar } from "@/components/Navbar";
 import { LinkifyText } from "@/components/LinkifyText";
+import { DeveloperPortfolioCard } from "@/components/DeveloperPortfolioCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -405,6 +406,9 @@ const Profile = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Developer Portfolio */}
+            <DeveloperPortfolioCard profile={profile} isOwnProfile={isOwnProfile} />
 
             {/* Experience Section */}
             <Card>
