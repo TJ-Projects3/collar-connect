@@ -115,7 +115,15 @@ export const ReplyModal = ({
                           {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
                         </span>
                       </div>
-                      <p className="text-sm mt-1">{reply.content}</p>
+                      {reply.content && <p className="text-sm mt-1">{reply.content}</p>}
+                      {reply.media_url && (
+                        <img
+                          src={reply.media_url}
+                          alt="Attachment"
+                          className="mt-2 max-h-48 rounded-md border border-border object-cover"
+                          loading="lazy"
+                        />
+                      )}
                     </div>
                   </div>
                 ))
