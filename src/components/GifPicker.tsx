@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+
+const SUPABASE_URL = "https://sucpuwbwjmxkbqcllfrj.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1Y3B1d2J3am14a2JxY2xsZnJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MjgyMDQsImV4cCI6MjA3OTAwNDIwNH0.akhng3iWLO4SZRbErLPLLJN3cf9tsjcGtd5pPfyTh2E";
 
 interface GifItem {
   id: string | number;
@@ -31,23 +32,11 @@ export const GifPicker = ({ trigger, onSelect }: GifPickerProps) => {
     const t = setTimeout(async () => {
       setLoading(true);
       try {
-        const params = new URLSearchParams({
-          customer_id: user?.id || "anonymous",
-        });
+        const params = new URLSearchParams({ customer_id: user?.id || "anonymous" });
         if (query.trim()) params.set("q", query.trim());
-        const { data, error } = await supabase.functions.invoke("klipy-gifs", {
-          method: "GET",
-          headers: {},
-          body: undefined as any,
-          // fallback: use fetch below since invoke doesn't support query easily
-        } as any);
-        // Use direct fetch via functions URL to keep query params:
-        const url = `https://sucpuwbwjmxkbqcllfrj.supabase.co/functions/v1/klipy-gifs?${params}`;
-        const res = await fetch(url, {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/klipy-gifs?${params}`, {
           signal: controller.signal,
-          headers: {
-            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1Y3B1d2J3am14a2JxY2xsZnJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MjgyMDQsImV4cCI6MjA3OTAwNDIwNH0.akhng3iWLO4SZRbErLPLLJN3cf9tsjcGtd5pPfyTh2E",
-          },
+          headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` },
         });
         const json = await res.json();
         setItems(json.items || []);
