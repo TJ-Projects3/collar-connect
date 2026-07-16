@@ -50,7 +50,17 @@ export const useCreateReply = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+    mutationFn: async ({
+      postId,
+      content,
+      mediaUrl,
+      mediaType,
+    }: {
+      postId: string;
+      content: string;
+      mediaUrl?: string | null;
+      mediaType?: "image" | "gif" | null;
+    }) => {
       if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
@@ -59,24 +69,26 @@ export const useCreateReply = () => {
           post_id: postId,
           author_id: user.id,
           content,
-        })
+          media_url: mediaUrl ?? null,
+          media_type: mediaType ?? null,
+        } as any)
         .select()
         .single();
 
       if (error) throw error;
       return data;
     },
-    onMutate: async ({ postId, content }) => {
-      // Cancel outgoing refetches for this query
+    onMutate: async ({ postId, content, mediaUrl, mediaType }) => {
       await queryClient.cancelQueries({ queryKey: ["post-replies", postId] });
       const previous = queryClient.getQueryData<any[]>(["post-replies", postId]) || [];
 
-      // Create an optimistic reply
       const optimistic = {
         id: `optimistic-${Date.now()}`,
         post_id: postId,
         author_id: user?.id ?? null,
         content,
+        media_url: mediaUrl ?? null,
+        media_type: mediaType ?? null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         profiles: undefined,
