@@ -144,9 +144,28 @@ export const InlineReplies = ({ postId, replyCount: initialCount }: InlineReplie
                           </div>
                         </div>
                       ) : (
-                        <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                          <LinkifyText>{reply.content}</LinkifyText>
-                        </p>
+                        <>
+                          {reply.content && (
+                            <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                              <LinkifyText>{reply.content}</LinkifyText>
+                            </p>
+                          )}
+                          {reply.media_url && (
+                            <a
+                              href={reply.media_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 inline-block"
+                            >
+                              <img
+                                src={reply.media_url}
+                                alt={reply.media_type === "gif" ? "GIF" : "Attached image"}
+                                className="max-h-64 rounded-md border border-border object-cover"
+                                loading="lazy"
+                              />
+                            </a>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
