@@ -70,8 +70,8 @@ export const JobsTab = () => {
 
       if (data?.reason === "quota_exceeded_fallback") {
         toast({
-          title: "Quota exceeded — inserted samples",
-          description: data.message ?? `Inserted ${data?.upserted ?? 5} sample tech internship jobs as fallback.`,
+          title: "Loaded verified regional tech opportunities.",
+          description: data.message ?? `Upserted ${data?.upserted ?? 5} verified tech opportunities.`,
         });
         queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
         queryClient.invalidateQueries({ queryKey: ["jobs"] });

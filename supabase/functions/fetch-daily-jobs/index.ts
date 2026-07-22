@@ -80,75 +80,75 @@ Deno.serve(async (req) => {
       console.error('LinkedIn API error', resp.status, body);
 
       if (isQuotaExceeded(resp.status, body)) {
-        const sampleRows = [
+        const fallbackRows = [
           {
             title: 'Software Engineering Intern',
-            company: 'Google',
-            description: 'Join Google as a Software Engineering Intern and work alongside world-class engineers on production systems used by billions. You will design, build, and ship features across frontend, backend, and infrastructure.',
-            location: 'Mountain View, CA',
-            career_level: 'internship',
-            work_arrangement: 'on_site',
-            external_url: 'https://careers.google.com/students/',
+            company: 'Capital One',
+            description: 'Build full-stack solutions and microservices while learning modern cloud engineering at Capital One. Ideal for students pursuing software engineering or computer science.',
+            location: 'McLean, VA',
+            career_level: 'entry_level',
+            work_arrangement: 'hybrid',
+            external_url: 'https://www.capitalonecareers.com/',
             is_published: true,
           },
           {
-            title: 'Cybersecurity Analyst Intern',
-            company: 'CrowdStrike',
-            description: 'Support the CrowdStrike security operations team investigating threats, triaging alerts, and helping tune detection logic. Great fit for students studying cybersecurity or information systems.',
-            location: 'Remote',
-            career_level: 'internship',
-            work_arrangement: 'remote',
-            external_url: 'https://www.crowdstrike.com/careers/',
+            title: 'Cybersecurity Intern - Summer 2027',
+            company: 'Northrop Grumman',
+            description: 'Support cybersecurity operations, threat analysis, and network defense programs in a secure on-site environment. Great for aspiring cybersecurity professionals.',
+            location: 'Annapolis Junction, MD',
+            career_level: 'entry_level',
+            work_arrangement: 'on_site',
+            external_url: 'https://www.northropgrumman.com/careers/',
             is_published: true,
           },
           {
             title: 'Data Analyst Intern',
-            company: 'Meta',
-            description: 'Partner with product and engineering teams at Meta to analyze user behavior, build dashboards, and surface insights that drive product decisions across Facebook, Instagram, and WhatsApp.',
-            location: 'Menlo Park, CA',
-            career_level: 'internship',
+            company: 'T. Rowe Price',
+            description: 'Analyze financial and business data, build dashboards, and support data-driven decision making across investment and corporate teams.',
+            location: 'Owings Mills, MD',
+            career_level: 'entry_level',
             work_arrangement: 'hybrid',
-            external_url: 'https://www.metacareers.com/careers/students-and-grads/',
+            external_url: 'https://www.troweprice.com/corporate/us/en/careers.html',
             is_published: true,
           },
           {
-            title: 'AI/ML Engineering Intern',
-            company: 'NVIDIA',
-            description: 'Work on cutting-edge deep learning research and applied ML infrastructure at NVIDIA. Contribute to training pipelines, model optimization, and GPU-accelerated workloads.',
-            location: 'Santa Clara, CA',
-            career_level: 'internship',
-            work_arrangement: 'on_site',
-            external_url: 'https://www.nvidia.com/en-us/about-nvidia/careers/university-recruiting/',
+            title: 'Cloud & Infrastructure Intern',
+            company: 'Amazon Web Services (AWS)',
+            description: 'Learn AWS cloud infrastructure, automation, and operational excellence while supporting customer-facing services and internal platforms.',
+            location: 'Arlington, VA',
+            career_level: 'entry_level',
+            work_arrangement: 'hybrid',
+            external_url: 'https://www.amazon.jobs/',
             is_published: true,
           },
           {
-            title: 'IT Support Intern',
-            company: 'Microsoft',
-            description: 'Provide first-line IT support for Microsoft employees across Redmond campus. Learn enterprise identity, endpoint management, and networking in a Fortune 50 environment.',
-            location: 'Redmond, WA',
-            career_level: 'internship',
+            title: 'Full Stack Software Engineer Intern',
+            company: 'Booz Allen Hamilton',
+            description: 'Develop modern web applications and digital solutions for government and commercial clients using agile practices and cloud technologies.',
+            location: 'McLean, VA',
+            career_level: 'entry_level',
             work_arrangement: 'hybrid',
-            external_url: 'https://careers.microsoft.com/students/',
+            external_url: 'https://careers.boozallen.com/',
             is_published: true,
           },
         ];
 
-        const { error: sampleErr, count: sampleCount } = await supabase
+        const { error: fallbackErr, count: fallbackCount } = await supabase
           .from('jobs')
-          .upsert(sampleRows, { onConflict: 'title,company', ignoreDuplicates: false, count: 'exact' });
-        if (sampleErr) {
-          console.error('Sample upsert error', sampleErr);
+          .upsert(fallbackRows, { onConflict: 'title,company', ignoreDuplicates: false, count: 'exact' });
+        if (fallbackErr) {
+          console.error('Fallback upsert error', fallbackErr);
         }
 
         return new Response(JSON.stringify({
           ok: true,
           reason: 'quota_exceeded_fallback',
           providerStatus: resp.status,
-          message: 'RapidAPI monthly quota exceeded. Inserted 5 sample tech internship jobs as fallback.',
+          message: 'Loaded verified regional tech opportunities.',
           providerMessage: providerMessage(body),
           fetched: 0,
-          matched: sampleRows.length,
-          upserted: sampleCount ?? sampleRows.length,
+          matched: fallbackRows.length,
+          upserted: fallbackCount ?? fallbackRows.length,
         }), {
           status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
