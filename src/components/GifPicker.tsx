@@ -55,16 +55,26 @@ export const GifPicker = ({ trigger, onSelect }: GifPickerProps) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent className="w-80 p-2" align="start">
+      <PopoverContent
+        className="relative z-50 w-80 p-2 bg-popover"
+        align="start"
+        sideOffset={6}
+        collisionPadding={12}
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         <Input
           placeholder="Search GIFs..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="mb-2 h-8"
         />
-        <div className="h-72 overflow-y-auto">
+        <div
+          className="max-h-72 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
+          onWheel={(e) => e.stopPropagation()}
+        >
           {loading && items.length === 0 ? (
-            <div className="flex h-full items-center justify-center">
+            <div className="flex h-40 items-center justify-center">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : items.length === 0 ? (
@@ -93,3 +103,4 @@ export const GifPicker = ({ trigger, onSelect }: GifPickerProps) => {
     </Popover>
   );
 };
+
