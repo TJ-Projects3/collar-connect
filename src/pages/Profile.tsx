@@ -30,6 +30,8 @@ import { useToast } from "@/hooks/use-toast";
 
 import { Link } from "react-router-dom";
 import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useMyConnections } from "@/hooks/useConnections";
+import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { getProfileSubline } from "@/lib/profile-display";
 
 const Profile = () => {
   const { user } = useAuth();
