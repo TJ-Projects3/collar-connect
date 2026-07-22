@@ -20,7 +20,13 @@ import { useEffect } from "react";
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+
+  const initialRole = (searchParams.get("role") === "recruiter" ? "recruiter" : "student") as
+    | "student"
+    | "recruiter";
+  const initialTab = searchParams.get("mode") === "signup" || searchParams.get("role") ? "signup" : "signin";
 
   // Sign in form state
   const [signInEmail, setSignInEmail] = useState("");
@@ -28,12 +34,21 @@ const Auth = () => {
   const [showSignInPassword, setShowSignInPassword] = useState(false);
 
   // Sign up form state
+  const [signUpRole, setSignUpRole] = useState<"student" | "recruiter">(initialRole);
   const [signUpName, setSignUpName] = useState("");
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showSignUpConfirmPassword, setShowSignUpConfirmPassword] = useState(false);
+
+  // Student-specific
+  const [university, setUniversity] = useState("");
+  const [major, setMajor] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
+  // Recruiter-specific
+  const [companyName, setCompanyName] = useState("");
+  const [companyTitle, setCompanyTitle] = useState("");
 
   // Password reset state
   const [resetEmail, setResetEmail] = useState("");
