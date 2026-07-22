@@ -118,7 +118,7 @@ const Landing = () => {
                 >
                   <Button
                     size="lg"
-                    onClick={() => navigate("/auth")}
+                    onClick={() => navigate("/auth?role=student&mode=signup")}
                     className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 shadow-lg hover:shadow-[0_0_28px_-6px_hsl(var(--primary)/0.45)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 ease-premium"
                   >
                     Map Your Career
@@ -126,7 +126,7 @@ const Landing = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    onClick={() => navigate("/auth")}
+                    onClick={() => navigate("/auth?role=recruiter&mode=signup")}
                     className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 border-2 hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-[0_0_28px_-6px_hsl(var(--accent)/0.4)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 ease-premium"
                   >
                     Find Top Talent
@@ -286,7 +286,7 @@ const Landing = () => {
               <Button
                 size="lg"
                 variant="secondary"
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/auth?role=student&mode=signup")}
                 className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[0_0_28px_-6px_hsl(var(--secondary-foreground)/0.35)] transition-all duration-300 ease-premium"
               >
                 Map Your Career
@@ -294,7 +294,7 @@ const Landing = () => {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/auth?role=recruiter&mode=signup")}
                 className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-primary-foreground/50 hover:shadow-[0_0_28px_-6px_hsl(var(--primary-foreground)/0.25)] transition-all duration-300 ease-premium"
               >
                 Find Top Talent
