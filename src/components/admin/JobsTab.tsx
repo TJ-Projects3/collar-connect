@@ -17,10 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, RefreshCw } from "lucide-react";
 import { JobFormModal } from "./JobFormModal";
 import { format } from "date-fns";
 import { useAdminJobs, useCreateJob, useUpdateJob, useDeleteJob, type Job } from "@/hooks/useAdminJobs";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const careerLevelLabels: Record<string, string> = {
   internship: "Internship",
