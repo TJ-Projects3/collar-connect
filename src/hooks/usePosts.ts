@@ -30,13 +30,26 @@ export const useCreatePost = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async ({
+      content,
+      mediaUrl,
+      mediaType,
+    }: {
+      content: string;
+      mediaUrl?: string | null;
+      mediaType?: "image" | "gif" | null;
+    }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
         .from("posts")
-        .insert({ content, author_id: user.id })
+        .insert({
+          content,
+          author_id: user.id,
+          media_url: mediaUrl ?? null,
+          media_type: mediaType ?? null,
+        } as any)
         .select()
         .single();
 
@@ -56,6 +69,7 @@ export const useCreatePost = () => {
     },
   });
 };
+
 
 export const useDeletePost = () => {
   const { toast } = useToast();

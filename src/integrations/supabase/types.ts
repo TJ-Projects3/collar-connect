@@ -648,6 +648,8 @@ export type Database = {
           id: string
           likes: number | null
           likes_count: number
+          media_type: string | null
+          media_url: string | null
           reply_count: number
         }
         Insert: {
@@ -657,6 +659,8 @@ export type Database = {
           id?: string
           likes?: number | null
           likes_count?: number
+          media_type?: string | null
+          media_url?: string | null
           reply_count?: number
         }
         Update: {
@@ -666,6 +670,8 @@ export type Database = {
           id?: string
           likes?: number | null
           likes_count?: number
+          media_type?: string | null
+          media_url?: string | null
           reply_count?: number
         }
         Relationships: [

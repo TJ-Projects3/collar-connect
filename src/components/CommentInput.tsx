@@ -1,4 +1,4 @@
-import { useState, KeyboardEvent, useRef } from "react";
+import { useState, KeyboardEvent, useRef, useId } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,9 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
   const [media, setMedia] = useState<{ url: string; type: "image" | "gif" } | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const fileInputId = useId();
   const createReply = useCreateReply();
+
 
   const initials = (profile?.full_name || "U")
     .split(" ")
@@ -119,16 +121,28 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
             disabled={createReply.isPending}
           />
           <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+            {/* Cross-browser file input: <label htmlFor> triggers the native picker
+                on Windows/Android/Linux without a synthetic JS click. */}
+            <input
+              ref={fileRef}
+              id={fileInputId}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleFile}
+              disabled={uploading || !!media}
+            />
             <Button
+              asChild
               type="button"
               size="icon"
               variant="ghost"
-              onClick={() => fileRef.current?.click()}
               disabled={uploading || !!media}
               className="h-7 w-7 text-muted-foreground hover:text-primary"
-              aria-label="Attach image"
             >
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+              <label htmlFor={fileInputId} aria-label="Attach image" className="cursor-pointer">
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+              </label>
             </Button>
             <GifPicker
               onSelect={(url) => setMedia({ url, type: "gif" })}
@@ -160,14 +174,8 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
             )}
           </div>
         </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFile}
-        />
       </div>
     </div>
   );
 };
+
