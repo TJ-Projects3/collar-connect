@@ -58,6 +58,19 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // Unpublish jobs older than 30 days
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { error: unpublishErr, count: unpublishedCount } = await supabase
+      .from('jobs')
+      .update({ is_published: false }, { count: 'exact' })
+      .lt('created_at', thirtyDaysAgo)
+      .eq('is_published', true);
+    if (unpublishErr) {
+      console.error('Unpublish old jobs error', unpublishErr);
+    } else {
+      console.log('Unpublished old jobs:', unpublishedCount ?? 0);
+    }
+
     const params = new URLSearchParams({
       title: 'Software Engineer',
       location: 'United States',
