@@ -54,10 +54,31 @@ export const JobsTab = () => {
   const createJob = useCreateJob();
   const updateJob = useUpdateJob();
   const deleteJob = useDeleteJob();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [filterCareerLevel, setFilterCareerLevel] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncDaily = async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("fetch-daily-jobs");
+      if (error) throw error;
+      toast({
+        title: "Sync complete",
+        description: `Fetched ${data?.fetched ?? 0}, matched ${data?.matched ?? 0}, upserted ${data?.upserted ?? 0}.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    } catch (err: any) {
+      toast({ title: "Sync failed", description: err.message, variant: "destructive" });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const filteredJobs = filterCareerLevel === "all"
     ? jobs
