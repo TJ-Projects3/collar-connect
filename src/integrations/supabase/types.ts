@@ -698,6 +698,7 @@ export type Database = {
           gpa: number | null
           graduation_year: number | null
           id: string
+          is_admin: boolean
           is_verified_recruiter: boolean
           job_title: string | null
           linkedin_url: string | null
@@ -723,6 +724,7 @@ export type Database = {
           gpa?: number | null
           graduation_year?: number | null
           id: string
+          is_admin?: boolean
           is_verified_recruiter?: boolean
           job_title?: string | null
           linkedin_url?: string | null
@@ -748,6 +750,7 @@ export type Database = {
           gpa?: number | null
           graduation_year?: number | null
           id?: string
+          is_admin?: boolean
           is_verified_recruiter?: boolean
           job_title?: string | null
           linkedin_url?: string | null
