@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       limit: '100',
       offset: '0',
     });
-    const url = `https://${API_HOST}/active-jb-24h?${params.toString()}`;
+    const url = `https://${API_HOST}/active-jb?${params.toString()}`;
 
     const resp = await fetch(url, {
       headers: {
