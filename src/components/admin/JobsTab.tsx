@@ -68,6 +68,16 @@ export const JobsTab = () => {
       const { data, error } = await supabase.functions.invoke("fetch-daily-jobs");
       if (error) throw error;
 
+      if (data?.reason === "quota_exceeded_fallback") {
+        toast({
+          title: "Quota exceeded — inserted samples",
+          description: data.message ?? `Inserted ${data?.upserted ?? 5} sample tech internship jobs as fallback.`,
+        });
+        queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
+        queryClient.invalidateQueries({ queryKey: ["jobs"] });
+        return;
+      }
+
       if (data?.reason === "quota_exceeded") {
         toast({
           title: "Sync skipped",
