@@ -168,9 +168,14 @@ const Feed = () => {
                 </AvatarFallback>
               </Avatar>
               <div className="cursor-pointer">
-                <h3 className="font-semibold">{post.profiles?.full_name || "Unknown User"}</h3>
+                <h3 className="font-semibold flex items-center gap-2 flex-wrap">
+                  <span>{post.profiles?.full_name || "Unknown User"}</span>
+                  {post.profiles?.profile_type === "recruiter" && (
+                    <RecruiterBadge verified={post.profiles?.is_verified_recruiter} />
+                  )}
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  {[post.profiles?.job_title, post.profiles?.company].filter(Boolean).join(" @ ") || "Member"}
+                  {getProfileSubline(post.profiles)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {post.created_at && formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
