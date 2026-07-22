@@ -593,6 +593,69 @@ const Auth = () => {
                         </button>
                       </div>
                     </div>
+
+                    {signUpRole === "student" ? (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-university">University</Label>
+                          <Input
+                            id="signup-university"
+                            type="text"
+                            placeholder="e.g., Georgia Tech"
+                            value={university}
+                            onChange={(e) => setUniversity(e.target.value)}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label htmlFor="signup-major">Major</Label>
+                            <Input
+                              id="signup-major"
+                              type="text"
+                              placeholder="Computer Science"
+                              value={major}
+                              onChange={(e) => setMajor(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="signup-grad">Grad Year</Label>
+                            <Input
+                              id="signup-grad"
+                              type="number"
+                              min={1950}
+                              max={2100}
+                              placeholder="2026"
+                              value={graduationYear}
+                              onChange={(e) => setGraduationYear(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-company">Company Name</Label>
+                          <Input
+                            id="signup-company"
+                            type="text"
+                            placeholder="e.g., Acme Corp"
+                            value={companyName}
+                            onChange={(e) => setCompanyName(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-title">Your Title</Label>
+                          <Input
+                            id="signup-title"
+                            type="text"
+                            placeholder="e.g., Senior Technical Recruiter"
+                            value={companyTitle}
+                            onChange={(e) => setCompanyTitle(e.target.value)}
+                          />
+                        </div>
+                      </>
+                    )}
+
                     <Button
                       type="submit"
                       className="w-full"
