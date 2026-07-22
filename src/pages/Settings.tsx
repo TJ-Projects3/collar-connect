@@ -8,10 +8,16 @@ import { Bell, Lock, User, Eye, Save, FlaskConical, Loader2 } from "lucide-react
 import { EmailNotificationSettings } from "@/components/EmailNotificationSettings";
 import { toast } from "sonner";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/contexts/AuthContext";
+
+const DEV_OWNER_EMAIL = "isaiahosuntuyi@gmail.com";
 
 const Settings = () => {
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
+  const { user } = useAuth();
+
+  const canAccessDevMode = user?.email === DEV_OWNER_EMAIL || profile?.is_admin === true;
 
   const handleSaveSettings = () => {
     toast.success("Settings saved successfully!");
