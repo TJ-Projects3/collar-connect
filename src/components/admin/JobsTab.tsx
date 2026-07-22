@@ -149,10 +149,20 @@ export const JobsTab = () => {
             ))}
           </SelectContent>
         </Select>
-        <Button onClick={handleCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Job
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleSyncDaily} disabled={isSyncing}>
+            {isSyncing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Sync Daily Jobs
+          </Button>
+          <Button onClick={handleCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Job
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-xl border bg-card">
