@@ -116,8 +116,20 @@ const Auth = () => {
         email: signUpEmail,
         password: signUpPassword,
         options: {
+          emailRedirectTo: `${window.location.origin}/feed`,
           data: {
             full_name: signUpName,
+            profile_type: signUpRole,
+            ...(signUpRole === "student"
+              ? {
+                  university: university || undefined,
+                  major: major || undefined,
+                  graduation_year: graduationYear || undefined,
+                }
+              : {
+                  company_name: companyName || undefined,
+                  company_title: companyTitle || undefined,
+                }),
           },
         },
       });
