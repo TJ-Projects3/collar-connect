@@ -9,15 +9,29 @@ import { EmailNotificationSettings } from "@/components/EmailNotificationSetting
 import { toast } from "sonner";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
-
-const DEV_OWNER_EMAIL = "isaiahosuntuyi@gmail.com";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
   const { user } = useAuth();
 
-  const canAccessDevMode = user?.email === DEV_OWNER_EMAIL || profile?.is_admin === true;
+  const { data: isAdmin } = useQuery({
+    queryKey: ["is-admin", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("has_role", {
+        _user_id: user!.id,
+        _role: "admin",
+      });
+      if (error) throw error;
+      return data === true;
+    },
+  });
+
+  const canAccessDevMode = isAdmin === true;
+
 
   const handleSaveSettings = () => {
     toast.success("Settings saved successfully!");
