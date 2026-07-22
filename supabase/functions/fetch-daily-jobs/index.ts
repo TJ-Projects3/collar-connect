@@ -12,6 +12,8 @@ const SEARCH_TERMS = [
 const ALLOWED = ['developer','engineer','software','cyber','security','data','analyst','python','react','cloud','ai','ml','full stack','backend','frontend','network','systems','technical'];
 const EXCLUDED = ['sales','account rep','marketing','real estate','nursing','customer service'];
 
+const API_HOST = 'linkedin-job-search-api.p.rapidapi.com';
+
 function isTechJob(title: string): boolean {
   if (!title) return false;
   const t = title.toLowerCase();
@@ -20,21 +22,47 @@ function isTechJob(title: string): boolean {
 }
 
 function mapArrangement(job: any): 'remote' | 'hybrid' | 'on_site' {
-  if (job.job_is_remote) return 'remote';
-  const t = `${job.job_title ?? ''} ${job.job_description ?? ''}`.toLowerCase();
-  if (t.includes('hybrid')) return 'hybrid';
-  if (t.includes('remote')) return 'remote';
+  const remote = job.remote_derived ?? job.remote;
+  if (remote === true) return 'remote';
+  const hay = `${job.title ?? ''} ${job.employment_type ?? ''} ${(job.locations_raw ?? []).join?.(' ') ?? ''}`.toLowerCase();
+  if (hay.includes('hybrid')) return 'hybrid';
+  if (hay.includes('remote')) return 'remote';
   return 'on_site';
 }
 
-function mapLevel(title: string): 'internship' | 'entry_level' | 'associate' | 'mid_senior' | 'director' | 'executive' {
-  const t = title.toLowerCase();
+function mapLevel(job: any): 'internship' | 'entry_level' | 'associate' | 'mid_senior' | 'director' | 'executive' {
+  const s = (job.seniority ?? '').toLowerCase();
+  if (s.includes('intern')) return 'internship';
+  if (s.includes('entry')) return 'entry_level';
+  if (s.includes('associate')) return 'associate';
+  if (s.includes('mid-senior') || s.includes('mid senior') || s.includes('senior')) return 'mid_senior';
+  if (s.includes('director')) return 'director';
+  if (s.includes('executive')) return 'executive';
+
+  const t = (job.title ?? '').toLowerCase();
   if (t.includes('intern')) return 'internship';
   if (t.includes('entry') || t.includes('junior')) return 'entry_level';
   if (t.includes('senior') || t.includes('sr.')) return 'mid_senior';
   if (t.includes('director')) return 'director';
   if (t.includes('vp') || t.includes('chief') || t.includes('executive')) return 'executive';
   return 'entry_level';
+}
+
+function firstLocation(job: any): string | null {
+  const derived = job.locations_derived;
+  if (Array.isArray(derived) && derived.length > 0 && typeof derived[0] === 'string') return derived[0];
+  const raw = job.locations_raw;
+  if (Array.isArray(raw) && raw.length > 0) {
+    const r = raw[0];
+    if (typeof r === 'string') return r;
+    if (r && typeof r === 'object') {
+      const addr = r.address ?? r;
+      const parts = [addr.addressLocality, addr.addressRegion, addr.addressCountry].filter(Boolean);
+      if (parts.length) return parts.join(', ');
+    }
+  }
+  const parts = [job.city, job.region, job.country].filter(Boolean);
+  return parts.length ? parts.join(', ') : null;
 }
 
 Deno.serve(async (req) => {
@@ -55,26 +83,36 @@ Deno.serve(async (req) => {
 
     const collected: any[] = [];
     for (const term of SEARCH_TERMS) {
-      const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(term)}&page=1&num_pages=1`;
+      const params = new URLSearchParams({
+        title_filter: `"${term}"`,
+        location_filter: '"United States"',
+        limit: '25',
+        offset: '0',
+        description_type: 'text',
+      });
+      const url = `https://${API_HOST}/active-jb-7d?${params.toString()}`;
       const resp = await fetch(url, {
         headers: {
-          'X-RapidAPI-Key': JOB_API_KEY,
-          'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
+          'x-rapidapi-key': JOB_API_KEY,
+          'x-rapidapi-host': API_HOST,
         },
       });
       if (!resp.ok) {
-        console.error('JSearch error', term, resp.status, await resp.text());
+        const body = await resp.text();
+        console.error('LinkedIn API error', term, resp.status, body);
         continue;
       }
       const json = await resp.json();
-      for (const j of json.data ?? []) collected.push(j);
+      // Response is typically an array of job objects; some endpoints wrap in { data: [...] }
+      const items: any[] = Array.isArray(json) ? json : (json.data ?? json.jobs ?? []);
+      for (const j of items) collected.push(j);
     }
 
     const seen = new Set<string>();
     const rows: any[] = [];
     for (const j of collected) {
-      const title = (j.job_title ?? '').trim();
-      const company = (j.employer_name ?? '').trim();
+      const title = (j.title ?? '').toString().trim();
+      const company = (j.organization ?? j.organization_name ?? j.company ?? '').toString().trim();
       if (!title || !company) continue;
       if (!isTechJob(title)) continue;
 
@@ -82,15 +120,14 @@ Deno.serve(async (req) => {
       if (seen.has(key)) continue;
       seen.add(key);
 
-      const location = [j.job_city, j.job_state, j.job_country].filter(Boolean).join(', ') || null;
       rows.push({
         title,
         company,
-        description: j.job_description ?? null,
-        location,
-        career_level: mapLevel(title),
+        description: j.description_text ?? j.description ?? null,
+        location: firstLocation(j),
+        career_level: mapLevel(j),
         work_arrangement: mapArrangement(j),
-        external_url: j.job_apply_link ?? null,
+        external_url: j.url ?? j.job_url ?? j.apply_url ?? null,
         is_published: true,
       });
     }
