@@ -1,61 +1,66 @@
+
 ## Goal
+Introduce two distinct profile types — **Student** and **Recruiter** — chosen from the landing page CTAs. Sign-in stays unified; signup and profile display adapt to the role.
 
-Allow images and GIFs on top-level posts (not just comment replies), and ensure media uploads/rendering work reliably on Windows, Android, and Linux — not just Apple devices.
+## 1. Database (single migration)
 
-## Part 1 — Media on Main Posts
+Add a `profile_type` enum (separate from the existing `app_role` RBAC enum so we don't mix authorization roles with profile types):
 
-### Database (migration)
-Add media columns to `posts`, mirroring `post_replies`:
-- `media_url TEXT NULL`
-- `media_type TEXT NULL` with CHECK (`media_type IN ('image','gif')` or NULL)
+- `CREATE TYPE public.profile_type AS ENUM ('student', 'recruiter');`
 
-No new RLS needed — existing insert/update policies on `posts` already scope by `author_id = auth.uid()`. The existing `content-images` storage bucket (public) is already used by comments and works for posts too; no new bucket or policy required.
+Extend `public.profiles`:
+- `profile_type profile_type NOT NULL DEFAULT 'student'`
+- Recruiter fields: `company_name text`, `company_title text`, `is_verified_recruiter boolean NOT NULL DEFAULT false`
+- Student fields: `university text`, `major text`, `graduation_year int`, `gpa numeric(3,2)`
+  (existing `github_url`, `resume_url`, `company` remain)
 
-### Hook — `src/hooks/usePosts.ts`
-- `useCreatePost` accepts `{ content, mediaUrl?, mediaType? }` instead of a bare string and inserts the new columns.
+Update `handle_new_user()` to read `raw_user_meta_data->>'profile_type'` and insert it (fallback `'student'`). `is_verified_recruiter` stays false — only admins can flip it (add an RLS policy allowing `has_role(auth.uid(),'admin')` to UPDATE that column path; simplest: keep existing "users update own profile" policy but WITH CHECK prevents self-setting `is_verified_recruiter = true` unless admin — enforced via trigger).
 
-### UI — `src/components/CreatePostModal.tsx`
-- Add the same composer affordances used in `CommentInput.tsx`:
-  - Image upload button (`<input type="file" accept="image/*">`, hidden, triggered by a Button).
-  - GIF button that opens `<GifPicker />`.
-  - Preview thumbnail with a remove (X) button.
-- Reuse the existing `content-images` bucket with path `posts/{userId}/{uuid}.{ext}`.
-- Allow submitting media-only posts (content OR media required, not both).
-- Reset media state on close/submit.
+No changes to `user_roles` / `app_role` (still admin/moderator/user for RBAC).
 
-### UI — `src/pages/Feed.tsx`
-- Render `post.media_url` under the post content using the same `<img>` pattern used in `InlineReplies.tsx` (standard `<img>` inside an `<a>` link, `object-contain`, rounded border).
+## 2. Routing & Signup
 
-## Part 2 — Cross-Platform Compatibility Fix
+**Landing (`src/pages/Landing.tsx`)** — update the 4 CTA buttons:
+- "Map Your Career" → `/auth?role=student&mode=signup`
+- "Find Top Talent" → `/auth?role=recruiter&mode=signup`
+- Header "Sign In" → `/auth?mode=signin`, "Join Now" → `/auth?mode=signup`
 
-The current comment composer already uses standard HTML5 `<input type="file" accept="image/*">`, standard `<img>` tags, and Radix Popover (which handles pointer events cross-browser), so most of it is already portable. The likely real causes of the "only works on Apple" reports are:
+**Auth page (`src/pages/Auth.tsx`)**:
+- Read `role` and `mode` from `useSearchParams`; default tab to signup when `role` present.
+- Add role selector (segmented control) at top of signup form, prefilled from query param.
+- Conditional signup fields:
+  - Student: University, Major, Graduation Year (resume upload deferred to onboarding/profile edit for simplicity)
+  - Recruiter: Company Name, Company Title
+- Pass fields into `supabase.auth.signUp({ options: { data: { full_name, profile_type, university, major, graduation_year, company_name, company_title } } })`.
+- Sign-in flow unchanged — always routes to `/feed`.
 
-1. **Hidden file input triggered via `ref.current?.click()` inside a Radix Popover / Dialog** — on Chrome/Edge/Firefox on Windows and Android, a synthetic `.click()` on an input that is `display:none` inside certain focus-trapped containers can be ignored. Fix by rendering the file input as a visually-hidden but focusable element (using `sr-only` positioning: `absolute`, `w-px h-px`, `opacity-0`, `pointer-events-none`) instead of `hidden`, and by wrapping the trigger in a `<label htmlFor="...">` so the browser fires the native file dialog directly — no JS click required. This is the standard cross-browser pattern.
-2. **`accept="image/*"` on Android** correctly opens gallery + camera; keep it, but also add `capture` omitted (so gallery is default) and ensure the input is not `disabled` when a GIF picker is open on mobile.
-3. **GIF rendering**: KLIPY sometimes returns `.webp`/`.mp4` variants. On Windows/Android Chrome, `.mp4` won't render inside `<img>`. Ensure the GIF picker and reply/post renderer only ever store a `.gif` or `.webp` URL (the edge function already returns `preview`/`url` — verify we're picking the `gif` URL, not `mp4`, and render with `<img>` only).
-4. **Touch events**: All interactive elements already use `<Button>` (which uses `onClick`, working for both mouse and touch). No `onMouseDown`-only handlers to change. Audit `CommentInput.tsx`, `GifPicker.tsx`, and the new post composer to confirm — no code change expected beyond confirmation.
-5. **CSS**: Remove any `-webkit-` only rules if found in `index.css` around media (none expected; will confirm during build).
+**Onboarding (`src/components/OnboardingModal.tsx`)**: extend to show role-appropriate fields when they're missing, so users who signed up before this change can fill them in.
 
-### Files touched for Part 2
-- `src/components/CommentInput.tsx` — swap hidden file input for `<label>` + `sr-only` input pattern.
-- New post composer (`CreatePostModal.tsx`) — same pattern from the start.
-- `src/components/GifPicker.tsx` / `supabase/functions/klipy-gifs/index.ts` — verify returned `url` prefers `gif`/`webp`, never `mp4`; add a fallback chain.
+## 3. UI — Badges & Post Headers
+
+Create `src/components/RecruiterBadge.tsx` — small pill with `BadgeCheck` icon, label "Hiring Recruiter", uses `secondary` color token.
+
+Create helper `src/lib/profile-display.ts` with `getProfileSubline(profile)`:
+- Recruiter → `${company_title} @ ${company_name}` (or just company_name)
+- Student → `${major} · ${university}` or `Class of ${graduation_year}`
+- Fallback → existing `job_title`/`company` logic
+
+Apply in:
+- `src/pages/Feed.tsx` post headers
+- `src/components/InlineReplies.tsx` reply author lines
+- `src/components/ReplyModal.tsx` author line
+- `src/pages/Profile.tsx` profile header (also render richer role-specific section — student's academic block vs. recruiter's company block)
+
+Every place that renders a user's name (post header, reply, profile header, connections sidebar) also renders `<RecruiterBadge />` when `profile.profile_type === 'recruiter'`.
+
+## 4. Types
+After migration approval, regenerated `types.ts` will expose the new columns/enum — hooks (`useProfile`, `useAllProfiles`) need no changes since they `select("*")`.
 
 ## Out of scope
-- No changes to auth, RLS beyond the new columns, or the notifications system.
-- No new storage bucket.
+- Recruiter-only pages (talent search, job posting flows)
+- Admin UI for flipping `is_verified_recruiter` (can be done via SQL for now)
+- Migrating existing users' profile_type (defaults to 'student'; they can change via profile edit)
 
-## Technical summary
-```text
-Migration:
-  ALTER TABLE public.posts
-    ADD COLUMN media_url TEXT,
-    ADD COLUMN media_type TEXT
-    CHECK (media_type IN ('image','gif') OR media_type IS NULL);
-
-Frontend:
-  usePosts.useCreatePost({ content, mediaUrl?, mediaType? })
-  CreatePostModal → image upload + GifPicker + preview
-  Feed post card → render media_url below content
-  CommentInput + CreatePostModal → <label htmlFor> pattern for file input
-```
+## Technical notes
+- `profile_type` is a profile attribute (what kind of account), separate from `user_roles.role` which is RBAC (admin/moderator/user). Keeping them separate avoids privilege confusion.
+- Query param `?role=recruiter` is a UX hint only; the actual value is written server-side via the `handle_new_user` trigger from `raw_user_meta_data`, so a user can't grant themselves recruiter verification through URL tampering.
