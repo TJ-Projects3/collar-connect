@@ -96,6 +96,7 @@ Deno.serve(async (req) => {
         description: j.description_text ?? j.description ?? null,
         location: firstLocation(j),
         career_level: 'entry_level',
+        work_arrangement: (j.remote_derived === true || (firstLocation(j) ?? '').toLowerCase().includes('remote')) ? 'remote' : 'on_site',
         external_url: j.url ?? j.job_url ?? j.apply_url ?? null,
         is_published: true,
       });
