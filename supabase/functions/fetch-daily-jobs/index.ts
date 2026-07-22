@@ -46,10 +46,12 @@ Deno.serve(async (req) => {
     );
 
     const params = new URLSearchParams({
-      title_filter: 'Software Engineer',
-      location_filter: 'United States',
+      title: 'Software Engineer',
+      location: 'United States',
+      time_frame: '24h',
       limit: '100',
       offset: '0',
+      description_format: 'text',
     });
     const url = `https://${API_HOST}/active-jb?${params.toString()}`;
 
