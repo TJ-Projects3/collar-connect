@@ -192,9 +192,26 @@ const Feed = () => {
         <CardContent className="px-6 pb-3 md:px-8">
           <div className="text-foreground text-[15px]">{renderPostContent(post.content)}</div>
 
+          {(post as any).media_url && (
+            <a
+              href={(post as any).media_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 block"
+            >
+              <img
+                src={(post as any).media_url}
+                alt={(post as any).media_type === "gif" ? "GIF attachment" : "Post image"}
+                className="max-h-[520px] w-auto rounded-md border border-border object-contain"
+                loading="lazy"
+              />
+            </a>
+          )}
+
           {/* Inline Replies */}
           <InlineReplies postId={post.id} replyCount={liveReplyCount} />
         </CardContent>
+
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 px-6 pb-5 md:px-8">
           {/* Reaction summary + counts */}
           <div className="flex items-center justify-between text-xs text-muted-foreground">
