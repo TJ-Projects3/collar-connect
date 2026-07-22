@@ -6,6 +6,19 @@ const API_HOST = 'linkedin-job-search-api.p.rapidapi.com';
 const ALLOWED = ['software','developer','engineer','cyber','security','data','analyst','intern','it','ai','tech'];
 const EXCLUDED = ['sales','marketing','account rep','real estate','nursing'];
 
+function providerMessage(body: string): string {
+  try {
+    const parsed = JSON.parse(body);
+    return String(parsed?.message ?? parsed?.error ?? body);
+  } catch {
+    return body;
+  }
+}
+
+function isQuotaExceeded(status: number, body: string): boolean {
+  return status === 429 && /quota|exceeded|monthly|upgrade/i.test(body);
+}
+
 function isTechJob(title: string): boolean {
   if (!title) return false;
   const t = title.toLowerCase();
@@ -65,6 +78,23 @@ Deno.serve(async (req) => {
     if (!resp.ok) {
       const body = await resp.text();
       console.error('LinkedIn API error', resp.status, body);
+
+      if (isQuotaExceeded(resp.status, body)) {
+        return new Response(JSON.stringify({
+          ok: false,
+          skipped: true,
+          reason: 'quota_exceeded',
+          providerStatus: resp.status,
+          message: 'RapidAPI monthly job quota has been reached. No jobs were synced.',
+          providerMessage: providerMessage(body),
+          fetched: 0,
+          matched: 0,
+          upserted: 0,
+        }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       return new Response(JSON.stringify({ error: 'Provider request failed', status: resp.status, details: body }), {
         status: resp.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -117,6 +147,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(JSON.stringify({
+      ok: true,
       fetched: totalFetched,
       matched: rows.length,
       upserted,
