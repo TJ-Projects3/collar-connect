@@ -490,7 +490,7 @@ const Auth = () => {
                           onClick={() => setSignUpRole("student")}
                           className={`flex flex-col items-center gap-1 rounded-md border-2 p-3 text-sm font-medium transition-all ${
                             signUpRole === "student"
-                              ? "border-primary bg-primary/5 text-primary"
+                              ? "border-primary bg-primary/5 text-slate-900 font-semibold"
                               : "border-border text-muted-foreground hover:border-primary/40"
                           }`}
                         >
@@ -502,7 +502,7 @@ const Auth = () => {
                           onClick={() => setSignUpRole("recruiter")}
                           className={`flex flex-col items-center gap-1 rounded-md border-2 p-3 text-sm font-medium transition-all ${
                             signUpRole === "recruiter"
-                              ? "border-secondary bg-secondary/10 text-secondary-foreground"
+                              ? "border-secondary bg-secondary/10 text-slate-900 font-semibold"
                               : "border-border text-muted-foreground hover:border-secondary/40"
                           }`}
                         >
