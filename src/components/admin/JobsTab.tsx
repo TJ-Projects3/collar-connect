@@ -67,6 +67,16 @@ export const JobsTab = () => {
     try {
       const { data, error } = await supabase.functions.invoke("fetch-daily-jobs");
       if (error) throw error;
+
+      if (data?.reason === "quota_exceeded") {
+        toast({
+          title: "Sync skipped",
+          description: data.message ?? "RapidAPI monthly job quota has been reached. Upgrade or wait for reset.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Sync complete",
         description: `Fetched ${data?.fetched ?? 0}, matched ${data?.matched ?? 0}, upserted ${data?.upserted ?? 0}.`,
