@@ -483,6 +483,35 @@ const Auth = () => {
                 <TabsContent value="signup">
                   <form onSubmit={handleSignUp} className="space-y-4">
                     <div className="space-y-2">
+                      <Label>I am a...</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSignUpRole("student")}
+                          className={`flex flex-col items-center gap-1 rounded-md border-2 p-3 text-sm font-medium transition-all ${
+                            signUpRole === "student"
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border text-muted-foreground hover:border-primary/40"
+                          }`}
+                        >
+                          <GraduationCap className="h-5 w-5" />
+                          Student
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSignUpRole("recruiter")}
+                          className={`flex flex-col items-center gap-1 rounded-md border-2 p-3 text-sm font-medium transition-all ${
+                            signUpRole === "recruiter"
+                              ? "border-secondary bg-secondary/10 text-secondary-foreground"
+                              : "border-border text-muted-foreground hover:border-secondary/40"
+                          }`}
+                        >
+                          <Briefcase className="h-5 w-5" />
+                          Recruiter
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="signup-name">Full Name</Label>
                       <Input
                         id="signup-name"
