@@ -40,6 +40,8 @@ import { formatDistanceToNow } from "date-fns";
 import { ReactionPicker, REACTIONS, reactionMeta } from "@/components/ReactionPicker";
 import { CommentInput } from "@/components/CommentInput";
 import { renderPostContent } from "@/lib/post-formatting";
+import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { getProfileSubline } from "@/lib/profile-display";
 
 const SUGGESTED_HASHTAGS = ["DiversityInTech", "Cybersecurity", "Internships", "CareerMapping"];
 
