@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,16 +20,21 @@ import {
 } from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Image as ImageIcon, Smile, X, Loader2 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useCreateReply, usePostReplies } from "@/hooks/usePostReplies";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { GifPicker } from "@/components/GifPicker";
 import { formatDistanceToNow } from "date-fns";
 
 const replySchema = z.object({
   content: z
     .string()
     .trim()
-    .min(1, "Reply cannot be empty")
-    .max(1000, "Reply must be less than 1000 characters"),
+    .max(1000, "Reply must be less than 1000 characters")
+    .default(""),
 });
 
 type ReplyFormData = z.infer<typeof replySchema>;
@@ -50,17 +55,71 @@ export const ReplyModal = ({
   postAuthor,
 }: ReplyModalProps) => {
   const { data: profile } = useProfile();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const createReply = useCreateReply();
-  const { data: replies = [], isLoading: repliesLoading } = usePostReplies(postId);
+  const { data: replies = [] } = usePostReplies(postId);
+
+  const fileInputId = useId();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [media, setMedia] = useState<{ url: string; type: "image" | "gif" } | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const form = useForm<ReplyFormData>({
     resolver: zodResolver(replySchema),
     defaultValues: { content: "" },
   });
 
+  useEffect(() => {
+    if (open) {
+      form.reset({ content: "" });
+      setMedia(null);
+    }
+  }, [open]);
+
   const onSubmit = async (data: ReplyFormData) => {
-    await createReply.mutateAsync({ postId, content: data.content });
-    form.reset();
+    const content = (data.content ?? "").trim();
+    if (!content && !media) {
+      toast({ title: "Add some text or an attachment first", variant: "destructive" });
+      return;
+    }
+    await createReply.mutateAsync({
+      postId,
+      content,
+      mediaUrl: media?.url ?? null,
+      mediaType: media?.type ?? null,
+    });
+    form.reset({ content: "" });
+    setMedia(null);
+  };
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Please select an image file", variant: "destructive" });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Image must be under 10MB", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `comments/${user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("content-images")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from("content-images").getPublicUrl(path);
+      setMedia({ url: data.publicUrl, type: "image" });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   };
 
   const getInitials = (name: string | null | undefined) => {
@@ -135,7 +194,7 @@ export const ReplyModal = ({
 
           {/* Reply Form */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
               <div className="flex items-start gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profile?.avatar_url || undefined} />
@@ -161,17 +220,83 @@ export const ReplyModal = ({
                 />
               </div>
 
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={createReply.isPending}>
-                  {createReply.isPending ? "Posting..." : "Reply"}
-                </Button>
+              {media && (
+                <div className="relative inline-block ml-11">
+                  <img
+                    src={media.url}
+                    alt="Attachment preview"
+                    className="max-h-48 rounded-md border border-border object-contain"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                    onClick={() => setMedia(null)}
+                    aria-label="Remove attachment"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1 ml-11">
+                  {/* Native <label> file trigger for cross-browser support */}
+                  <input
+                    ref={fileRef}
+                    id={fileInputId}
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleFile}
+                    disabled={uploading || !!media}
+                  />
+                  <Button
+                    asChild
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={uploading || !!media}
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <label htmlFor={fileInputId} className="cursor-pointer flex items-center gap-2">
+                      {uploading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4" />
+                      )}
+                      <span>Photo</span>
+                    </label>
+                  </Button>
+                  <GifPicker
+                    onSelect={(url) => setMedia({ url, type: "gif" })}
+                    trigger={
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={!!media}
+                        className="text-muted-foreground hover:text-primary gap-2"
+                      >
+                        <Smile className="h-4 w-4" />
+                        <span>GIF</span>
+                      </Button>
+                    }
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createReply.isPending || uploading}>
+                    {createReply.isPending ? "Posting..." : "Reply"}
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>
