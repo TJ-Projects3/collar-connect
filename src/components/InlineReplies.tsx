@@ -122,9 +122,9 @@ export const InlineReplies = ({ postId, replyCount: initialCount }: InlineReplie
                         )}
                       </div>
 
-                      {(reply.profiles?.job_title || reply.profiles?.company) && (
+                      {(reply.profiles?.job_title || reply.profiles?.company || isRecruiter(reply.profiles) || reply.profiles?.major) && (
                         <p className="text-xs text-muted-foreground mb-2">
-                          {[reply.profiles?.job_title, reply.profiles?.company].filter(Boolean).join(" @ ")}
+                          {getProfileSubline(reply.profiles, "")}
                         </p>
                       )}
 
