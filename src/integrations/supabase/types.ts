@@ -689,16 +689,24 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           company: string | null
+          company_name: string | null
+          company_title: string | null
           created_at: string
           featured_projects: Json | null
           full_name: string | null
           github_url: string | null
+          gpa: number | null
+          graduation_year: number | null
           id: string
+          is_verified_recruiter: boolean
           job_title: string | null
           linkedin_url: string | null
           location: string | null
+          major: string | null
           portfolio_url: string | null
+          profile_type: Database["public"]["Enums"]["profile_type"]
           resume_url: string | null
+          university: string | null
           updated_at: string
           website: string | null
         }
@@ -706,16 +714,24 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           company?: string | null
+          company_name?: string | null
+          company_title?: string | null
           created_at?: string
           featured_projects?: Json | null
           full_name?: string | null
           github_url?: string | null
+          gpa?: number | null
+          graduation_year?: number | null
           id: string
+          is_verified_recruiter?: boolean
           job_title?: string | null
           linkedin_url?: string | null
           location?: string | null
+          major?: string | null
           portfolio_url?: string | null
+          profile_type?: Database["public"]["Enums"]["profile_type"]
           resume_url?: string | null
+          university?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -723,16 +739,24 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           company?: string | null
+          company_name?: string | null
+          company_title?: string | null
           created_at?: string
           featured_projects?: Json | null
           full_name?: string | null
           github_url?: string | null
+          gpa?: number | null
+          graduation_year?: number | null
           id?: string
+          is_verified_recruiter?: boolean
           job_title?: string | null
           linkedin_url?: string | null
           location?: string | null
+          major?: string | null
           portfolio_url?: string | null
+          profile_type?: Database["public"]["Enums"]["profile_type"]
           resume_url?: string | null
+          university?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -956,6 +980,7 @@ export type Database = {
         | "executive"
       event_type: "virtual" | "in_person" | "hybrid"
       membership_status: "active" | "expired" | "cancelled" | "pending"
+      profile_type: "student" | "recruiter"
       resource_type: "job" | "article" | "video" | "download" | "website"
       work_arrangement: "remote" | "hybrid" | "on_site"
     }
@@ -1097,6 +1122,7 @@ export const Constants = {
       ],
       event_type: ["virtual", "in_person", "hybrid"],
       membership_status: ["active", "expired", "cancelled", "pending"],
+      profile_type: ["student", "recruiter"],
       resource_type: ["job", "article", "video", "download", "website"],
       work_arrangement: ["remote", "hybrid", "on_site"],
     },

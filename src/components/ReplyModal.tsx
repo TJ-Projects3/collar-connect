@@ -24,6 +24,8 @@ import { Image as ImageIcon, Smile, X, Loader2 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useCreateReply, usePostReplies } from "@/hooks/usePostReplies";
 import { useAuth } from "@/contexts/AuthContext";
+import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { isRecruiter } from "@/lib/profile-display";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GifPicker } from "@/components/GifPicker";
@@ -166,10 +168,13 @@ export const ReplyModal = ({
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-sm">
                           {reply.profiles?.full_name || "Unknown User"}
                         </span>
+                        {isRecruiter(reply.profiles) && (
+                          <RecruiterBadge verified={reply.profiles?.is_verified_recruiter} compact />
+                        )}
                         <span className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
                         </span>

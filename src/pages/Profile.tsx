@@ -30,6 +30,8 @@ import { useToast } from "@/hooks/use-toast";
 
 import { Link } from "react-router-dom";
 import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useMyConnections } from "@/hooks/useConnections";
+import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { getProfileSubline } from "@/lib/profile-display";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -312,9 +314,14 @@ const Profile = () => {
                 {/* Name and actions below the banner */}
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="space-y-1.5">
-                    <h1 className="text-2xl sm:text-4xl font-bold">{profile?.full_name || "Your Name"}</h1>
+                    <h1 className="text-2xl sm:text-4xl font-bold flex items-center gap-3 flex-wrap">
+                      <span>{profile?.full_name || "Your Name"}</span>
+                      {profile?.profile_type === "recruiter" && (
+                        <RecruiterBadge verified={profile?.is_verified_recruiter} />
+                      )}
+                    </h1>
                     <p className="text-base sm:text-xl text-muted-foreground">
-                      {[profile?.job_title, profile?.company].filter(Boolean).join(" @ ") || "Welcome to NextGenCollar!"}
+                      {getProfileSubline(profile, "Welcome to NextGenCollar!")}
                     </p>
                     <Link to="/my-network" className="text-sm text-primary hover:underline font-medium inline-block">
                       {connectionCount ?? 0} connection{connectionCount !== 1 ? "s" : ""}

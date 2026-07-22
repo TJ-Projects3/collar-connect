@@ -8,6 +8,8 @@ import { usePostReplies, useUpdateReply, useDeleteReply } from "@/hooks/usePostR
 import { formatDistanceToNow } from "date-fns";
 import { LinkifyText } from "@/components/LinkifyText";
 import { useAuth } from "@/contexts/AuthContext";
+import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { getProfileSubline, isRecruiter } from "@/lib/profile-display";
 
 interface InlineRepliesProps {
   postId: string;
@@ -88,6 +90,9 @@ export const InlineReplies = ({ postId, replyCount: initialCount }: InlineReplie
                           <span className="font-semibold text-sm truncate">
                             {reply.profiles?.full_name || "Unknown User"}
                           </span>
+                          {isRecruiter(reply.profiles) && (
+                            <RecruiterBadge verified={reply.profiles?.is_verified_recruiter} compact />
+                          )}
                           <span className="text-xs text-muted-foreground">•</span>
                           <span className="text-xs text-muted-foreground truncate">
                             {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
@@ -117,9 +122,9 @@ export const InlineReplies = ({ postId, replyCount: initialCount }: InlineReplie
                         )}
                       </div>
 
-                      {(reply.profiles?.job_title || reply.profiles?.company) && (
+                      {(reply.profiles?.job_title || reply.profiles?.company || isRecruiter(reply.profiles) || reply.profiles?.major) && (
                         <p className="text-xs text-muted-foreground mb-2">
-                          {[reply.profiles?.job_title, reply.profiles?.company].filter(Boolean).join(" @ ")}
+                          {getProfileSubline(reply.profiles, "")}
                         </p>
                       )}
 

@@ -11,16 +11,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, GraduationCap, Briefcase } from "lucide-react";
 import { useEffect } from "react";
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+
+  const initialRole = (searchParams.get("role") === "recruiter" ? "recruiter" : "student") as
+    | "student"
+    | "recruiter";
+  const initialTab = searchParams.get("mode") === "signup" || searchParams.get("role") ? "signup" : "signin";
 
   // Sign in form state
   const [signInEmail, setSignInEmail] = useState("");
@@ -28,12 +34,21 @@ const Auth = () => {
   const [showSignInPassword, setShowSignInPassword] = useState(false);
 
   // Sign up form state
+  const [signUpRole, setSignUpRole] = useState<"student" | "recruiter">(initialRole);
   const [signUpName, setSignUpName] = useState("");
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showSignUpConfirmPassword, setShowSignUpConfirmPassword] = useState(false);
+
+  // Student-specific
+  const [university, setUniversity] = useState("");
+  const [major, setMajor] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
+  // Recruiter-specific
+  const [companyName, setCompanyName] = useState("");
+  const [companyTitle, setCompanyTitle] = useState("");
 
   // Password reset state
   const [resetEmail, setResetEmail] = useState("");
@@ -101,8 +116,20 @@ const Auth = () => {
         email: signUpEmail,
         password: signUpPassword,
         options: {
+          emailRedirectTo: `${window.location.origin}/feed`,
           data: {
             full_name: signUpName,
+            profile_type: signUpRole,
+            ...(signUpRole === "student"
+              ? {
+                  university: university || undefined,
+                  major: major || undefined,
+                  graduation_year: graduationYear || undefined,
+                }
+              : {
+                  company_name: companyName || undefined,
+                  company_title: companyTitle || undefined,
+                }),
           },
         },
       });
@@ -390,7 +417,7 @@ const Auth = () => {
                 </form>
               </div>
             ) : (
-              <Tabs defaultValue="signin" className="w-full">
+              <Tabs defaultValue={initialTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger value="signin">Sign In</TabsTrigger>
                   <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -455,6 +482,35 @@ const Auth = () => {
 
                 <TabsContent value="signup">
                   <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>I am a...</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSignUpRole("student")}
+                          className={`flex flex-col items-center gap-1 rounded-md border-2 p-3 text-sm font-medium transition-all ${
+                            signUpRole === "student"
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border text-muted-foreground hover:border-primary/40"
+                          }`}
+                        >
+                          <GraduationCap className="h-5 w-5" />
+                          Student
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSignUpRole("recruiter")}
+                          className={`flex flex-col items-center gap-1 rounded-md border-2 p-3 text-sm font-medium transition-all ${
+                            signUpRole === "recruiter"
+                              ? "border-secondary bg-secondary/10 text-secondary-foreground"
+                              : "border-border text-muted-foreground hover:border-secondary/40"
+                          }`}
+                        >
+                          <Briefcase className="h-5 w-5" />
+                          Recruiter
+                        </button>
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-name">Full Name</Label>
                       <Input
@@ -537,6 +593,69 @@ const Auth = () => {
                         </button>
                       </div>
                     </div>
+
+                    {signUpRole === "student" ? (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-university">University</Label>
+                          <Input
+                            id="signup-university"
+                            type="text"
+                            placeholder="e.g., Georgia Tech"
+                            value={university}
+                            onChange={(e) => setUniversity(e.target.value)}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label htmlFor="signup-major">Major</Label>
+                            <Input
+                              id="signup-major"
+                              type="text"
+                              placeholder="Computer Science"
+                              value={major}
+                              onChange={(e) => setMajor(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="signup-grad">Grad Year</Label>
+                            <Input
+                              id="signup-grad"
+                              type="number"
+                              min={1950}
+                              max={2100}
+                              placeholder="2026"
+                              value={graduationYear}
+                              onChange={(e) => setGraduationYear(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-company">Company Name</Label>
+                          <Input
+                            id="signup-company"
+                            type="text"
+                            placeholder="e.g., Acme Corp"
+                            value={companyName}
+                            onChange={(e) => setCompanyName(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-title">Your Title</Label>
+                          <Input
+                            id="signup-title"
+                            type="text"
+                            placeholder="e.g., Senior Technical Recruiter"
+                            value={companyTitle}
+                            onChange={(e) => setCompanyTitle(e.target.value)}
+                          />
+                        </div>
+                      </>
+                    )}
+
                     <Button
                       type="submit"
                       className="w-full"
