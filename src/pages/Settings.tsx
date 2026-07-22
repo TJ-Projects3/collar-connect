@@ -1,17 +1,32 @@
 import { Navbar } from "@/components/Navbar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Lock, User, Eye, Save } from "lucide-react";
+import { Bell, Lock, User, Eye, Save, FlaskConical, Loader2 } from "lucide-react";
 import { EmailNotificationSettings } from "@/components/EmailNotificationSettings";
 import { toast } from "sonner";
+import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 
 const Settings = () => {
+  const { data: profile } = useProfile();
+  const updateProfile = useUpdateProfile();
+
   const handleSaveSettings = () => {
     toast.success("Settings saved successfully!");
   };
+
+  const handleToggleRole = async (checked: boolean) => {
+    const newRole = checked ? "recruiter" : "student";
+    try {
+      await updateProfile.mutateAsync({ profile_type: newRole });
+      toast.success(`Switched to ${newRole} view`);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to switch role");
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,6 +42,38 @@ const Settings = () => {
         </div>
         
         <div className="space-y-6">
+          {/* Developer Mode - temporary */}
+          <Card className="border-dashed border-secondary">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FlaskConical className="h-5 w-5 text-secondary" />
+                Developer Mode
+              </CardTitle>
+              <CardDescription>
+                Temporary tool for previewing role-specific UI. Toggles your active profile role between student and recruiter.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Recruiter View</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Current role: <span className="font-medium">{profile?.profile_type || "student"}</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {updateProfile.isPending && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  <Switch
+                    checked={profile?.profile_type === "recruiter"}
+                    onCheckedChange={handleToggleRole}
+                    disabled={updateProfile.isPending || !profile}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+
           {/* Account Settings */}
           <Card>
             <CardHeader>
