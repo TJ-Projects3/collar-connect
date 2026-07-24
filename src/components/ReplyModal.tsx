@@ -217,6 +217,9 @@ export const ReplyModal = ({
                           placeholder="Write your reply..."
                           className="min-h-[80px] resize-none"
                           {...field}
+                          onKeyDown={(e) => {
+                            if (e.key === " ") e.stopPropagation();
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
