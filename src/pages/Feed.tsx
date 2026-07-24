@@ -440,8 +440,9 @@ const Feed = () => {
                     </Avatar>
                   </Link>
                   <Textarea
+                    key={placeholderIndex}
                     placeholder={ROTATING_PLACEHOLDERS[placeholderIndex]}
-                    className="min-h-[80px]"
+                    className="min-h-[80px] animate-fade-in-up"
                     onFocus={() => {
                       setPostInitialContent("");
                       setIsPostModalOpen(true);
