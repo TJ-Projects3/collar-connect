@@ -208,7 +208,12 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
                   </div>
                 )}
                 <div className="flex items-center justify-between gap-2">
-                  <AuthorLine profile={q.profiles} timestamp={q.created_at} />
+                  <AuthorLine
+                    profile={q.profiles}
+                    timestamp={q.created_at}
+                    isAnonymous={q.is_anonymous}
+                    isSelf={user?.id === q.author_id}
+                  />
                   <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
                     <MessageSquare className="h-3.5 w-3.5" />
                     {q.answer_count} {q.answer_count === 1 ? "answer" : "answers"}
