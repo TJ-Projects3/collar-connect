@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowBigUp, ArrowBigDown, MessageSquare, Plus, Search, ArrowLeft,
   CheckCircle2, Trash2, Sparkles, Filter
@@ -20,6 +21,7 @@ import {
 } from "@/hooks/useQuestions";
 import { AskQuestionModal } from "@/components/AskQuestionModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { LinkifyText } from "@/components/LinkifyText";
 import { cn } from "@/lib/utils";
@@ -71,22 +73,46 @@ const VoteBox = ({ score, myVote, onVote, size = "md", vertical = true }: VoteBo
   );
 };
 
-const AuthorLine = ({ profile, timestamp }: { profile: Question["profiles"]; timestamp: string }) => (
-  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-    <Avatar className="h-6 w-6">
-      <AvatarImage src={profile?.avatar_url || undefined} />
-      <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">
-        {initialsOf(profile?.full_name)}
-      </AvatarFallback>
-    </Avatar>
-    <Link to={profile?.id ? `/profile?userId=${profile.id}` : "#"} className="font-medium text-foreground hover:underline">
-      {profile?.full_name || "Anonymous"}
-    </Link>
-    {isRecruiter(profile) && <RecruiterBadge compact verified={!!profile?.is_verified_recruiter} />}
-    {profile?.job_title && <span className="hidden sm:inline">· {profile.job_title}</span>}
-    <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
-  </div>
-);
+const AuthorLine = ({
+  profile,
+  timestamp,
+  isAnonymous,
+  isSelf,
+}: {
+  profile: Question["profiles"];
+  timestamp: string;
+  isAnonymous?: boolean;
+  isSelf?: boolean;
+}) => {
+  if (isAnonymous) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Avatar className="h-6 w-6">
+          <AvatarFallback className="bg-muted text-muted-foreground text-[10px]">?</AvatarFallback>
+        </Avatar>
+        <span className="font-medium text-foreground">Anonymous</span>
+        {isSelf && <span className="text-[10px] uppercase tracking-wide text-secondary">you</span>}
+        <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Avatar className="h-6 w-6">
+        <AvatarImage src={profile?.avatar_url || undefined} />
+        <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">
+          {initialsOf(profile?.full_name)}
+        </AvatarFallback>
+      </Avatar>
+      <Link to={profile?.id ? `/profile?userId=${profile.id}` : "#"} className="font-medium text-foreground hover:underline">
+        {profile?.full_name || "Anonymous"}
+      </Link>
+      {isRecruiter(profile) && <RecruiterBadge compact verified={!!profile?.is_verified_recruiter} />}
+      {profile?.job_title && <span className="hidden sm:inline">· {profile.job_title}</span>}
+      <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+    </div>
+  );
+};
 
 // -------------- List View --------------
 const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
@@ -184,7 +210,12 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
                   </div>
                 )}
                 <div className="flex items-center justify-between gap-2">
-                  <AuthorLine profile={q.profiles} timestamp={q.created_at} />
+                  <AuthorLine
+                    profile={q.profiles}
+                    timestamp={q.created_at}
+                    isAnonymous={q.is_anonymous}
+                    isSelf={user?.id === q.author_id}
+                  />
                   <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
                     <MessageSquare className="h-3.5 w-3.5" />
                     {q.answer_count} {q.answer_count === 1 ? "answer" : "answers"}
@@ -207,6 +238,10 @@ const QuestionDetail = ({ id }: { id: string }) => {
   const { data: question, isLoading } = useQuestion(id);
   const { data: answers = [] } = useAnswers(id);
   const [answerBody, setAnswerBody] = useState("");
+  const [answerAnon, setAnswerAnon] = useState(false);
+  const { data: myProfile } = useProfile();
+  const recruiterBlocked =
+    !!myProfile && (myProfile.profile_type === "recruiter" || myProfile.is_verified_recruiter === true);
   const createAnswer = useCreateAnswer();
   const deleteQuestion = useDeleteQuestion();
   const deleteAnswer = useDeleteAnswer();
@@ -263,7 +298,12 @@ const QuestionDetail = ({ id }: { id: string }) => {
               </div>
             )}
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <AuthorLine profile={question.profiles} timestamp={question.created_at} />
+              <AuthorLine
+                profile={question.profiles}
+                timestamp={question.created_at}
+                isAnonymous={question.is_anonymous}
+                isSelf={user?.id === question.author_id}
+              />
               {isOwner && (
                 <Button
                   size="sm" variant="ghost"
@@ -312,7 +352,12 @@ const QuestionDetail = ({ id }: { id: string }) => {
                       <LinkifyText>{a.body}</LinkifyText>
                     </div>
                     <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
-                      <AuthorLine profile={a.profiles} timestamp={a.created_at} />
+                      <AuthorLine
+                        profile={a.profiles}
+                        timestamp={a.created_at}
+                        isAnonymous={a.is_anonymous}
+                        isSelf={user?.id === a.author_id}
+                      />
                       <div className="flex gap-1">
                         {isOwner && (
                           <Button
@@ -359,14 +404,34 @@ const QuestionDetail = ({ id }: { id: string }) => {
             onChange={(e) => setAnswerBody(e.target.value)}
             maxLength={5000}
           />
+          <label
+            className={cn(
+              "flex items-start gap-2 text-sm",
+              recruiterBlocked && "opacity-60 cursor-not-allowed"
+            )}
+            title={recruiterBlocked ? "Recruiters cannot answer anonymously — your verified badge must stay visible." : undefined}
+          >
+            <Checkbox
+              checked={answerAnon}
+              disabled={recruiterBlocked}
+              onCheckedChange={(v) => setAnswerAnon(!!v)}
+              className="mt-0.5"
+            />
+            <span className="text-muted-foreground">
+              Answer anonymously
+              {recruiterBlocked && (
+                <span className="block text-xs">Recruiters must answer under their verified identity.</span>
+              )}
+            </span>
+          </label>
           <div className="flex justify-end">
             <Button
               disabled={!answerBody.trim() || createAnswer.isPending}
               onClick={() => {
                 if (!requireAuth()) return;
                 createAnswer.mutate(
-                  { questionId: question.id, body: answerBody },
-                  { onSuccess: () => setAnswerBody("") }
+                  { questionId: question.id, body: answerBody, isAnonymous: answerAnon && !recruiterBlocked },
+                  { onSuccess: () => { setAnswerBody(""); setAnswerAnon(false); } }
                 );
               }}
             >
