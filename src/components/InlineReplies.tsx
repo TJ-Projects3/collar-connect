@@ -133,6 +133,9 @@ export const InlineReplies = ({ postId, replyCount: initialCount }: InlineReplie
                           <Textarea
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === " ") e.stopPropagation();
+                            }}
                             className="min-h-[70px] text-sm"
                           />
                           <div className="flex justify-end gap-2">
