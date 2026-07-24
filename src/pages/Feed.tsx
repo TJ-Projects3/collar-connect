@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +44,19 @@ import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { getProfileSubline } from "@/lib/profile-display";
 
 const SUGGESTED_HASHTAGS = ["DiversityInTech", "Cybersecurity", "Internships", "CareerMapping"];
+
+const ROTATING_PLACEHOLDERS = [
+  "Share your thoughts on career growth...",
+  "What's happening in your industry?",
+  "Ask about a job or hiring trend...",
+  "Share a recruiting tip or insight...",
+  "Discuss a new technology...",
+  "Share your career wins and milestones...",
+  "What skills are in demand right now?",
+  "Talk about diversity in tech hiring...",
+  "Share internship or entry-level advice...",
+  "Discuss the future of work in tech...",
+];
 
 const Feed = () => {
   const { data: profile } = useProfile();
