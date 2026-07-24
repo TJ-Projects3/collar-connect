@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Shield,
   Menu,
+  HelpCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -140,7 +141,7 @@ export const Navbar = () => {
     { to: "/my-network", icon: Users, label: "My Network" },
     { to: "/jobs", icon: Briefcase, label: "Jobs" },
     { to: "/messages", icon: MessageSquare, label: "Messaging" },
-
+    { to: "/community", icon: HelpCircle, label: "Q&A" },
   ];
 
   const getInitials = (name: string | null | undefined) => {
