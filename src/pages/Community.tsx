@@ -346,7 +346,12 @@ const QuestionDetail = ({ id }: { id: string }) => {
                       <LinkifyText>{a.body}</LinkifyText>
                     </div>
                     <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
-                      <AuthorLine profile={a.profiles} timestamp={a.created_at} />
+                      <AuthorLine
+                        profile={a.profiles}
+                        timestamp={a.created_at}
+                        isAnonymous={a.is_anonymous}
+                        isSelf={user?.id === a.author_id}
+                      />
                       <div className="flex gap-1">
                         {isOwner && (
                           <Button
