@@ -292,7 +292,12 @@ const QuestionDetail = ({ id }: { id: string }) => {
               </div>
             )}
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <AuthorLine profile={question.profiles} timestamp={question.created_at} />
+              <AuthorLine
+                profile={question.profiles}
+                timestamp={question.created_at}
+                isAnonymous={question.is_anonymous}
+                isSelf={user?.id === question.author_id}
+              />
               {isOwner && (
                 <Button
                   size="sm" variant="ghost"
