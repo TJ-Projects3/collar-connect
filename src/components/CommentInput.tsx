@@ -1,6 +1,6 @@
-import { useState, KeyboardEvent, useRef, useId } from "react";
+import { useState, KeyboardEvent, useRef, useId, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Image as ImageIcon, Smile, X, Loader2 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
@@ -46,13 +46,22 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
     );
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+  }, [value]);
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     // Prevent spacebar from scrolling the page
     if (e.key === " ") {
       e.stopPropagation();
     }
 
-    // Handle Enter to post comment
+    // Handle Enter to post comment (Shift+Enter for newline)
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submit();
@@ -115,15 +124,17 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
           </div>
         )}
         <div className="relative">
-          <Input
+          <Textarea
+            ref={textareaRef}
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Write a comment..."
-            className="h-9 rounded-full bg-muted/40 border-muted-foreground/20 pr-24 text-sm"
+            rows={1}
+            className="min-h-[36px] max-h-[200px] rounded-2xl bg-muted/40 border-muted-foreground/20 pr-24 pl-4 py-2 text-sm resize-none overflow-y-auto"
             disabled={createReply.isPending}
           />
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+          <div className="absolute right-1 bottom-1 flex items-center gap-0.5">
             {/* Cross-browser file input: <label htmlFor> triggers the native picker
                 on Windows/Android/Linux without a synthetic JS click. */}
             <input
