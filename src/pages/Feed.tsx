@@ -64,19 +64,59 @@ const stopSpaceKeyPropagation = (e: KeyboardEvent<HTMLElement>) => {
   if (e.key === " ") e.stopPropagation();
 };
 
+interface RotatingPostPromptProps {
+  avatarUrl?: string | null;
+  initials: string;
+  onOpenPost: () => void;
+}
+
+const RotatingPostPrompt = ({ avatarUrl, initials, onOpenPost }: RotatingPostPromptProps) => {
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % ROTATING_PLACEHOLDERS.length);
+    }, 4000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex gap-3">
+          <Link to="/profile">
+            <Avatar className="cursor-pointer">
+              <AvatarImage src={avatarUrl || undefined} />
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+          <Textarea
+            key={placeholderIndex}
+            placeholder={ROTATING_PLACEHOLDERS[placeholderIndex]}
+            className="min-h-[80px] animate-fade-in-up"
+            onKeyDownCapture={stopSpaceKeyPropagation}
+            onKeyDown={stopSpaceKeyPropagation}
+            onFocus={onOpenPost}
+            readOnly
+          />
+        </div>
+      </CardHeader>
+      <CardFooter className="pt-0">
+        <Button className="ml-auto" onClick={onOpenPost}>Post</Button>
+      </CardFooter>
+    </Card>
+  );
+};
+
 const Feed = () => {
   const { data: profile } = useProfile();
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [postInitialContent, setPostInitialContent] = useState<string>("");
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderIndex((prev) => (prev + 1) % ROTATING_PLACEHOLDERS.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
   const [replyModalState, setReplyModalState] = useState<{
     isOpen: boolean;
     postId: string;
@@ -136,6 +176,11 @@ const Feed = () => {
       isOpen: true,
       postId,
     });
+  };
+
+  const openEmptyPostModal = () => {
+    setPostInitialContent("");
+    setIsPostModalOpen(true);
   };
 
   const PostCard = ({ post }: { post: any }) => {
@@ -432,35 +477,11 @@ const Feed = () => {
           {/* Main Feed */}
           <main className="lg:col-span-6 space-y-4 lg:max-w-[640px] lg:mx-auto w-full">
             {/* Create Post */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex gap-3">
-                  <Link to="/profile">
-                    <Avatar className="cursor-pointer">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {getInitials(profile?.full_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Link>
-                  <Textarea
-                    key={placeholderIndex}
-                    placeholder={ROTATING_PLACEHOLDERS[placeholderIndex]}
-                    className="min-h-[80px] animate-fade-in-up"
-                    onKeyDownCapture={stopSpaceKeyPropagation}
-                    onKeyDown={stopSpaceKeyPropagation}
-                    onFocus={() => {
-                      setPostInitialContent("");
-                      setIsPostModalOpen(true);
-                    }}
-                    readOnly
-                  />
-                </div>
-              </CardHeader>
-              <CardFooter className="pt-0">
-                <Button className="ml-auto" onClick={() => { setPostInitialContent(""); setIsPostModalOpen(true); }}>Post</Button>
-              </CardFooter>
-            </Card>
+            <RotatingPostPrompt
+              avatarUrl={profile?.avatar_url}
+              initials={getInitials(profile?.full_name)}
+              onOpenPost={openEmptyPostModal}
+            />
 
             <CreatePostModal
               open={isPostModalOpen}
