@@ -71,22 +71,46 @@ const VoteBox = ({ score, myVote, onVote, size = "md", vertical = true }: VoteBo
   );
 };
 
-const AuthorLine = ({ profile, timestamp }: { profile: Question["profiles"]; timestamp: string }) => (
-  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-    <Avatar className="h-6 w-6">
-      <AvatarImage src={profile?.avatar_url || undefined} />
-      <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">
-        {initialsOf(profile?.full_name)}
-      </AvatarFallback>
-    </Avatar>
-    <Link to={profile?.id ? `/profile?userId=${profile.id}` : "#"} className="font-medium text-foreground hover:underline">
-      {profile?.full_name || "Anonymous"}
-    </Link>
-    {isRecruiter(profile) && <RecruiterBadge compact verified={!!profile?.is_verified_recruiter} />}
-    {profile?.job_title && <span className="hidden sm:inline">· {profile.job_title}</span>}
-    <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
-  </div>
-);
+const AuthorLine = ({
+  profile,
+  timestamp,
+  isAnonymous,
+  isSelf,
+}: {
+  profile: Question["profiles"];
+  timestamp: string;
+  isAnonymous?: boolean;
+  isSelf?: boolean;
+}) => {
+  if (isAnonymous) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Avatar className="h-6 w-6">
+          <AvatarFallback className="bg-muted text-muted-foreground text-[10px]">?</AvatarFallback>
+        </Avatar>
+        <span className="font-medium text-foreground">Anonymous</span>
+        {isSelf && <span className="text-[10px] uppercase tracking-wide text-secondary">you</span>}
+        <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Avatar className="h-6 w-6">
+        <AvatarImage src={profile?.avatar_url || undefined} />
+        <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">
+          {initialsOf(profile?.full_name)}
+        </AvatarFallback>
+      </Avatar>
+      <Link to={profile?.id ? `/profile?userId=${profile.id}` : "#"} className="font-medium text-foreground hover:underline">
+        {profile?.full_name || "Anonymous"}
+      </Link>
+      {isRecruiter(profile) && <RecruiterBadge compact verified={!!profile?.is_verified_recruiter} />}
+      {profile?.job_title && <span className="hidden sm:inline">· {profile.job_title}</span>}
+      <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+    </div>
+  );
+};
 
 // -------------- List View --------------
 const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
