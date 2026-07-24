@@ -62,7 +62,15 @@ const Feed = () => {
   const { data: profile } = useProfile();
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [postInitialContent, setPostInitialContent] = useState<string>("");
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % ROTATING_PLACEHOLDERS.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
   const [replyModalState, setReplyModalState] = useState<{
     isOpen: boolean;
     postId: string;
@@ -430,7 +438,7 @@ const Feed = () => {
                     </Avatar>
                   </Link>
                   <Textarea
-                    placeholder="Share your thoughts on diversity and inclusion in tech..."
+                    placeholder={ROTATING_PLACEHOLDERS[placeholderIndex]}
                     className="min-h-[80px]"
                     onFocus={() => {
                       setPostInitialContent("");
