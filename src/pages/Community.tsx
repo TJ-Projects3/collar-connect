@@ -21,6 +21,7 @@ import {
 } from "@/hooks/useQuestions";
 import { AskQuestionModal } from "@/components/AskQuestionModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { LinkifyText } from "@/components/LinkifyText";
 import { cn } from "@/lib/utils";
