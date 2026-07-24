@@ -46,6 +46,8 @@ import { getProfileSubline } from "@/lib/profile-display";
 const SUGGESTED_HASHTAGS = ["DiversityInTech", "Cybersecurity", "Internships", "CareerMapping"];
 
 const ROTATING_PLACEHOLDERS = [
+  "What's on your mind?",
+  "Share your general thoughts...",
   "Share your thoughts on career growth...",
   "What's happening in your industry?",
   "Ask about a job or hiring trend...",
@@ -68,7 +70,7 @@ const Feed = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setPlaceholderIndex((prev) => (prev + 1) % ROTATING_PLACEHOLDERS.length);
-    }, 3500);
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
   const [replyModalState, setReplyModalState] = useState<{
