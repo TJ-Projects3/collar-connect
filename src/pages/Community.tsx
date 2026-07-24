@@ -237,6 +237,10 @@ const QuestionDetail = ({ id }: { id: string }) => {
   const { data: question, isLoading } = useQuestion(id);
   const { data: answers = [] } = useAnswers(id);
   const [answerBody, setAnswerBody] = useState("");
+  const [answerAnon, setAnswerAnon] = useState(false);
+  const { data: myProfile } = useProfile();
+  const recruiterBlocked =
+    !!myProfile && (myProfile.profile_type === "recruiter" || myProfile.is_verified_recruiter === true);
   const createAnswer = useCreateAnswer();
   const deleteQuestion = useDeleteQuestion();
   const deleteAnswer = useDeleteAnswer();
