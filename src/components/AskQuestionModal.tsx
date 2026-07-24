@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { X, ShieldAlert } from "lucide-react";
 import { useCreateQuestion } from "@/hooks/useQuestions";
 
 interface AskQuestionModalProps {
@@ -18,6 +19,7 @@ export const AskQuestionModal = ({ open, onOpenChange, onCreated }: AskQuestionM
   const [body, setBody] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const createQuestion = useCreateQuestion();
 
   const reset = () => {
@@ -25,6 +27,7 @@ export const AskQuestionModal = ({ open, onOpenChange, onCreated }: AskQuestionM
     setBody("");
     setTagInput("");
     setTags([]);
+    setIsAnonymous(false);
   };
 
   const addTag = () => {
@@ -37,7 +40,7 @@ export const AskQuestionModal = ({ open, onOpenChange, onCreated }: AskQuestionM
   const submit = () => {
     if (!title.trim()) return;
     createQuestion.mutate(
-      { title, body, tags },
+      { title, body, tags, isAnonymous },
       {
         onSuccess: (row: any) => {
           reset();
@@ -106,6 +109,23 @@ export const AskQuestionModal = ({ open, onOpenChange, onCreated }: AskQuestionM
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="rounded-md border bg-muted/40 p-3">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <Checkbox
+                checked={isAnonymous}
+                onCheckedChange={(v) => setIsAnonymous(!!v)}
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <div className="text-sm font-medium">Post anonymously</div>
+                <p className="text-xs text-muted-foreground flex items-start gap-1">
+                  <ShieldAlert className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  Your name and avatar won't be shown to the community. Moderators can still see who posted for safety and abuse enforcement.
+                </p>
+              </div>
+            </label>
           </div>
         </div>
         <DialogFooter>
