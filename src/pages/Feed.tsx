@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -59,6 +59,10 @@ const ROTATING_PLACEHOLDERS = [
   "Share internship or entry-level advice...",
   "Discuss the future of work in tech...",
 ];
+
+const stopSpaceKeyPropagation = (e: KeyboardEvent<HTMLElement>) => {
+  if (e.key === " ") e.stopPropagation();
+};
 
 const Feed = () => {
   const { data: profile } = useProfile();
@@ -443,6 +447,7 @@ const Feed = () => {
                     key={placeholderIndex}
                     placeholder={ROTATING_PLACEHOLDERS[placeholderIndex]}
                     className="min-h-[80px] animate-fade-in-up"
+                    onKeyDown={stopSpaceKeyPropagation}
                     onFocus={() => {
                       setPostInitialContent("");
                       setIsPostModalOpen(true);

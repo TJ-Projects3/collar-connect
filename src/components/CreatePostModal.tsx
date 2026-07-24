@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,6 +35,10 @@ const postSchema = z.object({
 });
 
 type PostFormData = z.infer<typeof postSchema>;
+
+const stopSpaceKeyPropagation = (e: KeyboardEvent<HTMLElement>) => {
+  if (e.key === " ") e.stopPropagation();
+};
 
 interface CreatePostModalProps {
   open: boolean;
@@ -136,7 +140,7 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={stopSpaceKeyPropagation} className="space-y-4">
             <FormField
               control={form.control}
               name="content"
@@ -147,6 +151,7 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
                       placeholder="What's on your mind?"
                       className="min-h-[120px] resize-none border-none focus-visible:ring-0 text-base"
                       {...field}
+                      onKeyDown={stopSpaceKeyPropagation}
                     />
                   </FormControl>
                   <FormMessage />
@@ -184,6 +189,7 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
                   type="file"
                   accept="image/*"
                   onChange={handleFile}
+                  onKeyDown={stopSpaceKeyPropagation}
                   className="sr-only"
                   disabled={uploading || !!media}
                 />

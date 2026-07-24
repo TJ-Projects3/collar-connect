@@ -68,6 +68,10 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
     }
   };
 
+  const stopSpaceKeyPropagation = (e: KeyboardEvent<HTMLElement>) => {
+    if (e.key === " ") e.stopPropagation();
+  };
+
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -98,7 +102,7 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
   const canSubmit = (value.trim().length > 0 || !!media) && !createReply.isPending;
 
   return (
-    <div className="flex items-start gap-2 pt-1">
+    <div className="flex items-start gap-2 pt-1" onKeyDown={stopSpaceKeyPropagation}>
       <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
         <AvatarImage src={profile?.avatar_url || undefined} />
         <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
@@ -144,6 +148,7 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
               accept="image/*"
               className="sr-only"
               onChange={handleFile}
+              onKeyDown={stopSpaceKeyPropagation}
               disabled={uploading || !!media}
             />
             <Button
