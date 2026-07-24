@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -40,6 +40,10 @@ const replySchema = z.object({
 });
 
 type ReplyFormData = z.infer<typeof replySchema>;
+
+const stopSpaceKeyPropagation = (e: KeyboardEvent<HTMLElement>) => {
+  if (e.key === " ") e.stopPropagation();
+};
 
 interface ReplyModalProps {
   open: boolean;
@@ -199,7 +203,12 @@ export const ReplyModal = ({
 
           {/* Reply Form */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              onKeyDownCapture={stopSpaceKeyPropagation}
+              onKeyDown={stopSpaceKeyPropagation}
+              className="space-y-3"
+            >
               <div className="flex items-start gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profile?.avatar_url || undefined} />
@@ -217,9 +226,8 @@ export const ReplyModal = ({
                           placeholder="Write your reply..."
                           className="min-h-[80px] resize-none"
                           {...field}
-                          onKeyDown={(e) => {
-                            if (e.key === " ") e.stopPropagation();
-                          }}
+                          onKeyDownCapture={stopSpaceKeyPropagation}
+                          onKeyDown={stopSpaceKeyPropagation}
                         />
                       </FormControl>
                       <FormMessage />
@@ -258,6 +266,8 @@ export const ReplyModal = ({
                     accept="image/*"
                     className="sr-only"
                     onChange={handleFile}
+                    onKeyDownCapture={stopSpaceKeyPropagation}
+                    onKeyDown={stopSpaceKeyPropagation}
                     disabled={uploading || !!media}
                   />
                   <Button

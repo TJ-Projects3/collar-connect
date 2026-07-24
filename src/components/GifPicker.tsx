@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Loader2 } from "lucide-react";
@@ -18,6 +18,10 @@ interface GifPickerProps {
   trigger: React.ReactNode;
   onSelect: (url: string) => void;
 }
+
+const stopSpaceKeyPropagation = (e: KeyboardEvent<HTMLElement>) => {
+  if (e.key === " ") e.stopPropagation();
+};
 
 export const GifPicker = ({ trigger, onSelect }: GifPickerProps) => {
   const { user } = useAuth();
@@ -60,6 +64,8 @@ export const GifPicker = ({ trigger, onSelect }: GifPickerProps) => {
         align="start"
         sideOffset={6}
         collisionPadding={12}
+        onKeyDownCapture={stopSpaceKeyPropagation}
+        onKeyDown={stopSpaceKeyPropagation}
         onWheel={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
       >
@@ -67,6 +73,8 @@ export const GifPicker = ({ trigger, onSelect }: GifPickerProps) => {
           placeholder="Search GIFs..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDownCapture={stopSpaceKeyPropagation}
+          onKeyDown={stopSpaceKeyPropagation}
           className="mb-2 h-8"
         />
         <div

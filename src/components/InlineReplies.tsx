@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -15,6 +15,10 @@ interface InlineRepliesProps {
   postId: string;
   replyCount: number;
 }
+
+const stopSpaceKeyPropagation = (e: KeyboardEvent<HTMLElement>) => {
+  if (e.key === " ") e.stopPropagation();
+};
 
 export const InlineReplies = ({ postId, replyCount: initialCount }: InlineRepliesProps) => {
   const { user } = useAuth();
@@ -129,13 +133,16 @@ export const InlineReplies = ({ postId, replyCount: initialCount }: InlineReplie
                       )}
 
                       {isEditing ? (
-                        <div className="space-y-2">
+                        <div
+                          className="space-y-2"
+                          onKeyDownCapture={stopSpaceKeyPropagation}
+                          onKeyDown={stopSpaceKeyPropagation}
+                        >
                           <Textarea
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === " ") e.stopPropagation();
-                            }}
+                            onKeyDownCapture={stopSpaceKeyPropagation}
+                            onKeyDown={stopSpaceKeyPropagation}
                             className="min-h-[70px] text-sm"
                           />
                           <div className="flex justify-end gap-2">
