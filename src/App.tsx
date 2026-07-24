@@ -10,6 +10,7 @@ import ContentHub from "./pages/ContentHub";
 import Jobs from "./pages/Jobs";
 import Calendar from "./pages/Calendar";
 import CareerMapping from "./pages/CareerMapping";
+import Community from "./pages/Community";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
 import MyNetwork from "./pages/MyNetwork";
@@ -70,6 +71,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <CareerMapping />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/community"
+                element={
+                  <ProtectedRoute>
+                    <Community />
                   </ProtectedRoute>
                 }
               />
