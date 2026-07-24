@@ -398,14 +398,34 @@ const QuestionDetail = ({ id }: { id: string }) => {
             onChange={(e) => setAnswerBody(e.target.value)}
             maxLength={5000}
           />
+          <label
+            className={cn(
+              "flex items-start gap-2 text-sm",
+              recruiterBlocked && "opacity-60 cursor-not-allowed"
+            )}
+            title={recruiterBlocked ? "Recruiters cannot answer anonymously — your verified badge must stay visible." : undefined}
+          >
+            <Checkbox
+              checked={answerAnon}
+              disabled={recruiterBlocked}
+              onCheckedChange={(v) => setAnswerAnon(!!v)}
+              className="mt-0.5"
+            />
+            <span className="text-muted-foreground">
+              Answer anonymously
+              {recruiterBlocked && (
+                <span className="block text-xs">Recruiters must answer under their verified identity.</span>
+              )}
+            </span>
+          </label>
           <div className="flex justify-end">
             <Button
               disabled={!answerBody.trim() || createAnswer.isPending}
               onClick={() => {
                 if (!requireAuth()) return;
                 createAnswer.mutate(
-                  { questionId: question.id, body: answerBody },
-                  { onSuccess: () => setAnswerBody("") }
+                  { questionId: question.id, body: answerBody, isAnonymous: answerAnon && !recruiterBlocked },
+                  { onSuccess: () => { setAnswerBody(""); setAnswerAnon(false); } }
                 );
               }}
             >
