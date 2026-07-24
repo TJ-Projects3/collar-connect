@@ -140,7 +140,12 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={stopSpaceKeyPropagation} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            onKeyDownCapture={stopSpaceKeyPropagation}
+            onKeyDown={stopSpaceKeyPropagation}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="content"
@@ -151,6 +156,7 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
                       placeholder="What's on your mind?"
                       className="min-h-[120px] resize-none border-none focus-visible:ring-0 text-base"
                       {...field}
+                      onKeyDownCapture={stopSpaceKeyPropagation}
                       onKeyDown={stopSpaceKeyPropagation}
                     />
                   </FormControl>
@@ -189,6 +195,7 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
                   type="file"
                   accept="image/*"
                   onChange={handleFile}
+                  onKeyDownCapture={stopSpaceKeyPropagation}
                   onKeyDown={stopSpaceKeyPropagation}
                   className="sr-only"
                   disabled={uploading || !!media}

@@ -64,6 +64,7 @@ export const GifPicker = ({ trigger, onSelect }: GifPickerProps) => {
         align="start"
         sideOffset={6}
         collisionPadding={12}
+        onKeyDownCapture={stopSpaceKeyPropagation}
         onKeyDown={stopSpaceKeyPropagation}
         onWheel={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
@@ -72,6 +73,7 @@ export const GifPicker = ({ trigger, onSelect }: GifPickerProps) => {
           placeholder="Search GIFs..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDownCapture={stopSpaceKeyPropagation}
           onKeyDown={stopSpaceKeyPropagation}
           className="mb-2 h-8"
         />

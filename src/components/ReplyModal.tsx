@@ -203,7 +203,12 @@ export const ReplyModal = ({
 
           {/* Reply Form */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={stopSpaceKeyPropagation} className="space-y-3">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              onKeyDownCapture={stopSpaceKeyPropagation}
+              onKeyDown={stopSpaceKeyPropagation}
+              className="space-y-3"
+            >
               <div className="flex items-start gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profile?.avatar_url || undefined} />
@@ -221,9 +226,8 @@ export const ReplyModal = ({
                           placeholder="Write your reply..."
                           className="min-h-[80px] resize-none"
                           {...field}
-                          onKeyDown={(e) => {
-                            if (e.key === " ") e.stopPropagation();
-                          }}
+                          onKeyDownCapture={stopSpaceKeyPropagation}
+                          onKeyDown={stopSpaceKeyPropagation}
                         />
                       </FormControl>
                       <FormMessage />
@@ -262,6 +266,7 @@ export const ReplyModal = ({
                     accept="image/*"
                     className="sr-only"
                     onChange={handleFile}
+                    onKeyDownCapture={stopSpaceKeyPropagation}
                     onKeyDown={stopSpaceKeyPropagation}
                     disabled={uploading || !!media}
                   />

@@ -447,6 +447,7 @@ const Feed = () => {
                     key={placeholderIndex}
                     placeholder={ROTATING_PLACEHOLDERS[placeholderIndex]}
                     className="min-h-[80px] animate-fade-in-up"
+                    onKeyDownCapture={stopSpaceKeyPropagation}
                     onKeyDown={stopSpaceKeyPropagation}
                     onFocus={() => {
                       setPostInitialContent("");
