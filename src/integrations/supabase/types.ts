@@ -772,6 +772,7 @@ export type Database = {
           created_at: string
           id: string
           is_accepted: boolean
+          is_anonymous: boolean
           question_id: string
           updated_at: string
           upvotes: number
@@ -782,6 +783,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_accepted?: boolean
+          is_anonymous?: boolean
           question_id: string
           updated_at?: string
           upvotes?: number
@@ -792,6 +794,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_accepted?: boolean
+          is_anonymous?: boolean
           question_id?: string
           updated_at?: string
           upvotes?: number
@@ -855,6 +858,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          is_anonymous: boolean
           tags: string[]
           title: string
           updated_at: string
@@ -866,6 +870,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          is_anonymous?: boolean
           tags?: string[]
           title: string
           updated_at?: string
@@ -877,6 +882,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          is_anonymous?: boolean
           tags?: string[]
           title?: string
           updated_at?: string
