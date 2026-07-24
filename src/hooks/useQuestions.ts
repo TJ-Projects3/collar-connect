@@ -53,8 +53,9 @@ const fetchAuthors = async (ids: string[]) => {
 };
 
 export const useQuestions = (sort: QuestionSort = "new", search = "") => {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ["questions", sort, search],
+    queryKey: ["questions", sort, search, user?.id],
     queryFn: async (): Promise<Question[]> => {
       let query = supabase.from("questions").select("*");
       if (search.trim()) {
@@ -67,8 +68,15 @@ export const useQuestions = (sort: QuestionSort = "new", search = "") => {
       const { data, error } = await query.limit(100);
       if (error) throw error;
       const rows = (data ?? []) as any[];
-      const authors = await fetchAuthors(rows.map((r) => r.author_id));
-      return rows.map((r) => ({ ...r, profiles: authors.get(r.author_id) ?? null }));
+      // Only fetch author profiles for non-anonymous rows OR when viewer is the author
+      const visibleIds = rows
+        .filter((r) => !r.is_anonymous || r.author_id === user?.id)
+        .map((r) => r.author_id);
+      const authors = await fetchAuthors(visibleIds);
+      return rows.map((r) => ({
+        ...r,
+        profiles: r.is_anonymous && r.author_id !== user?.id ? null : authors.get(r.author_id) ?? null,
+      }));
     },
   });
 };
