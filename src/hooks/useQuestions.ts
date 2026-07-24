@@ -82,22 +82,25 @@ export const useQuestions = (sort: QuestionSort = "new", search = "") => {
 };
 
 export const useQuestion = (id: string | undefined) => {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ["question", id],
+    queryKey: ["question", id, user?.id],
     enabled: !!id,
     queryFn: async (): Promise<Question | null> => {
       const { data, error } = await supabase.from("questions").select("*").eq("id", id!).maybeSingle();
       if (error) throw error;
       if (!data) return null;
-      const authors = await fetchAuthors([data.author_id]);
-      return { ...(data as any), profiles: authors.get(data.author_id) ?? null };
+      const anonHide = (data as any).is_anonymous && data.author_id !== user?.id;
+      const authors = anonHide ? new Map() : await fetchAuthors([data.author_id]);
+      return { ...(data as any), profiles: anonHide ? null : authors.get(data.author_id) ?? null };
     },
   });
 };
 
 export const useAnswers = (questionId: string | undefined) => {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ["question-answers", questionId],
+    queryKey: ["question-answers", questionId, user?.id],
     enabled: !!questionId,
     queryFn: async (): Promise<Answer[]> => {
       const { data, error } = await supabase
@@ -109,8 +112,14 @@ export const useAnswers = (questionId: string | undefined) => {
         .order("created_at", { ascending: true });
       if (error) throw error;
       const rows = (data ?? []) as any[];
-      const authors = await fetchAuthors(rows.map((r) => r.author_id));
-      return rows.map((r) => ({ ...r, profiles: authors.get(r.author_id) ?? null }));
+      const visibleIds = rows
+        .filter((r) => !r.is_anonymous || r.author_id === user?.id)
+        .map((r) => r.author_id);
+      const authors = await fetchAuthors(visibleIds);
+      return rows.map((r) => ({
+        ...r,
+        profiles: r.is_anonymous && r.author_id !== user?.id ? null : authors.get(r.author_id) ?? null,
+      }));
     },
   });
 };
@@ -120,11 +129,11 @@ export const useCreateQuestion = () => {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ title, body, tags }: { title: string; body: string; tags: string[] }) => {
+    mutationFn: async ({ title, body, tags, isAnonymous }: { title: string; body: string; tags: string[]; isAnonymous?: boolean }) => {
       if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("questions")
-        .insert({ author_id: user.id, title: title.trim(), body: body.trim(), tags })
+        .insert({ author_id: user.id, title: title.trim(), body: body.trim(), tags, is_anonymous: !!isAnonymous })
         .select()
         .single();
       if (error) throw error;
@@ -143,11 +152,11 @@ export const useCreateAnswer = () => {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ questionId, body }: { questionId: string; body: string }) => {
+    mutationFn: async ({ questionId, body, isAnonymous }: { questionId: string; body: string; isAnonymous?: boolean }) => {
       if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("question_answers")
-        .insert({ question_id: questionId, author_id: user.id, body: body.trim() })
+        .insert({ question_id: questionId, author_id: user.id, body: body.trim(), is_anonymous: !!isAnonymous })
         .select()
         .single();
       if (error) throw error;
