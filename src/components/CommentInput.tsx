@@ -25,7 +25,6 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
   const fileInputId = useId();
   const createReply = useCreateReply();
 
-
   const initials = (profile?.full_name || "U")
     .split(" ")
     .map((n) => n[0])
@@ -43,11 +42,17 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
           setValue("");
           setMedia(null);
         },
-      }
+      },
     );
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // Prevent spacebar from scrolling the page
+    if (e.key === " ") {
+      e.stopPropagation();
+    }
+
+    // Handle Enter to post comment
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submit();
@@ -87,9 +92,7 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
     <div className="flex items-start gap-2 pt-1">
       <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
         <AvatarImage src={profile?.avatar_url || undefined} />
-        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-          {initials}
-        </AvatarFallback>
+        <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
       </Avatar>
       <div className="flex-1 space-y-2">
         {media && (
@@ -178,4 +181,3 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
     </div>
   );
 };
-
