@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,11 +45,32 @@ import { getProfileSubline } from "@/lib/profile-display";
 
 const SUGGESTED_HASHTAGS = ["DiversityInTech", "Cybersecurity", "Internships", "CareerMapping"];
 
+const ROTATING_PLACEHOLDERS = [
+  "Share your thoughts on career growth...",
+  "What's happening in your industry?",
+  "Ask about a job or hiring trend...",
+  "Share a recruiting tip or insight...",
+  "Discuss a new technology...",
+  "Share your career wins and milestones...",
+  "What skills are in demand right now?",
+  "Talk about diversity in tech hiring...",
+  "Share internship or entry-level advice...",
+  "Discuss the future of work in tech...",
+];
+
 const Feed = () => {
   const { data: profile } = useProfile();
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [postInitialContent, setPostInitialContent] = useState<string>("");
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % ROTATING_PLACEHOLDERS.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
   const [replyModalState, setReplyModalState] = useState<{
     isOpen: boolean;
     postId: string;
@@ -417,7 +438,7 @@ const Feed = () => {
                     </Avatar>
                   </Link>
                   <Textarea
-                    placeholder="Share your thoughts on diversity and inclusion in tech..."
+                    placeholder={ROTATING_PLACEHOLDERS[placeholderIndex]}
                     className="min-h-[80px]"
                     onFocus={() => {
                       setPostInitialContent("");
