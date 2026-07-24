@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowBigUp, ArrowBigDown, MessageSquare, Plus, Search, ArrowLeft,
   CheckCircle2, Trash2, Sparkles, Filter
