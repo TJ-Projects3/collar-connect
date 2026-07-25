@@ -20,6 +20,8 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { UpdateAvailableBanner } from "./components/UpdateAvailableBanner";
+
 
 const queryClient = new QueryClient();
 
@@ -30,8 +32,10 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <UpdateAvailableBanner />
           <BrowserRouter>
             <Routes>
+
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route
