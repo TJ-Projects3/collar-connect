@@ -20,6 +20,8 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { UpdateAvailableBanner } from "./components/UpdateAvailableBanner";
+
 
 const queryClient = new QueryClient();
 
