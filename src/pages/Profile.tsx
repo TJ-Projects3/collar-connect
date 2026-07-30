@@ -5,9 +5,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProjectsGrid } from "@/components/projects/ProjectsGrid";
 import { 
   Mail, MapPin, Link as LinkIcon, Briefcase, Calendar,
-  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus
+  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus, Code2
 } from "lucide-react";
 import { ProfileButton } from "@/components/ProfileButton";
 import { ReplyModal } from "@/components/ReplyModal";
@@ -400,6 +402,21 @@ const Profile = () => {
               </CardContent>
             </Card>
 
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="overview" className="gap-2">
+                  <Briefcase className="h-4 w-4" /> Overview
+                </TabsTrigger>
+                <TabsTrigger value="projects" className="gap-2">
+                  <Code2 className="h-4 w-4" /> Projects
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="projects" className="mt-4">
+                <ProjectsGrid userId={viewedUserId} isOwnProfile={isOwnProfile} />
+              </TabsContent>
+
+              <TabsContent value="overview" className="mt-4 space-y-4">
             {/* About Section */}
             {profile?.bio && (
               <Card>
@@ -546,6 +563,8 @@ const Profile = () => {
                 )}
               </CardContent>
             </Card>
+              </TabsContent>
+            </Tabs>
           </main>
 
           {/* Right Sidebar */}

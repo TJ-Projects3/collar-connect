@@ -650,6 +650,7 @@ export type Database = {
           likes_count: number
           media_type: string | null
           media_url: string | null
+          project_id: string | null
           reply_count: number
         }
         Insert: {
@@ -661,6 +662,7 @@ export type Database = {
           likes_count?: number
           media_type?: string | null
           media_url?: string | null
+          project_id?: string | null
           reply_count?: number
         }
         Update: {
@@ -672,6 +674,7 @@ export type Database = {
           likes_count?: number
           media_type?: string | null
           media_url?: string | null
+          project_id?: string | null
           reply_count?: number
         }
         Relationships: [
@@ -680,6 +683,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "student_projects"
             referencedColumns: ["id"]
           },
         ]
@@ -949,6 +959,71 @@ export type Database = {
           view_count?: number | null
         }
         Relationships: []
+      }
+      student_projects: {
+        Row: {
+          achievement_label: string | null
+          achievement_verified: boolean
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          live_url: string | null
+          repo_url: string | null
+          shared_post_id: string | null
+          tech_stack: string[]
+          title: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          achievement_label?: string | null
+          achievement_verified?: boolean
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          live_url?: string | null
+          repo_url?: string | null
+          shared_post_id?: string | null
+          tech_stack?: string[]
+          title: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          achievement_label?: string | null
+          achievement_verified?: boolean
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          live_url?: string | null
+          repo_url?: string | null
+          shared_post_id?: string | null
+          tech_stack?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_projects_shared_post_fk"
+            columns: ["shared_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_connections: {
         Row: {
