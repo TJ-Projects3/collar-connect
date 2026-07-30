@@ -104,6 +104,33 @@ const Settings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {profile?.profile_type !== "recruiter" && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Work Availability</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Let recruiters know what kind of role you're open to.
+                    </p>
+                    <Select
+                      value={(profile as any)?.availability ?? undefined}
+                      onValueChange={handleAvailabilityChange}
+                      disabled={!profile || updateProfile.isPending}
+                    >
+                      <SelectTrigger className="sm:max-w-xs">
+                        <SelectValue placeholder="Select availability" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AVAILABILITY_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Separator />
+                </>
+              )}
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Profile Visibility</Label>
@@ -114,6 +141,7 @@ const Settings = () => {
                 <Switch defaultChecked />
               </div>
             </CardContent>
+
           </Card>
 
           {/* Privacy Settings */}
