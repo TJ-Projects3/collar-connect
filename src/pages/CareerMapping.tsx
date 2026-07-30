@@ -7,8 +7,10 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
-import { Compass, Cloud, Shield, Database, Server, ArrowLeft, ArrowRight, RotateCcw, Loader2 } from "lucide-react";
+import { Compass, Cloud, Shield, Database, Server, ArrowLeft, ArrowRight, RotateCcw, Loader2, Sparkles, CheckCircle2, Award, FolderGit2, Target, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useGenerateRoadmap, type CareerRoadmap } from "@/hooks/useCareerRoadmap";
+
 import {
   QUESTIONS,
   SECTIONS,
@@ -361,6 +363,10 @@ const ResultsView = ({
         </CardContent>
       </Card>
 
+      {/* AI Roadmap */}
+      <RoadmapSection results={results} />
+
+
       {/* Retake */}
       <div className="text-center">
         <Button variant="outline" onClick={onRetake} disabled={isDeleting} className="gap-2">
@@ -372,4 +378,146 @@ const ResultsView = ({
   );
 };
 
+/* ─── AI Roadmap ─── */
+const RoadmapSection = ({ results }: { results: CareerResults }) => {
+  const [roadmap, setRoadmap] = useState<CareerRoadmap | null>(null);
+  const generate = useGenerateRoadmap();
+
+  const handleGenerate = () => {
+    generate.mutate(results, {
+      onSuccess: (data) => setRoadmap(data),
+      onError: (e: Error) => toast.error(e.message),
+    });
+  };
+
+  return (
+    <Card className="border-accent/30">
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="font-semibold flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-accent" />
+              Your AI Roadmap
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              A personalized plan for breaking into {results.tracks[0].name} — generated from your results.
+            </p>
+          </div>
+          {roadmap && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleGenerate}
+              disabled={generate.isPending}
+              className="gap-1.5 shrink-0"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${generate.isPending ? "animate-spin" : ""}`} />
+              Regenerate
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {!roadmap && (
+          <Button onClick={handleGenerate} disabled={generate.isPending} className="w-full gap-2">
+            {generate.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Building your roadmap…
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" /> Generate My Roadmap
+              </>
+            )}
+          </Button>
+        )}
+
+        {roadmap && (
+          <>
+            <p className="text-sm text-muted-foreground leading-relaxed">{roadmap.summary}</p>
+
+            {/* Phases */}
+            <div className="space-y-4">
+              {roadmap.phases.map((phase, i) => (
+                <div key={i} className="relative pl-6">
+                  <span className="absolute left-0 top-1 h-2.5 w-2.5 rounded-full bg-primary" />
+                  {i !== roadmap.phases.length - 1 && (
+                    <span className="absolute left-[4px] top-4 bottom-[-16px] w-px bg-border" />
+                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="font-semibold text-sm">{phase.title}</h4>
+                    <Badge variant="secondary" className="text-[10px]">{phase.timeframe}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">{phase.focus}</p>
+                  <ul className="mt-2 space-y-1.5">
+                    {phase.actions.map((a, j) => (
+                      <li key={j} className="flex gap-2 text-sm">
+                        <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
+                        <span className="text-muted-foreground">{a}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <Separator />
+
+            {/* Skills */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Skills to build</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {roadmap.skills.map((s) => (
+                  <Badge key={s} variant="secondary">{s}</Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Projects */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <FolderGit2 className="h-4 w-4 text-muted-foreground" /> Portfolio projects
+              </h4>
+              <div className="space-y-2">
+                {roadmap.projects.map((p) => (
+                  <div key={p.title} className="rounded-lg border p-3">
+                    <p className="text-sm font-medium">{p.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Certifications + Roles */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Award className="h-4 w-4 text-muted-foreground" /> Certifications
+                </h4>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {roadmap.certifications.map((c) => (
+                    <li key={c}>• {c}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Target className="h-4 w-4 text-muted-foreground" /> Roles to target
+                </h4>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {roadmap.roles.map((r) => (
+                    <li key={r}>• {r}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 export default CareerMapping;
+
