@@ -19,7 +19,8 @@ export const getProfileSubline = (p: AnyProfile, fallback = "Member"): string =>
   if (isRecruiter(p)) {
     const parts = [p.company_title, p.company_name].filter(Boolean) as string[];
     if (parts.length) return parts.join(" @ ");
-    return "Hiring Recruiter";
+    // No role duplication: the recruiter pill next to the name already says it.
+    return "";
   }
 
   // Student / default
@@ -32,3 +33,4 @@ export const getProfileSubline = (p: AnyProfile, fallback = "Member"): string =>
 
   return fallback;
 };
+
