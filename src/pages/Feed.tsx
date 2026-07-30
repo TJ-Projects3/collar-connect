@@ -140,12 +140,17 @@ const Feed = () => {
   const { data: featuredResources, isLoading: featuredLoading } = useFeaturedResources(3);
   const { data: trendingHashtags, isLoading: trendingLoading } = useTrendingHashtags(5);
 
-  const filteredPosts = activeHashtag && posts
+  const hashtagFiltered = activeHashtag && posts
     ? posts.filter((p) => {
         const regex = new RegExp(`#${activeHashtag}\\b`, "i");
         return regex.test(p.content);
       })
     : posts;
+
+  const filteredPosts =
+    feedFilter === "projects" && hashtagFiltered
+      ? hashtagFiltered.filter((p: any) => !!p.project_id)
+      : hashtagFiltered;
 
   const resourceIcon = (type: string) => {
     switch (type) {
