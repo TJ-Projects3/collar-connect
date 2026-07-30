@@ -50,16 +50,16 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
   const [dragActive, setDragActive] = useState(false);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeName, setResumeName] = useState<string | null>(null);
-  const [resumeBusy, setResumeBusy] = useState<null | "view" | "download">(null);
+  const [resumeBusy, setResumeBusy] = useState<null | "download">(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
-  const runResumeAction = async (mode: "view" | "download") => {
-    setResumeBusy(mode);
+  const handleResumeDownload = async () => {
+    setResumeBusy("download");
     try {
-      if (mode === "view") await openResumeInNewTab(resumeUrl);
-      else await downloadResume(resumeUrl);
+      await downloadResume(resumeUrl);
     } catch (e) {
       toast({
-        title: mode === "view" ? "Couldn't open the resume" : "Couldn't download the resume",
+        title: "Couldn't download the resume",
         description: resumeErrorMessage(e),
         variant: "destructive",
       });
@@ -67,6 +67,7 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
       setResumeBusy(null);
     }
   };
+
 
 
 
