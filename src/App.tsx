@@ -113,6 +113,15 @@ const App = () => {
                 }
               />
               <Route
+                path="/talent"
+                element={
+                  <ProtectedRoute>
+                    <Talent />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/settings"
                 element={
                   <ProtectedRoute>
