@@ -1,4 +1,4 @@
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RecruiterBadgeProps {
@@ -7,17 +7,23 @@ interface RecruiterBadgeProps {
   compact?: boolean;
 }
 
+/** Sleek identity pill for recruiter accounts. Shares geometry with EndorsementPill. */
 export const RecruiterBadge = ({ verified, className, compact }: RecruiterBadgeProps) => {
+  const Icon = verified ? BadgeCheck : Briefcase;
+
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full bg-secondary/15 text-secondary-foreground border border-secondary/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none tracking-tight",
+        verified
+          ? "bg-primary text-primary-foreground shadow-sm"
+          : "bg-muted text-muted-foreground border border-border",
         className
       )}
-      title={verified ? "Verified hiring recruiter" : "Hiring recruiter"}
+      title={verified ? "Verified recruiter" : "Recruiter account"}
     >
-      <BadgeCheck className={cn("h-3 w-3", verified ? "text-secondary" : "text-muted-foreground")} />
-      {compact ? "Recruiter" : "Hiring Recruiter"}
+      <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+      {verified ? (compact ? "Verified" : "Verified Recruiter") : "Recruiter"}
     </span>
   );
 };
