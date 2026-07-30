@@ -56,6 +56,16 @@ const Settings = () => {
     }
   };
 
+  const handleAvailabilityChange = async (value: string) => {
+    try {
+      await updateProfile.mutateAsync({ availability: value } as any);
+      toast.success("Availability updated");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to update availability");
+    }
+  };
+
+
 
   return (
     <div className="min-h-screen bg-background">
