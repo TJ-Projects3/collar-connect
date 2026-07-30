@@ -205,16 +205,27 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
                   <FileText className="h-8 w-8 text-primary flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{resumeName ?? "Resume"}</p>
-                    <a
-                      href={resolveResumeUrl(resumeUrl) ?? resumeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline"
-                    >
-                      View file
-                    </a>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => runResumeAction("view")}
+                        className="text-xs text-primary hover:underline disabled:opacity-60"
+                        disabled={resumeBusy !== null}
+                      >
+                        {resumeBusy === "view" ? "Opening…" : "View file"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => runResumeAction("download")}
+                        className="text-xs text-primary hover:underline disabled:opacity-60"
+                        disabled={resumeBusy !== null}
+                      >
+                        {resumeBusy === "download" ? "Downloading…" : "Download"}
+                      </button>
+                    </div>
 
                   </div>
+
                   <Button type="button" variant="ghost" size="icon" onClick={removeResume}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
