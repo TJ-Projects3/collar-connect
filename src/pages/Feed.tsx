@@ -18,8 +18,9 @@ import {
 import {
   Home, Users, Briefcase, MessageSquare,
   Settings, ThumbsUp, MessageCircle, Share2,
-  TrendingUp, Sparkles, BookOpen, Calendar, Trash2, FileText, Video, Download, Globe, Hash, Compass
+  TrendingUp, Sparkles, BookOpen, Calendar, Trash2, FileText, Video, Download, Globe, Hash, Compass, Code2
 } from "lucide-react";
+import { FeedProjectEmbed } from "@/components/projects/FeedProjectEmbed";
 import { useFeaturedResources } from "@/hooks/useFeaturedResources";
 import { useTrendingHashtags } from "@/hooks/useTrendingHashtags";
 import { Link } from "react-router-dom";
