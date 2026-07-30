@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BadgeCheck, GraduationCap, MessageSquare } from "lucide-react";
 import { availabilityLabel, type Candidate } from "@/hooks/useTalentCandidates";
+import { EndorsementPill } from "@/components/endorsements/EndorsementBadges";
 
 const getInitials = (name?: string | null) =>
   (name || "?")
@@ -60,6 +61,13 @@ export const CandidateCard = ({ candidate }: { candidate: Candidate }) => {
               <p className="text-sm text-muted-foreground mt-1 break-words">
                 {meta.join(" · ")}
               </p>
+            )}
+            {candidate.endorsements.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {candidate.endorsements.slice(0, 2).map((e) => (
+                  <EndorsementPill key={e.id} title={e.badge_title} />
+                ))}
+              </div>
             )}
             {availability && (
               <Badge variant="secondary" className="mt-2 gap-1">

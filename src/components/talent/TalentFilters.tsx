@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import type { TalentFilterState } from "@/hooks/useTalentCandidates";
 
 interface FilterOptions {
@@ -98,6 +99,7 @@ export const TalentFilters = ({ filters, options, onChange, onClear }: TalentFil
     filters.gradYears.length +
     filters.universities.length +
     filters.availability.length +
+    (filters.verifiedAchievementsOnly ? 1 : 0) +
     (filters.search.trim() ? 1 : 0);
 
   return (
@@ -124,6 +126,24 @@ export const TalentFilters = ({ filters, options, onChange, onClear }: TalentFil
             className="pl-8"
           />
         </div>
+      </div>
+
+      <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+        <div className="space-y-0.5">
+          <Label htmlFor="verified-achievements" className="text-sm">
+            Verified NextGen Achievement Holders
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Only students with an official endorsement badge
+          </p>
+        </div>
+        <Switch
+          id="verified-achievements"
+          checked={filters.verifiedAchievementsOnly}
+          onCheckedChange={(checked) =>
+            onChange({ ...filters, verifiedAchievementsOnly: checked })
+          }
+        />
       </div>
 
       <div className="space-y-2">

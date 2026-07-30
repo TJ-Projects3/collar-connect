@@ -23,6 +23,7 @@ export const availabilityLabel = (value?: string | null) =>
 
 type ProfileRow = Tables<"profiles">;
 type ProjectRow = Tables<"student_projects">;
+type EndorsementRow = Tables<"student_endorsements">;
 
 export interface Candidate {
   id: string;
@@ -37,6 +38,8 @@ export interface Candidate {
   topProject: ProjectRow | null;
   projectCount: number;
   isVerifiedIntern: boolean;
+  endorsements: EndorsementRow[];
+  hasNextGenAchievement: boolean;
 }
 
 export interface TalentFilterState {
@@ -45,6 +48,7 @@ export interface TalentFilterState {
   gradYears: string[];
   universities: string[];
   availability: string[];
+  verifiedAchievementsOnly: boolean;
 }
 
 export const EMPTY_FILTERS: TalentFilterState = {
@@ -53,6 +57,7 @@ export const EMPTY_FILTERS: TalentFilterState = {
   gradYears: [],
   universities: [],
   availability: [],
+  verifiedAchievementsOnly: false,
 };
 
 export const useTalentCandidates = () => {
@@ -71,6 +76,25 @@ export const useTalentCandidates = () => {
 
       const rows = (profiles || []) as unknown as ProfileRow[];
       const ids = rows.map((r) => r.id);
+
+      let endorsementsByUser: Record<string, EndorsementRow[]> = {};
+      if (ids.length > 0) {
+        const { data: endorsements, error: endorsementsError } = await supabase
+          .from("student_endorsements")
+          .select("*")
+          .in("student_id", ids)
+          .order("created_at", { ascending: false });
+
+        if (endorsementsError) throw endorsementsError;
+
+        endorsementsByUser = (endorsements || []).reduce<Record<string, EndorsementRow[]>>(
+          (acc, e: any) => {
+            acc[e.student_id] = acc[e.student_id] ? [...acc[e.student_id], e] : [e];
+            return acc;
+          },
+          {}
+        );
+      }
 
       let projectsByUser: Record<string, ProjectRow[]> = {};
       if (ids.length > 0) {
@@ -121,6 +145,8 @@ export const useTalentCandidates = () => {
           topProject: verifiedProject ?? withCover ?? projects[0] ?? null,
           projectCount: projects.length,
           isVerifiedIntern: !!verifiedProject,
+          endorsements: endorsementsByUser[p.id] || [],
+          hasNextGenAchievement: (endorsementsByUser[p.id] || []).length > 0,
         };
       });
 
@@ -159,7 +185,14 @@ export const filterCandidates = (
 
   return (candidates || []).filter((c) => {
     if (search) {
-      const haystack = [c.full_name, c.university, c.major, c.topProject?.title, ...c.skills]
+      const haystack = [
+        c.full_name,
+        c.university,
+        c.major,
+        c.topProject?.title,
+        ...c.endorsements.map((e) => e.badge_title),
+        ...c.skills,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -179,6 +212,8 @@ export const filterCandidates = (
     if (filters.universities.length > 0) {
       if (!c.university || !filters.universities.includes(c.university.trim())) return false;
     }
+
+    if (filters.verifiedAchievementsOnly && !c.hasNextGenAchievement) return false;
 
     if (filters.availability.length > 0) {
       if (!c.availability || !filters.availability.includes(c.availability)) return false;
