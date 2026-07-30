@@ -285,7 +285,15 @@ const Profile = () => {
     );
   };
 
+  // The recruiter pill already carries the company name, so avoid printing it twice.
+  const rawSubline = getProfileSubline(profile, isOwnProfile ? "Welcome to NextGenCollar!" : "");
+  const headerSubline =
+    profile?.profile_type === "recruiter" && profile?.company_name
+      ? profile?.company_title || ""
+      : rawSubline;
+
   return (
+
     <div className="min-h-screen bg-background">
       <Navbar />
 
