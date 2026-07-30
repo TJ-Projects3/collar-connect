@@ -11,6 +11,15 @@ import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AVAILABILITY_OPTIONS } from "@/hooks/useTalentCandidates";
+
 
 const Settings = () => {
   const { data: profile } = useProfile();
