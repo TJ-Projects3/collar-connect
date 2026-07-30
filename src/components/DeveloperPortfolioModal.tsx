@@ -297,6 +297,14 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
           </form>
         </Form>
       </DialogContent>
+
+      <ResumePreviewModal
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        value={resumeUrl}
+        title={resumeName ?? "Resume"}
+      />
     </Dialog>
   );
 };
+
