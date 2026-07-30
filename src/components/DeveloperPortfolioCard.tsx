@@ -61,11 +61,12 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
               ))}
               {hasResume && (
                 <Button size="sm" asChild className="gap-2">
-                  <a href={profile.resume_url} target="_blank" rel="noopener noreferrer">
+                  <a href={resumeUrl!} target="_blank" rel="noopener noreferrer">
                     <FileText className="h-4 w-4" /> View Resume
                   </a>
                 </Button>
               )}
+
             </div>
           )}
 
