@@ -21,7 +21,8 @@ import {
   normalizeGithubUrl, normalizeUrl, validateResumeFile,
   resolveResumeUrl, getStoredFileName,
 } from "@/lib/portfolio-validation";
-import { openResumeInNewTab, downloadResume, resumeErrorMessage } from "@/lib/resume-file";
+import { downloadResume, resumeErrorMessage, fileToDataUri } from "@/lib/resume-file";
+import { ResumePreviewModal } from "./ResumePreviewModal";
 
 
 
@@ -50,16 +51,16 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
   const [dragActive, setDragActive] = useState(false);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeName, setResumeName] = useState<string | null>(null);
-  const [resumeBusy, setResumeBusy] = useState<null | "view" | "download">(null);
+  const [resumeBusy, setResumeBusy] = useState<null | "download">(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
-  const runResumeAction = async (mode: "view" | "download") => {
-    setResumeBusy(mode);
+  const handleResumeDownload = async () => {
+    setResumeBusy("download");
     try {
-      if (mode === "view") await openResumeInNewTab(resumeUrl);
-      else await downloadResume(resumeUrl);
+      await downloadResume(resumeUrl);
     } catch (e) {
       toast({
-        title: mode === "view" ? "Couldn't open the resume" : "Couldn't download the resume",
+        title: "Couldn't download the resume",
         description: resumeErrorMessage(e),
         variant: "destructive",
       });
@@ -67,6 +68,7 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
       setResumeBusy(null);
     }
   };
+
 
 
 
@@ -95,7 +97,6 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
   }, [open, profile, form]);
 
   const handleFile = async (file: File) => {
-    if (!user?.id) return;
     const err = validateResumeFile(file);
     if (err) {
       toast({ title: "Invalid file", description: err, variant: "destructive" });
@@ -103,22 +104,19 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
     }
     try {
       setUploading(true);
-      const ext = file.name.split(".").pop()?.toLowerCase();
-      const path = `${user.id}/resume-${Date.now()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage
-        .from("resumes")
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (uploadErr) throw uploadErr;
-      const { data: { publicUrl } } = supabase.storage.from("resumes").getPublicUrl(path);
-      setResumeUrl(publicUrl);
+      // Store the file as a self-contained Base64 Data URI so viewing/downloading
+      // never makes a request to *.supabase.co (ad blockers can't interfere).
+      const dataUri = await fileToDataUri(file);
+      setResumeUrl(dataUri);
       setResumeName(file.name);
-      toast({ title: "Resume uploaded" });
+      toast({ title: "Resume attached", description: "Save your changes to keep it." });
     } catch (e: any) {
       toast({ title: "Upload failed", description: e.message ?? "Please try again.", variant: "destructive" });
     } finally {
       setUploading(false);
     }
   };
+
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -229,20 +227,20 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
-                        onClick={() => runResumeAction("view")}
+                        onClick={() => setPreviewOpen(true)}
                         className="text-xs text-primary hover:underline disabled:opacity-60"
-                        disabled={resumeBusy !== null}
                       >
-                        {resumeBusy === "view" ? "Opening…" : "View file"}
+                        View file
                       </button>
                       <button
                         type="button"
-                        onClick={() => runResumeAction("download")}
+                        onClick={handleResumeDownload}
                         className="text-xs text-primary hover:underline disabled:opacity-60"
                         disabled={resumeBusy !== null}
                       >
                         {resumeBusy === "download" ? "Downloading…" : "Download"}
                       </button>
+
                     </div>
 
                   </div>
@@ -300,6 +298,14 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
           </form>
         </Form>
       </DialogContent>
+
+      <ResumePreviewModal
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        value={resumeUrl}
+        title={resumeName ?? "Resume"}
+      />
     </Dialog>
   );
 };
+

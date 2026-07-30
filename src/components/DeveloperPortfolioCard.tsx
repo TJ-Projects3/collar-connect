@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Github, Linkedin, Globe, FileText, ExternalLink, Code2, Pencil, Download, Loader2 } from "lucide-react";
 import { DeveloperPortfolioModal } from "./DeveloperPortfolioModal";
-import { resolveResumeUrl } from "@/lib/portfolio-validation";
-import { openResumeInNewTab, downloadResume, resumeErrorMessage } from "@/lib/resume-file";
+import { ResumePreviewModal } from "./ResumePreviewModal";
+import { resolveResumeUrl, getStoredFileName } from "@/lib/portfolio-validation";
+import { downloadResume, resumeErrorMessage } from "@/lib/resume-file";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -16,7 +17,8 @@ interface Props {
 
 export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState<null | "view" | "download">(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [busy, setBusy] = useState<null | "download">(null);
   const { toast } = useToast();
 
   const links = [
@@ -28,14 +30,13 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
   const resumeUrl = resolveResumeUrl(profile?.resume_url);
   const hasResume = !!resumeUrl;
 
-  const runResumeAction = async (mode: "view" | "download") => {
-    setBusy(mode);
+  const handleDownload = async () => {
+    setBusy("download");
     try {
-      if (mode === "view") await openResumeInNewTab(profile?.resume_url);
-      else await downloadResume(profile?.resume_url);
+      await downloadResume(profile?.resume_url);
     } catch (e) {
       toast({
-        title: mode === "view" ? "Couldn't open the resume" : "Couldn't download the resume",
+        title: "Couldn't download the resume",
         description: resumeErrorMessage(e),
         variant: "destructive",
       });
@@ -43,6 +44,7 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
       setBusy(null);
     }
   };
+
 
   const hasAnything = links.length > 0 || hasResume;
 
@@ -85,14 +87,9 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
                   <Button
                     size="sm"
                     className="gap-2"
-                    disabled={busy !== null}
-                    onClick={() => runResumeAction("view")}
+                    onClick={() => setPreviewOpen(true)}
                   >
-                    {busy === "view" ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <FileText className="h-4 w-4" />
-                    )}
+                    <FileText className="h-4 w-4" />
                     View Resume
                   </Button>
                   <Button
@@ -100,7 +97,7 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
                     variant="outline"
                     className="gap-2"
                     disabled={busy !== null}
-                    onClick={() => runResumeAction("download")}
+                    onClick={handleDownload}
                   >
                     {busy === "download" ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -119,9 +116,17 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
         </CardContent>
       </Card>
 
+      <ResumePreviewModal
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        value={profile?.resume_url}
+        title={getStoredFileName(profile?.resume_url, "Resume")}
+      />
+
       {isOwnProfile && (
         <DeveloperPortfolioModal open={open} onOpenChange={setOpen} profile={profile} />
       )}
+
     </>
   );
 };

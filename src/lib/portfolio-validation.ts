@@ -99,9 +99,12 @@ export function resolveStorageUrl(
 ): string | null {
   const raw = (value ?? "").trim();
   if (!raw) return null;
+  // Self-contained Base64 Data URI — already usable as-is.
+  if (/^data:[^;,]+/i.test(raw)) return raw;
 
   const marker = `/storage/v1/object/public/${bucket}/`;
   const markerIdx = raw.indexOf(marker);
+
 
   let path: string;
   if (markerIdx !== -1) {
@@ -132,9 +135,12 @@ export function getStoredFileName(
   value: string | null | undefined,
   fallback = "resume"
 ): string {
-  const raw = (value ?? "").split("?")[0];
+  const trimmed = (value ?? "").trim();
+  if (/^data:[^;,]+/i.test(trimmed)) return "Resume.pdf";
+  const raw = trimmed.split("?")[0];
   const last = raw.split("/").filter(Boolean).pop();
   if (!last) return fallback;
+
   try {
     return decodeURIComponent(last);
   } catch {
