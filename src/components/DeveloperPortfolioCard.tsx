@@ -21,7 +21,9 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
     { url: profile?.portfolio_url, icon: Globe, label: "Portfolio" },
   ].filter((l) => !!l.url);
 
-  const hasResume = !!profile?.resume_url;
+  const resumeUrl = resolveResumeUrl(profile?.resume_url);
+  const hasResume = !!resumeUrl;
+
   const hasAnything = links.length > 0 || hasResume;
 
   if (!isOwnProfile && !hasAnything) return null;
