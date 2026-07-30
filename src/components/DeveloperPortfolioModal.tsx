@@ -69,7 +69,8 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
       featured_projects: [],
     });
     setResumeUrl(profile.resume_url ?? null);
-    setResumeName(profile.resume_url ? decodeURIComponent(profile.resume_url.split("/").pop() ?? "resume") : null);
+    setResumeName(profile.resume_url ? getStoredFileName(profile.resume_url) : null);
+
   }, [open, profile, form]);
 
   const handleFile = async (file: File) => {
