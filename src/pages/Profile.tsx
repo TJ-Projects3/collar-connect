@@ -285,7 +285,15 @@ const Profile = () => {
     );
   };
 
+  // The recruiter pill already carries the company name, so avoid printing it twice.
+  const rawSubline = getProfileSubline(profile, isOwnProfile ? "Welcome to NextGenCollar!" : "");
+  const headerSubline =
+    profile?.profile_type === "recruiter" && profile?.company_name
+      ? profile?.company_title || ""
+      : rawSubline;
+
   return (
+
     <div className="min-h-screen bg-background">
       <Navbar />
 
@@ -327,9 +335,13 @@ const Profile = () => {
                     </h1>
 
                     {(profile?.profile_type === "recruiter" || endorsements.length > 0) && (
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 pt-0.5">
                         {profile?.profile_type === "recruiter" && (
-                          <RecruiterBadge verified={profile?.is_verified_recruiter} />
+                          <RecruiterBadge
+                            size="lg"
+                            verified={profile?.is_verified_recruiter}
+                            company={profile?.company_name}
+                          />
                         )}
                         {endorsements.slice(0, 2).map((e) => (
                           <EndorsementPill key={e.id} title={e.badge_title} />
@@ -337,11 +349,12 @@ const Profile = () => {
                       </div>
                     )}
 
-                    {getProfileSubline(profile, isOwnProfile ? "Welcome to NextGenCollar!" : "") && (
+                    {headerSubline && (
                       <p className="text-sm sm:text-base text-muted-foreground break-words">
-                        {getProfileSubline(profile, isOwnProfile ? "Welcome to NextGenCollar!" : "")}
+                        {headerSubline}
                       </p>
                     )}
+
 
                     <Link to="/my-network" className="text-sm text-primary hover:underline font-medium inline-block">
                       {connectionCount ?? 0} connection{connectionCount !== 1 ? "s" : ""}

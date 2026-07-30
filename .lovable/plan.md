@@ -1,29 +1,24 @@
-# Robust Resume URL Resolution
+## Goal
 
-## Verified current state
-- `resumes` bucket exists and is public.
-- `storage.objects` has a SELECT policy `Public Access to Resumes` scoped to `bucket_id = 'resumes'` for `public` (anon + authenticated), plus per-user INSERT/DELETE policies keyed to the user's folder. Read access is already correct — no migration needed.
-- The single existing `profiles.resume_url` value is a full public HTTPS URL, and the corresponding object exists in storage (`application/pdf`, ~88 KB).
-- Resume links render in exactly one place: the "View Resume" button in `src/components/DeveloperPortfolioCard.tsx`, plus the "View file" style link inside `src/components/DeveloperPortfolioModal.tsx`. Both use `profile.resume_url` verbatim, so any value stored as a bare storage path (`<uid>/resume-123.pdf`) or a partial `/storage/v1/...` path would 404.
+Make the recruiter badge on the profile header read as an official, high-authority identity pill — clearly distinct from the muted metadata pills (location, LinkedIn) around it — and show the recruiter's company inside it when available.
 
-## What to build
+## What changes
 
-### 1. Shared resolver helper
-Add `resolveStorageUrl` (in `src/lib/portfolio-validation.ts`, which already holds resume helpers) that takes a stored value and a bucket name and returns a usable HTTPS URL:
-- If the value already starts with `http://`/`https://`, return it unchanged.
-- If it contains `/storage/v1/object/public/<bucket>/`, extract the object path and re-derive the URL via `supabase.storage.from(bucket).getPublicUrl(path)` so the URL always matches the current project host.
-- Otherwise treat the value as an object path (stripping a leading `/` and a leading `<bucket>/` prefix if present) and return `getPublicUrl(path)`.
-- Also export a `resolveResumeUrl(value)` convenience wrapper bound to the `resumes` bucket.
+**1. `src/components/RecruiterBadge.tsx` — upgraded pill**
 
-### 2. Use it at both view points
-- `DeveloperPortfolioCard.tsx`: resolve the URL for the "View Resume" anchor, keeping `target="_blank" rel="noopener noreferrer"` so the PDF opens cleanly in a new tab.
-- `DeveloperPortfolioModal.tsx`: resolve the URL for the existing uploaded-file view link, and derive the displayed filename from the object path rather than the whole URL.
-- Guard against an unresolvable/empty value by not rendering the button, so no dead link is shown.
+- Add an optional `company` prop and a `size` variant (`sm` for inline feed/comment usage, `lg` for the profile header) so the existing five call sites keep their current small look and only the profile header gets the prominent treatment.
+- Verified state: solid primary background with `text-primary-foreground`, a `BadgeCheck` icon on the left, slightly larger type, tighter tracking, and an elegant elevated shadow using the existing `--shadow-elegant`/primary-tinted shadow token rather than a hardcoded color.
+- When `company` is present, render it inside the same pill after a thin separator dot: `✓ Verified Recruiter · NextGen Collar`, with the company text at slightly reduced opacity so "Verified Recruiter" stays the dominant read. The company truncates rather than wrapping so the pill never breaks its rounded shape.
+- Unverified recruiters keep a restrained bordered/muted treatment (with `Briefcase` icon) so verification remains visually meaningful.
+- Everything uses semantic tokens (`bg-primary`, `text-primary-foreground`, `border-border`) — no hardcoded colors, works in light and dark mode.
 
-### 3. Filename display
-Keep showing a readable filename (last path segment, URL-decoded) while linking to the resolved URL.
+**2. `src/pages/Profile.tsx` — header integration**
 
-## Technical notes
-Files touched: `src/lib/portfolio-validation.ts`, `src/components/DeveloperPortfolioCard.tsx`, `src/components/DeveloperPortfolioModal.tsx`. No database migration and no storage-policy change — read access is already verified working. Upload logic stays as-is (it stores a full public URL); the resolver just makes viewing tolerant of both formats, including any rows written by earlier or future code paths that save a bare path.
+- Pass `size="lg"` and `company={profile?.company_name}` to the badge in the header badge row (line 332).
+- Keep the badge row directly under the name, aligned left with the name and endorsement pills, wrapping cleanly on narrow screens; verify spacing so the pill has consistent rhythm above the subline text.
+- Since the company will now appear in the badge, keep the subline as-is (it shows title + company for recruiters) unless it duplicates verbatim — in that case trim the company from the subline so the same string isn't printed twice.
 
-Verification: typecheck, then confirm the resolved URL for the existing resume object returns a 200 PDF response.
+## Notes
+
+- No database or business-logic changes; presentation only.
+- Other usages (Feed, Community, ReplyModal, InlineReplies) are unaffected because they use the default/compact size and pass no company.
