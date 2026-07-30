@@ -205,9 +205,15 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
                   <FileText className="h-8 w-8 text-primary flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{resumeName ?? "Resume"}</p>
-                    <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                    <a
+                      href={resolveResumeUrl(resumeUrl) ?? resumeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline"
+                    >
                       View file
                     </a>
+
                   </div>
                   <Button type="button" variant="ghost" size="icon" onClick={removeResume}>
                     <Trash2 className="h-4 w-4 text-destructive" />
