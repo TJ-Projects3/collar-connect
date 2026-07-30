@@ -15,6 +15,8 @@ import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
 import MyNetwork from "./pages/MyNetwork";
 import Settings from "./pages/Settings";
+import Talent from "./pages/Talent";
+
 import Notifications from "./pages/Notifications";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -110,6 +112,15 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/talent"
+                element={
+                  <ProtectedRoute>
+                    <Talent />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route
                 path="/settings"
                 element={

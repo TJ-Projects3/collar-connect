@@ -696,6 +696,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability:
+            | Database["public"]["Enums"]["availability_status"]
+            | null
           avatar_url: string | null
           bio: string | null
           company: string | null
@@ -722,6 +725,9 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          availability?:
+            | Database["public"]["Enums"]["availability_status"]
+            | null
           avatar_url?: string | null
           bio?: string | null
           company?: string | null
@@ -748,6 +754,9 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          availability?:
+            | Database["public"]["Enums"]["availability_status"]
+            | null
           avatar_url?: string | null
           bio?: string | null
           company?: string | null
@@ -1174,6 +1183,12 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       attendee_status: "registered" | "waitlisted" | "cancelled" | "attended"
+      availability_status:
+        | "summer_intern"
+        | "fall_coop"
+        | "part_time"
+        | "full_time_new_grad"
+        | "not_looking"
       career_level:
         | "internship"
         | "entry_level"
@@ -1315,6 +1330,13 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       attendee_status: ["registered", "waitlisted", "cancelled", "attended"],
+      availability_status: [
+        "summer_intern",
+        "fall_coop",
+        "part_time",
+        "full_time_new_grad",
+        "not_looking",
+      ],
       career_level: [
         "internship",
         "entry_level",
