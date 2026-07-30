@@ -116,6 +116,7 @@ const Feed = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [postInitialContent, setPostInitialContent] = useState<string>("");
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
+  const [feedFilter, setFeedFilter] = useState<"all" | "projects">("all");
 
   const [replyModalState, setReplyModalState] = useState<{
     isOpen: boolean;
