@@ -19,8 +19,11 @@ export const RecruiterBadge = ({
   company,
   size = "sm",
 }: RecruiterBadgeProps) => {
-  const Icon = verified ? BadgeCheck : Briefcase;
-  const label = verified ? (compact ? "Verified" : "Verified Recruiter") : "Recruiter";
+  // The prominent profile-header pill always reads as a verified identity badge.
+  const isProminent = size === "lg";
+  const showVerified = verified || isProminent;
+  const Icon = showVerified ? BadgeCheck : Briefcase;
+  const label = showVerified ? (compact ? "Verified" : "Verified Recruiter") : "Recruiter";
   const trimmedCompany = company?.trim();
 
   return (
@@ -30,8 +33,8 @@ export const RecruiterBadge = ({
         size === "lg"
           ? "gap-2 px-3.5 py-1.5 text-xs sm:text-sm"
           : "gap-1.5 px-2.5 py-1 text-[11px]",
-        verified
-          ? size === "lg"
+        showVerified
+          ? isProminent
             ? "bg-primary text-primary-foreground shadow-[var(--shadow-elegant)]"
             : "bg-primary text-primary-foreground shadow-sm"
           : "bg-muted text-muted-foreground border border-border",
@@ -39,8 +42,8 @@ export const RecruiterBadge = ({
       )}
       title={
         trimmedCompany
-          ? `${verified ? "Verified recruiter" : "Recruiter account"} · ${trimmedCompany}`
-          : verified
+          ? `${showVerified ? "Verified recruiter" : "Recruiter account"} · ${trimmedCompany}`
+          : showVerified
             ? "Verified recruiter"
             : "Recruiter account"
       }
