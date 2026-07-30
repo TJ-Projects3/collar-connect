@@ -46,7 +46,6 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
   const [dragActive, setDragActive] = useState(false);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeName, setResumeName] = useState<string | null>(null);
-  const [techInputs, setTechInputs] = useState<Record<number, string>>({});
 
   const form = useForm<PortfolioFormData>({
     resolver: zodResolver(portfolioSchema),
@@ -59,30 +58,16 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
     },
   });
 
-  const { fields, append, remove, update } = useFieldArray({
-    control: form.control,
-    name: "featured_projects",
-  });
-
   useEffect(() => {
     if (!open || !profile) return;
-    const projects = Array.isArray(profile.featured_projects) ? profile.featured_projects : [];
     form.reset({
       github_url: profile.github_url ?? "",
       linkedin_url: profile.linkedin_url ?? "",
       portfolio_url: profile.portfolio_url ?? "",
-      featured_projects: projects.map((p: any) => ({
-        id: p.id ?? crypto.randomUUID(),
-        title: p.title ?? "",
-        description: p.description ?? "",
-        tech_stack: Array.isArray(p.tech_stack) ? p.tech_stack : [],
-        live_url: p.live_url ?? "",
-        repo_url: p.repo_url ?? "",
-      })),
+      featured_projects: [],
     });
     setResumeUrl(profile.resume_url ?? null);
     setResumeName(profile.resume_url ? decodeURIComponent(profile.resume_url.split("/").pop() ?? "resume") : null);
-    setTechInputs({});
   }, [open, profile, form]);
 
   const handleFile = async (file: File) => {
@@ -123,26 +108,6 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
     setResumeName(null);
   };
 
-  const addTech = (index: number) => {
-    const raw = (techInputs[index] ?? "").trim();
-    if (!raw) return;
-    const current = form.getValues(`featured_projects.${index}.tech_stack`) ?? [];
-    if (current.includes(raw) || current.length >= 15) {
-      setTechInputs((s) => ({ ...s, [index]: "" }));
-      return;
-    }
-    update(index, { ...form.getValues(`featured_projects.${index}`), tech_stack: [...current, raw] });
-    setTechInputs((s) => ({ ...s, [index]: "" }));
-  };
-
-  const removeTech = (index: number, tech: string) => {
-    const current = form.getValues(`featured_projects.${index}.tech_stack`) ?? [];
-    update(index, {
-      ...form.getValues(`featured_projects.${index}`),
-      tech_stack: current.filter((t) => t !== tech),
-    });
-  };
-
   const onSubmit = async (data: PortfolioFormData) => {
     if (!user?.id) return;
     setSaving(true);
@@ -152,11 +117,6 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
         linkedin_url: normalizeUrl(data.linkedin_url) || null,
         portfolio_url: normalizeUrl(data.portfolio_url) || null,
         resume_url: resumeUrl || null,
-        featured_projects: data.featured_projects.map((p) => ({
-          ...p,
-          live_url: normalizeUrl(p.live_url ?? ""),
-          repo_url: normalizeUrl(p.repo_url ?? ""),
-        })) as any,
       };
       const { error } = await supabase
         .from("profiles")
@@ -173,7 +133,6 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
     }
   };
 
-  const canAddProject = fields.length < 3;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
