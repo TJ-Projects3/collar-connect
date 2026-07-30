@@ -496,6 +496,26 @@ const Feed = () => {
             />
 
 
+            {/* Feed filter tabs */}
+            <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
+              <Button
+                variant={feedFilter === "all" ? "secondary" : "ghost"}
+                size="sm"
+                className="flex-1 gap-2"
+                onClick={() => setFeedFilter("all")}
+              >
+                <Home className="h-4 w-4" /> All Posts
+              </Button>
+              <Button
+                variant={feedFilter === "projects" ? "secondary" : "ghost"}
+                size="sm"
+                className="flex-1 gap-2"
+                onClick={() => setFeedFilter("projects")}
+              >
+                <Code2 className="h-4 w-4" /> Projects
+              </Button>
+            </div>
+
             {/* Active filter indicator */}
             {activeHashtag && (
               <div className="flex items-center gap-2 px-1">
@@ -520,7 +540,11 @@ const Feed = () => {
             ) : (
               <Card>
                 <CardContent className="p-6 text-center text-muted-foreground">
-                  {activeHashtag ? `No posts with #${activeHashtag} yet.` : "No posts yet. Be the first to share something!"}
+                  {feedFilter === "projects"
+                    ? "No project posts yet. Share a project from your profile's Projects tab."
+                    : activeHashtag
+                      ? `No posts with #${activeHashtag} yet.`
+                      : "No posts yet. Be the first to share something!"}
                 </CardContent>
               </Card>
             )}
