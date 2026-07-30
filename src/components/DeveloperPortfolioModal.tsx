@@ -22,6 +22,7 @@ import {
   resolveResumeUrl, getStoredFileName,
 } from "@/lib/portfolio-validation";
 import { downloadResume, resumeErrorMessage, fileToDataUri } from "@/lib/resume-file";
+import { ResumePreviewModal } from "./ResumePreviewModal";
 
 
 
