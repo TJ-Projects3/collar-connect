@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BadgeCheck, Clock, ExternalLink, Github, Pencil, Share2, Trash2, Code2 } from "lucide-react";
 import type { StudentProject } from "@/hooks/useStudentProjects";
+import type { Endorsement } from "@/hooks/useEndorsements";
+import { EndorsementCard } from "@/components/endorsements/EndorsementBadges";
 
 interface ProjectCardProps {
   project: StudentProject;
@@ -11,6 +13,7 @@ interface ProjectCardProps {
   onDelete?: (project: StudentProject) => void;
   onShare?: (project: StudentProject) => void;
   sharing?: boolean;
+  endorsements?: Endorsement[];
 }
 
 export const AchievementBadge = ({
@@ -40,6 +43,7 @@ export const ProjectCard = ({
   onDelete,
   onShare,
   sharing,
+  endorsements = [],
 }: ProjectCardProps) => {
   const tech = project.tech_stack || [];
 
@@ -73,6 +77,14 @@ export const ProjectCard = ({
             </p>
           )}
         </div>
+
+        {endorsements.length > 0 && (
+          <div className="space-y-2">
+            {endorsements.map((e) => (
+              <EndorsementCard key={e.id} endorsement={e} />
+            ))}
+          </div>
+        )}
 
         {tech.length > 0 && (
           <div className="flex flex-wrap gap-1">

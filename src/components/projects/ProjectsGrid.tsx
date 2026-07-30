@@ -12,6 +12,7 @@ import {
   useStudentProjects, useDeleteProject, useShareProjectToFeed,
   type StudentProject,
 } from "@/hooks/useStudentProjects";
+import { useStudentEndorsements } from "@/hooks/useEndorsements";
 
 interface Props {
   userId: string | null | undefined;
@@ -22,6 +23,7 @@ export const ProjectsGrid = ({ userId, isOwnProfile }: Props) => {
   const { data: projects = [], isLoading } = useStudentProjects(userId);
   const deleteProject = useDeleteProject();
   const shareProject = useShareProjectToFeed();
+  const { data: endorsements = [] } = useStudentEndorsements(userId);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<StudentProject | null>(null);
@@ -83,6 +85,7 @@ export const ProjectsGrid = ({ userId, isOwnProfile }: Props) => {
               key={p.id}
               project={p}
               isOwner={isOwnProfile}
+              endorsements={endorsements.filter((e) => e.project_id === p.id)}
               sharing={shareProject.isPending}
               onEdit={(proj) => {
                 setEditing(proj);

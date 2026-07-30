@@ -969,6 +969,47 @@ export type Database = {
         }
         Relationships: []
       }
+      student_endorsements: {
+        Row: {
+          badge_title: string
+          created_at: string
+          description: string | null
+          id: string
+          issued_by: string | null
+          project_id: string | null
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          badge_title: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          issued_by?: string | null
+          project_id?: string | null
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          badge_title?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          issued_by?: string | null
+          project_id?: string | null
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_endorsements_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "student_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_projects: {
         Row: {
           achievement_label: string | null

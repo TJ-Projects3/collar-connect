@@ -71,7 +71,9 @@ const Talent = () => {
 
   if (!canAccess) return <Navigate to="/feed" replace />;
 
-  const activeChips: { key: keyof Omit<TalentFilterState, "search">; value: string; label: string }[] = [
+  type ChipKey = "techStack" | "gradYears" | "universities" | "availability";
+
+  const activeChips: { key: ChipKey; value: string; label: string }[] = [
     ...filters.techStack.map((v) => ({ key: "techStack" as const, value: v, label: v })),
     ...filters.gradYears.map((v) => ({ key: "gradYears" as const, value: v, label: `Class of ${v}` })),
     ...filters.universities.map((v) => ({ key: "universities" as const, value: v, label: v })),
@@ -82,7 +84,7 @@ const Talent = () => {
     })),
   ];
 
-  const removeChip = (key: keyof Omit<TalentFilterState, "search">, value: string) =>
+  const removeChip = (key: ChipKey, value: string) =>
     setFilters({ ...filters, [key]: filters[key].filter((v) => v !== value) });
 
   const filterPanel = (

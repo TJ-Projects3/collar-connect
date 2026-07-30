@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectsGrid } from "@/components/projects/ProjectsGrid";
+import { EndorsementsSection, EndorsementPill } from "@/components/endorsements/EndorsementBadges";
+import { useStudentEndorsements } from "@/hooks/useEndorsements";
+import { useStudentProjects } from "@/hooks/useStudentProjects";
 import { 
   Mail, MapPin, Link as LinkIcon, Briefcase, Calendar,
   ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus, Code2
@@ -39,6 +42,9 @@ const Profile = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const viewedUserId = searchParams.get("userId") || user?.id || null;
+  const { data: endorsements = [] } = useStudentEndorsements(viewedUserId);
+  const { data: viewedProjects = [] } = useStudentProjects(viewedUserId);
+  const projectTitles = Object.fromEntries(viewedProjects.map((p) => [p.id, p.title]));
 
   // Fetch profile for viewed user (fallback to current user)
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -321,6 +327,9 @@ const Profile = () => {
                       {profile?.profile_type === "recruiter" && (
                         <RecruiterBadge verified={profile?.is_verified_recruiter} />
                       )}
+                      {endorsements.slice(0, 2).map((e) => (
+                        <EndorsementPill key={e.id} title={e.badge_title} />
+                      ))}
                     </h1>
                     <p className="text-base sm:text-xl text-muted-foreground">
                       {getProfileSubline(profile, "Welcome to NextGenCollar!")}
@@ -399,6 +408,8 @@ const Profile = () => {
                     </span>
                   )}
                 </div>
+
+                <EndorsementsSection endorsements={endorsements} projectTitles={projectTitles} />
               </CardContent>
             </Card>
 
