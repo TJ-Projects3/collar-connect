@@ -278,7 +278,9 @@ const Feed = () => {
         <CardContent className="px-6 pb-3 md:px-8">
           <div className="text-foreground text-[15px]">{renderPostContent(post.content)}</div>
 
-          {(post as any).media_url && (
+          {(post as any).project && <FeedProjectEmbed project={(post as any).project} />}
+
+          {!(post as any).project && (post as any).media_url && (
             <a
               href={(post as any).media_url}
               target="_blank"
