@@ -1,30 +1,29 @@
-# Profile Header Polish
+# Robust Resume URL Resolution
 
-## 1. Fix the role duplication
-Currently the recruiter role appears twice: as a pill beside the name (`RecruiterBadge` → "Hiring Recruiter") and again as the subtitle, because `getProfileSubline` falls back to the string "Hiring Recruiter" when a recruiter has no company title/name.
+## Verified current state
+- `resumes` bucket exists and is public.
+- `storage.objects` has a SELECT policy `Public Access to Resumes` scoped to `bucket_id = 'resumes'` for `public` (anon + authenticated), plus per-user INSERT/DELETE policies keyed to the user's folder. Read access is already correct — no migration needed.
+- The single existing `profiles.resume_url` value is a full public HTTPS URL, and the corresponding object exists in storage (`application/pdf`, ~88 KB).
+- Resume links render in exactly one place: the "View Resume" button in `src/components/DeveloperPortfolioCard.tsx`, plus the "View file" style link inside `src/components/DeveloperPortfolioModal.tsx`. Both use `profile.resume_url` verbatim, so any value stored as a bare storage path (`<uid>/resume-123.pdf`) or a partial `/storage/v1/...` path would 404.
 
-Changes:
-- In `src/lib/profile-display.ts`, stop returning "Hiring Recruiter" as a recruiter fallback. Return the company title/company when present, otherwise an empty string so no redundant subtitle renders.
-- Name line keeps only the identity badge (verified status), not the job description.
-- Headline hierarchy below the name:
-  1. Role/headline line (e.g. "Talent Partner @ Capital One", or "Computer Science · Georgia Tech" for students) in a slightly larger, normal-weight foreground-muted style.
-  2. Location / website row.
-  3. Connection count link.
-- Render the subtitle line only when non-empty, so spacing doesn't collapse into an empty gap.
+## What to build
 
-## 2. Sleek verified/achievement pills
-- Rework `src/components/RecruiterBadge.tsx` into a shared pill style: rounded-full, high-contrast token-based colors, `BadgeCheck` icon, tight tracking, `text-[11px]`, no all-caps shouting. Verified state uses solid primary/secondary token fill with its `-foreground` text; unverified uses a subtle outline variant labelled "Recruiter".
-- Match `EndorsementPill` in `src/components/endorsements/EndorsementBadges.tsx` to the same geometry (same radius, padding, icon size, font size) so recruiter + achievement pills sit on one visually consistent row. Keep the gold accent for endorsements but move the hardcoded gold into a semantic token (`--achievement` / `--achievement-foreground`) in `index.css` + `tailwind.config.ts` instead of inline hex/hsl styles.
-- Pills move onto their own wrap-friendly row under the name rather than inside the `h1`, which also fixes awkward line-height when the name wraps on mobile.
+### 1. Shared resolver helper
+Add `resolveStorageUrl` (in `src/lib/portfolio-validation.ts`, which already holds resume helpers) that takes a stored value and a bucket name and returns a usable HTTPS URL:
+- If the value already starts with `http://`/`https://`, return it unchanged.
+- If it contains `/storage/v1/object/public/<bucket>/`, extract the object path and re-derive the URL via `supabase.storage.from(bucket).getPublicUrl(path)` so the URL always matches the current project host.
+- Otherwise treat the value as an object path (stripping a leading `/` and a leading `<bucket>/` prefix if present) and return `getPublicUrl(path)`.
+- Also export a `resolveResumeUrl(value)` convenience wrapper bound to the `resumes` bucket.
 
-## 3. Alignment, spacing, typography
-In `src/pages/Profile.tsx` header block:
-- Avatar/name/action column: keep avatar overlapping the banner, but align the name block and action buttons on a consistent baseline; on mobile the action buttons stack full-width instead of squeezing beside the name.
-- Normalize the type scale: name `text-2xl sm:text-3xl` (down from `4xl`, which overpowers the card on desktop), headline `text-sm sm:text-base`, meta row `text-sm`.
-- Consistent vertical rhythm via a single `space-y` on the info column instead of mixed `mt-*` values; badges row gets `gap-2 flex-wrap`.
-- Ensure long names/company strings wrap with `break-words` and don't push the action buttons off-screen at narrow widths.
+### 2. Use it at both view points
+- `DeveloperPortfolioCard.tsx`: resolve the URL for the "View Resume" anchor, keeping `target="_blank" rel="noopener noreferrer"` so the PDF opens cleanly in a new tab.
+- `DeveloperPortfolioModal.tsx`: resolve the URL for the existing uploaded-file view link, and derive the displayed filename from the object path rather than the whole URL.
+- Guard against an unresolvable/empty value by not rendering the button, so no dead link is shown.
+
+### 3. Filename display
+Keep showing a readable filename (last path segment, URL-decoded) while linking to the resolved URL.
 
 ## Technical notes
-Files touched: `src/pages/Profile.tsx`, `src/lib/profile-display.ts`, `src/components/RecruiterBadge.tsx`, `src/components/endorsements/EndorsementBadges.tsx`, `src/index.css`, `tailwind.config.ts`. No database or data-fetching changes. `getProfileSubline` is also used elsewhere (Feed, Talent, Navbar); returning an empty string for company-less recruiters is safe there since those call sites pass their own fallback, and I'll verify each call site renders correctly with an empty value.
+Files touched: `src/lib/portfolio-validation.ts`, `src/components/DeveloperPortfolioCard.tsx`, `src/components/DeveloperPortfolioModal.tsx`. No database migration and no storage-policy change — read access is already verified working. Upload logic stays as-is (it stores a full public URL); the resolver just makes viewing tolerant of both formats, including any rows written by earlier or future code paths that save a bare path.
 
-Verification: check the profile header rendered at desktop and mobile widths for an admin/recruiter account and a student account with endorsements.
+Verification: typecheck, then confirm the resolved URL for the existing resume object returns a 200 PDF response.

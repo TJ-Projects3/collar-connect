@@ -19,7 +19,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   portfolioSchema, type PortfolioFormData, type FeaturedProject,
   normalizeGithubUrl, normalizeUrl, validateResumeFile,
+  resolveResumeUrl, getStoredFileName,
 } from "@/lib/portfolio-validation";
+
 
 interface Props {
   open: boolean;
@@ -67,7 +69,8 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
       featured_projects: [],
     });
     setResumeUrl(profile.resume_url ?? null);
-    setResumeName(profile.resume_url ? decodeURIComponent(profile.resume_url.split("/").pop() ?? "resume") : null);
+    setResumeName(profile.resume_url ? getStoredFileName(profile.resume_url) : null);
+
   }, [open, profile, form]);
 
   const handleFile = async (file: File) => {
@@ -202,9 +205,15 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
                   <FileText className="h-8 w-8 text-primary flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{resumeName ?? "Resume"}</p>
-                    <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                    <a
+                      href={resolveResumeUrl(resumeUrl) ?? resumeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline"
+                    >
                       View file
                     </a>
+
                   </div>
                   <Button type="button" variant="ghost" size="icon" onClick={removeResume}>
                     <Trash2 className="h-4 w-4 text-destructive" />

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const urlOrEmpty = z
   .string()
@@ -86,3 +88,57 @@ export function validateResumeFile(file: File): string | null {
   }
   return null;
 }
+
+/**
+ * Resolve a stored value into a usable HTTPS URL for a public Supabase Storage bucket.
+ * Accepts a full URL, a `/storage/v1/object/public/<bucket>/...` path, or a bare object path.
+ */
+export function resolveStorageUrl(
+  value: string | null | undefined,
+  bucket: string
+): string | null {
+  const raw = (value ?? "").trim();
+  if (!raw) return null;
+
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const markerIdx = raw.indexOf(marker);
+
+  let path: string;
+  if (markerIdx !== -1) {
+    // Re-derive from the object path so the host always matches the current project.
+    path = raw.slice(markerIdx + marker.length);
+  } else if (/^https?:\/\//i.test(raw)) {
+    // Some other absolute URL (e.g. signed URL or external link) — use as-is.
+    return raw;
+  } else {
+    path = raw.replace(/^\/+/, "");
+    if (path.startsWith(`${bucket}/`)) path = path.slice(bucket.length + 1);
+  }
+
+  path = path.split("?")[0].replace(/^\/+/, "");
+  if (!path) return null;
+
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+  return data?.publicUrl ?? null;
+}
+
+/** Resolve a stored resume value into a viewable HTTPS URL. */
+export function resolveResumeUrl(value: string | null | undefined): string | null {
+  return resolveStorageUrl(value, "resumes");
+}
+
+/** Human-readable filename from a stored URL or object path. */
+export function getStoredFileName(
+  value: string | null | undefined,
+  fallback = "resume"
+): string {
+  const raw = (value ?? "").split("?")[0];
+  const last = raw.split("/").filter(Boolean).pop();
+  if (!last) return fallback;
+  try {
+    return decodeURIComponent(last);
+  } catch {
+    return last;
+  }
+}
+

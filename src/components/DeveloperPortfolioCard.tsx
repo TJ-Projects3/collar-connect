@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Github, Linkedin, Globe, FileText, ExternalLink, Code2, Pencil } from "lucide-react";
 import { DeveloperPortfolioModal } from "./DeveloperPortfolioModal";
+import { resolveResumeUrl } from "@/lib/portfolio-validation";
+
 
 interface Props {
   profile: any;
@@ -19,7 +21,9 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
     { url: profile?.portfolio_url, icon: Globe, label: "Portfolio" },
   ].filter((l) => !!l.url);
 
-  const hasResume = !!profile?.resume_url;
+  const resumeUrl = resolveResumeUrl(profile?.resume_url);
+  const hasResume = !!resumeUrl;
+
   const hasAnything = links.length > 0 || hasResume;
 
   if (!isOwnProfile && !hasAnything) return null;
@@ -57,11 +61,12 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
               ))}
               {hasResume && (
                 <Button size="sm" asChild className="gap-2">
-                  <a href={profile.resume_url} target="_blank" rel="noopener noreferrer">
+                  <a href={resumeUrl!} target="_blank" rel="noopener noreferrer">
                     <FileText className="h-4 w-4" /> View Resume
                   </a>
                 </Button>
               )}
+
             </div>
           )}
 
