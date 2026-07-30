@@ -19,9 +19,8 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
     { url: profile?.portfolio_url, icon: Globe, label: "Portfolio" },
   ].filter((l) => !!l.url);
 
-  const projects = Array.isArray(profile?.featured_projects) ? profile.featured_projects : [];
   const hasResume = !!profile?.resume_url;
-  const hasAnything = links.length > 0 || hasResume || projects.length > 0;
+  const hasAnything = links.length > 0 || hasResume;
 
   if (!isOwnProfile && !hasAnything) return null;
 
