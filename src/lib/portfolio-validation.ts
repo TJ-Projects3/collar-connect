@@ -135,9 +135,12 @@ export function getStoredFileName(
   value: string | null | undefined,
   fallback = "resume"
 ): string {
-  const raw = (value ?? "").split("?")[0];
+  const trimmed = (value ?? "").trim();
+  if (/^data:[^;,]+/i.test(trimmed)) return "Resume.pdf";
+  const raw = trimmed.split("?")[0];
   const last = raw.split("/").filter(Boolean).pop();
   if (!last) return fallback;
+
   try {
     return decodeURIComponent(last);
   } catch {
