@@ -361,6 +361,10 @@ const ResultsView = ({
         </CardContent>
       </Card>
 
+      {/* AI Roadmap */}
+      <RoadmapSection results={results} />
+
+
       {/* Retake */}
       <div className="text-center">
         <Button variant="outline" onClick={onRetake} disabled={isDeleting} className="gap-2">
