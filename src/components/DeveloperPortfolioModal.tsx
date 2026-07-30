@@ -226,20 +226,20 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
-                        onClick={() => runResumeAction("view")}
+                        onClick={() => setPreviewOpen(true)}
                         className="text-xs text-primary hover:underline disabled:opacity-60"
-                        disabled={resumeBusy !== null}
                       >
-                        {resumeBusy === "view" ? "Opening…" : "View file"}
+                        View file
                       </button>
                       <button
                         type="button"
-                        onClick={() => runResumeAction("download")}
+                        onClick={handleResumeDownload}
                         className="text-xs text-primary hover:underline disabled:opacity-60"
                         disabled={resumeBusy !== null}
                       >
                         {resumeBusy === "download" ? "Downloading…" : "Download"}
                       </button>
+
                     </div>
 
                   </div>
