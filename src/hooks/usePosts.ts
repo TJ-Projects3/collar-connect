@@ -15,6 +15,17 @@ export const usePosts = () => {
             job_title,
             company,
             avatar_url
+          ),
+          project:project_id (
+            id,
+            title,
+            description,
+            cover_image_url,
+            tech_stack,
+            repo_url,
+            live_url,
+            achievement_label,
+            achievement_verified
           )
         `)
         .order("created_at", { ascending: false });
