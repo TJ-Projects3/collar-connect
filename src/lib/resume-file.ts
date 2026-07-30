@@ -78,13 +78,13 @@ export function getResumeStoragePath(value: string | null | undefined): string |
  */
 export async function fetchResumeBlobUrl(
   value: string | null | undefined
-): Promise<{ blobUrl: string; fileName: string }> {
+): Promise<{ blobUrl: string; fileName: string; blob: Blob }> {
   const raw = (value ?? "").trim();
 
   if (isResumeDataUri(raw)) {
     const blob = dataUriToBlob(raw);
     const ext = blob.type === "application/pdf" ? "pdf" : "pdf";
-    return { blobUrl: URL.createObjectURL(blob), fileName: `Resume.${ext}` };
+    return { blobUrl: URL.createObjectURL(blob), fileName: `Resume.${ext}`, blob };
   }
 
   const path = getResumeStoragePath(raw);
@@ -95,7 +95,7 @@ export async function fetchResumeBlobUrl(
 
   const fileName = path.split("/").filter(Boolean).pop() || "Resume.pdf";
   const blob = data.type ? data : new Blob([data], { type: "application/pdf" });
-  return { blobUrl: URL.createObjectURL(blob), fileName };
+  return { blobUrl: URL.createObjectURL(blob), fileName, blob };
 }
 
 /** Revokes a blob URL after the browser has had time to consume it. */
@@ -137,4 +137,17 @@ export function resumeErrorMessage(e: unknown): string {
     return "The request was blocked — this is usually an ad blocker or privacy extension. Please pause it for this site and try again.";
   }
   return msg;
+}
+
+/** Human-readable byte size, e.g. "1.4 MB". */
+export function formatFileSize(bytes: number): string {
+  if (!bytes || bytes < 0) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  let value = bytes;
+  let i = 0;
+  while (value >= 1024 && i < units.length - 1) {
+    value /= 1024;
+    i++;
+  }
+  return `${value >= 10 || i === 0 ? Math.round(value) : value.toFixed(1)} ${units[i]}`;
 }
