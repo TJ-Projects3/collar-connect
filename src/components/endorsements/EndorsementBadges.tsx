@@ -1,16 +1,13 @@
 import { BadgeCheck, Award } from "lucide-react";
 import type { Endorsement } from "@/hooks/useEndorsements";
 
-const gold = "hsl(43 96% 50%)";
-
 /** Compact gold pill — used in headers and on project cards. */
 export const EndorsementPill = ({ title }: { title: string }) => (
   <span
-    className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold shadow-sm"
-    style={{ backgroundColor: gold, color: "hsl(30 60% 15%)" }}
+    className="inline-flex items-center gap-1.5 rounded-full bg-achievement text-achievement-foreground px-2.5 py-1 text-[11px] font-semibold leading-none tracking-tight shadow-sm"
     title="Official NextGen endorsement"
   >
-    <BadgeCheck className="h-3 w-3" />
+    <BadgeCheck className="h-3.5 w-3.5 flex-shrink-0" />
     {title}
   </span>
 );
@@ -23,16 +20,9 @@ export const EndorsementCard = ({
   endorsement: Endorsement;
   projectTitle?: string | null;
 }) => (
-  <div
-    className="rounded-xl border p-4 space-y-2"
-    style={{
-      borderColor: "hsl(43 96% 50% / 0.5)",
-      background:
-        "linear-gradient(135deg, hsl(43 96% 50% / 0.14), hsl(43 96% 50% / 0.04))",
-    }}
-  >
+  <div className="rounded-xl border border-achievement/50 bg-gradient-to-br from-achievement/15 to-achievement/5 p-4 space-y-2">
     <div className="flex items-start gap-2">
-      <Award className="h-5 w-5 flex-shrink-0" style={{ color: gold }} />
+      <Award className="h-5 w-5 flex-shrink-0 text-achievement" />
       <div className="min-w-0 space-y-1">
         <p className="font-semibold leading-snug break-words">{endorsement.badge_title}</p>
         <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -50,6 +40,7 @@ export const EndorsementCard = ({
     )}
   </div>
 );
+
 
 /** Section shown on the profile: gold badge cards for every endorsement. */
 export const EndorsementsSection = ({
