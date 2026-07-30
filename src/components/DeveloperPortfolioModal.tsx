@@ -48,6 +48,25 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
   const [dragActive, setDragActive] = useState(false);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeName, setResumeName] = useState<string | null>(null);
+  const [resumeBusy, setResumeBusy] = useState<null | "view" | "download">(null);
+
+  const runResumeAction = async (mode: "view" | "download") => {
+    setResumeBusy(mode);
+    try {
+      if (mode === "view") await openResumeInNewTab(resumeUrl);
+      else await downloadResume(resumeUrl);
+    } catch (e) {
+      toast({
+        title: mode === "view" ? "Couldn't open the resume" : "Couldn't download the resume",
+        description: resumeErrorMessage(e),
+        variant: "destructive",
+      });
+    } finally {
+      setResumeBusy(null);
+    }
+  };
+
+
 
   const form = useForm<PortfolioFormData>({
     resolver: zodResolver(portfolioSchema),
