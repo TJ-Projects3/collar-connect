@@ -339,8 +339,8 @@ const Profile = () => {
                         {profile?.profile_type === "recruiter" && (
                           <RecruiterBadge
                             size="lg"
-                            verified={profile?.is_verified_recruiter}
-                            company={profile?.company_name}
+                            verified
+                            company={profile?.company_name?.trim() || "NextGen Collar"}
                           />
                         )}
                         {endorsements.slice(0, 2).map((e) => (
