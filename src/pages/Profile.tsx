@@ -5,9 +5,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProjectsGrid } from "@/components/projects/ProjectsGrid";
 import { 
   Mail, MapPin, Link as LinkIcon, Briefcase, Calendar,
-  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus
+  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus, Code2
 } from "lucide-react";
 import { ProfileButton } from "@/components/ProfileButton";
 import { ReplyModal } from "@/components/ReplyModal";
