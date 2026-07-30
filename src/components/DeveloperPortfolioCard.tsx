@@ -81,12 +81,37 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
                 </Button>
               ))}
               {hasResume && (
-                <Button size="sm" asChild className="gap-2">
-                  <a href={resumeUrl!} target="_blank" rel="noopener noreferrer">
-                    <FileText className="h-4 w-4" /> View Resume
-                  </a>
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    className="gap-2"
+                    disabled={busy !== null}
+                    onClick={() => runResumeAction("view")}
+                  >
+                    {busy === "view" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileText className="h-4 w-4" />
+                    )}
+                    View Resume
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-2"
+                    disabled={busy !== null}
+                    onClick={() => runResumeAction("download")}
+                  >
+                    {busy === "download" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    Download Resume
+                  </Button>
+                </>
               )}
+
 
             </div>
           )}
