@@ -87,14 +87,9 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
                   <Button
                     size="sm"
                     className="gap-2"
-                    disabled={busy !== null}
-                    onClick={() => runResumeAction("view")}
+                    onClick={() => setPreviewOpen(true)}
                   >
-                    {busy === "view" ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <FileText className="h-4 w-4" />
-                    )}
+                    <FileText className="h-4 w-4" />
                     View Resume
                   </Button>
                   <Button
@@ -102,7 +97,7 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
                     variant="outline"
                     className="gap-2"
                     disabled={busy !== null}
-                    onClick={() => runResumeAction("download")}
+                    onClick={handleDownload}
                   >
                     {busy === "download" ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -121,9 +116,17 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
         </CardContent>
       </Card>
 
+      <ResumePreviewModal
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        value={profile?.resume_url}
+        title={getStoredFileName(profile?.resume_url, "Resume")}
+      />
+
       {isOwnProfile && (
         <DeveloperPortfolioModal open={open} onOpenChange={setOpen} profile={profile} />
       )}
+
     </>
   );
 };
