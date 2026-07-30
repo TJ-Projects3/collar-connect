@@ -2,13 +2,56 @@ import { supabase } from "@/integrations/supabase/client";
 
 const BUCKET = "resumes";
 
+/** True when the stored value is a self-contained Base64 Data URI. */
+export function isResumeDataUri(value: string | null | undefined): boolean {
+  return /^data:[^;,]+/i.test((value ?? "").trim());
+}
+
+/** Decode a Base64 Data URI into a Blob entirely on the client (no network). */
+export function dataUriToBlob(dataUri: string): Blob {
+  const raw = dataUri.trim();
+  const commaIdx = raw.indexOf(",");
+  if (commaIdx === -1) throw new Error("This resume file is corrupted.");
+
+  const header = raw.slice(5, commaIdx); // strip "data:"
+  const payload = raw.slice(commaIdx + 1);
+  const isBase64 = /;base64$/i.test(header) || /;base64;/i.test(header);
+  const mime = header.split(";")[0] || "application/pdf";
+
+  if (!isBase64) {
+    return new Blob([decodeURIComponent(payload)], { type: mime });
+  }
+
+  const binary = atob(payload);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+/** Read a File as a Base64 Data URI string. */
+export function fileToDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Could not read that file. Please try again."));
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") {
+        reject(new Error("Could not read that file. Please try again."));
+        return;
+      }
+      resolve(result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 /**
  * Extracts the object path inside the `resumes` bucket from either a full
  * public URL or an already-bare storage path.
  */
 export function getResumeStoragePath(value: string | null | undefined): string | null {
   const raw = (value ?? "").trim();
-  if (!raw) return null;
+  if (!raw || isResumeDataUri(raw)) return null;
 
   const marker = `/storage/v1/object/public/${BUCKET}/`;
   const idx = raw.indexOf(marker);
@@ -29,21 +72,28 @@ export function getResumeStoragePath(value: string | null | undefined): string |
 }
 
 /**
- * Downloads the resume as a Blob through the Supabase client and returns a
- * local object URL. Blob URLs are same-origin, so ad blockers and privacy
- * extensions that block third-party *.supabase.co requests in the address bar
- * can't interfere with opening/downloading the file.
+ * Returns a same-origin blob URL for the resume.
+ * Data URIs are decoded locally (zero network requests); legacy storage values
+ * still fall back to downloading through the Supabase client.
  */
 export async function fetchResumeBlobUrl(
   value: string | null | undefined
 ): Promise<{ blobUrl: string; fileName: string }> {
-  const path = getResumeStoragePath(value);
+  const raw = (value ?? "").trim();
+
+  if (isResumeDataUri(raw)) {
+    const blob = dataUriToBlob(raw);
+    const ext = blob.type === "application/pdf" ? "pdf" : "pdf";
+    return { blobUrl: URL.createObjectURL(blob), fileName: `Resume.${ext}` };
+  }
+
+  const path = getResumeStoragePath(raw);
   if (!path) throw new Error("This resume link is not a stored file.");
 
   const { data, error } = await supabase.storage.from(BUCKET).download(path);
   if (error || !data) throw error ?? new Error("Could not download the resume.");
 
-  const fileName = path.split("/").filter(Boolean).pop() || "resume.pdf";
+  const fileName = path.split("/").filter(Boolean).pop() || "Resume.pdf";
   const blob = data.type ? data : new Blob([data], { type: "application/pdf" });
   return { blobUrl: URL.createObjectURL(blob), fileName };
 }
