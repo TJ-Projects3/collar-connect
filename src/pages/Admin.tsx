@@ -64,7 +64,7 @@ const Admin = () => {
       {/* Main Content */}
       <main className="container py-8">
         <Tabs defaultValue="jobs" className="space-y-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-4">
+          <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="jobs" className="flex items-center gap-2">
               <Briefcase className="h-4 w-4" />
               <span className="hidden sm:inline">Jobs</span>
@@ -80,6 +80,10 @@ const Admin = () => {
             <TabsTrigger value="events" className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
               <span className="hidden sm:inline">Events</span>
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="flex items-center gap-2">
+              <Award className="h-4 w-4" />
+              <span className="hidden sm:inline">Achievements</span>
             </TabsTrigger>
           </TabsList>
 
@@ -97,6 +101,10 @@ const Admin = () => {
 
           <TabsContent value="events">
             <EventsTab />
+          </TabsContent>
+
+          <TabsContent value="achievements">
+            <ProjectAchievementsTab />
           </TabsContent>
         </Tabs>
       </main>
