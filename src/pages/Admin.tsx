@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield, Briefcase } from "lucide-react";
+import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield, Briefcase, Award } from "lucide-react";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +10,7 @@ import { ResourcesTab } from "@/components/admin/ResourcesTab";
 import { PostsTab } from "@/components/admin/PostsTab";
 import { EventsTab } from "@/components/admin/EventsTab";
 import { JobsTab } from "@/components/admin/JobsTab";
+import { ProjectAchievementsTab } from "@/components/admin/ProjectAchievementsTab";
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();
