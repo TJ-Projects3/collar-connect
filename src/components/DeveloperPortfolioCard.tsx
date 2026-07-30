@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Github, Linkedin, Globe, FileText, ExternalLink, Code2, Pencil } from "lucide-react";
+import { Github, Linkedin, Globe, FileText, ExternalLink, Code2, Pencil, Download, Loader2 } from "lucide-react";
 import { DeveloperPortfolioModal } from "./DeveloperPortfolioModal";
 import { resolveResumeUrl } from "@/lib/portfolio-validation";
+import { openResumeInNewTab, downloadResume, resumeErrorMessage } from "@/lib/resume-file";
+import { useToast } from "@/hooks/use-toast";
 
 
 interface Props {
@@ -14,6 +16,8 @@ interface Props {
 
 export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState<null | "view" | "download">(null);
+  const { toast } = useToast();
 
   const links = [
     { url: profile?.github_url, icon: Github, label: "GitHub" },
@@ -24,9 +28,26 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
   const resumeUrl = resolveResumeUrl(profile?.resume_url);
   const hasResume = !!resumeUrl;
 
+  const runResumeAction = async (mode: "view" | "download") => {
+    setBusy(mode);
+    try {
+      if (mode === "view") await openResumeInNewTab(profile?.resume_url);
+      else await downloadResume(profile?.resume_url);
+    } catch (e) {
+      toast({
+        title: mode === "view" ? "Couldn't open the resume" : "Couldn't download the resume",
+        description: resumeErrorMessage(e),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const hasAnything = links.length > 0 || hasResume;
 
   if (!isOwnProfile && !hasAnything) return null;
+
 
   return (
     <>
