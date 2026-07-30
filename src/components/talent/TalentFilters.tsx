@@ -84,7 +84,10 @@ const CheckboxList = ({
 };
 
 export const TalentFilters = ({ filters, options, onChange, onClear }: TalentFiltersProps) => {
-  const toggle = (key: keyof Omit<TalentFilterState, "search">, value: string) => {
+  const toggle = (
+    key: "techStack" | "gradYears" | "universities" | "availability",
+    value: string
+  ) => {
     const current = filters[key];
     onChange({
       ...filters,
