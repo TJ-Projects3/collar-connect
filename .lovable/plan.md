@@ -1,25 +1,50 @@
-## Fix spacebar page-scroll on comment inputs
+## Student Project Showcase
 
-### Current state (verified)
-- `src/components/CommentInput.tsx` already calls `e.stopPropagation()` for Space on keydown (lines 49–60). Good.
-- `src/components/CommentSection.tsx` **does not exist** in this project — the equivalent nested-reply input lives in `src/components/InlineReplies.tsx` (a `Textarea` at line 133) and has **no** keydown handler.
-- `src/pages/Feed.tsx` has one `Textarea` (line 442), but it is `readOnly` and only opens the CreatePostModal on focus — it can't receive typed input, so it isn't the culprit.
-- `src/components/ReplyModal.tsx` also contains a `Textarea` (line 216) with no keydown handler. Since it lives in a modal it's a lower-risk source, but for consistency we should cover it too.
+### 1. Database (one migration)
 
-The user's reported symptom (space scrolls the page while typing a comment) most plausibly comes from the nested-reply `Textarea` in `InlineReplies.tsx`, which currently has no space-stopPropagation guard.
+New table `public.student_projects`:
+- `user_id`, `title`, `description`, `cover_image_url`, `tech_stack text[]`, `repo_url`, `live_url`
+- `achievement_label` (student-entered, e.g. "Hackathon Winner"), `achievement_verified boolean default false`, `verified_by`, `verified_at`
+- `shared_post_id` (links to the feed post created on cross-post), `display_order`, `created_at`, `updated_at` (+ update trigger)
 
-### Changes
+Access rules:
+- Anyone signed in can view projects; only the owner can create, edit, or delete their own.
+- Only admins/moderators (via existing `has_role`) can set the verified flag — enforced with a trigger that reverts `achievement_verified` changes from non-admins (same pattern as `protect_verified_recruiter`).
+- GRANTs for `authenticated` and `service_role`.
 
-1. **`src/components/InlineReplies.tsx`** — add an `onKeyDown` handler to the nested-reply `Textarea` that calls `e.stopPropagation()` when the key is `" "` (Space). Keep existing behavior otherwise (no Enter-to-submit change, since replies here are multi-line).
+New `posts` column `project_id` (nullable, references `student_projects`) so the feed can identify and filter project posts.
 
-2. **`src/components/ReplyModal.tsx`** — add the same Space `stopPropagation` guard to its `Textarea` for consistency, so the fix covers every comment/reply input surface.
+Data migration: copy each profile's existing `featured_projects` JSON entries into `student_projects` so nothing is lost.
 
-3. **`src/components/CommentInput.tsx`** — no code change needed (already implements the guard), but re-verify the handler still fires after the edits.
+Cover images reuse the existing public `content-images` bucket.
 
-### Out of scope
-- The `Feed.tsx` top-of-feed `Textarea` is read-only and won't be modified.
-- No business-logic or styling changes; this is a pure keydown-handler addition.
+### 2. Profile page — Projects tab
 
-### Verification
-- After edits, load `/feed`, type a comment containing spaces in (a) a top-level `CommentInput`, (b) an inline nested reply, and (c) the ReplyModal — page should not scroll.
-- Confirm `bun run build` still passes.
+- Wrap the Profile body sections in tabs: **Overview** (current About / Portfolio / Experience content) and **Projects**.
+- Projects tab renders a responsive grid (1 / 2 / 3 columns) of project cards showing: cover image (16:9, placeholder gradient when absent), title, clamped description, tech-stack badges, GitHub and Live Demo icon links, and a "Verified Achievement" badge when `achievement_verified` is true (muted, unverified style when a label exists but isn't verified yet).
+- Owner-only controls on each card: edit, delete (with confirm), and "Share to feed".
+- Empty states differ for own profile ("Add your first project") vs. visitors.
+- The Developer Portfolio card keeps links + resume; its projects grid is removed and its modal loses the projects field array (projects now live in the new tab).
+
+### 3. Add / Edit Project modal
+
+React Hook Form + Zod, matching existing modal patterns:
+- Title required (max 100), description max 500, tech stack as add/remove chips (max 15), repo/live URLs validated as http(s), achievement label optional (max 60).
+- Cover image upload with type/size validation (jpg/png/webp, 5MB), preview, and remove.
+- "Also share to the Community Feed" checkbox — when checked, creates a post whose content is the project title + description and stores its id in `shared_post_id`.
+- Space-key `onKeyDownCapture` guards on all inputs, per existing convention.
+
+### 4. Feed — Projects filter
+
+- Add a segmented toggle above the feed: **All** / **Projects** (sits alongside the existing hashtag filter chip).
+- "Projects" shows only posts with a non-null `project_id`.
+- Project posts render a compact embedded project card (cover, title, tech tags, repo/demo links, verified badge) above the normal post text, and keep full like/comment/reaction behavior so peers and recruiters can give feedback.
+
+### 5. Admin verification
+
+Add a small "Project Achievements" section to the Admin page listing projects that have an `achievement_label` but aren't verified, with Verify / Unverify actions.
+
+### Technical notes
+- New files: `src/hooks/useStudentProjects.ts`, `src/components/projects/ProjectCard.tsx`, `ProjectFormModal.tsx`, `ProjectsGrid.tsx`, `FeedProjectEmbed.tsx`, `src/lib/project-validation.ts`.
+- Modified: `src/pages/Profile.tsx`, `src/pages/Feed.tsx`, `src/hooks/usePosts.ts` (select `project_id` + joined project), `src/components/DeveloperPortfolioCard.tsx`, `DeveloperPortfolioModal.tsx`, `src/pages/Admin.tsx`.
+- Query keys follow `["student-projects", userId]`; mutations invalidate projects and `["posts"]`.
