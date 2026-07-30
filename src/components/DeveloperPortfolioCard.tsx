@@ -66,40 +66,6 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
             </div>
           )}
 
-          {/* Projects */}
-          {projects.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {projects.map((p: any) => (
-                <div key={p.id} className="border rounded-lg p-4 hover:border-primary/50 transition-colors">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold">{p.title}</h3>
-                    <div className="flex gap-1">
-                      {p.repo_url && (
-                        <a href={p.repo_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" aria-label="Repository">
-                          <Github className="h-4 w-4" />
-                        </a>
-                      )}
-                      {p.live_url && (
-                        <a href={p.live_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" aria-label="Live demo">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                  {p.description && (
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{p.description}</p>
-                  )}
-                  {Array.isArray(p.tech_stack) && p.tech_stack.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {p.tech_stack.map((t: string) => (
-                        <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
 
