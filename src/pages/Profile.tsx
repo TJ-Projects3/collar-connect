@@ -561,6 +561,8 @@ const Profile = () => {
                 )}
               </CardContent>
             </Card>
+              </TabsContent>
+            </Tabs>
           </main>
 
           {/* Right Sidebar */}
