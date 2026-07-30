@@ -21,6 +21,8 @@ import {
   normalizeGithubUrl, normalizeUrl, validateResumeFile,
   resolveResumeUrl, getStoredFileName,
 } from "@/lib/portfolio-validation";
+import { openResumeInNewTab, downloadResume, resumeErrorMessage } from "@/lib/resume-file";
+
 
 
 interface Props {
