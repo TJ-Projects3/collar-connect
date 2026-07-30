@@ -320,25 +320,35 @@ const Profile = () => {
                 </div>
 
                 {/* Name and actions below the banner */}
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                  <div className="space-y-1.5">
-                    <h1 className="text-2xl sm:text-4xl font-bold flex items-center gap-3 flex-wrap">
-                      <span>{profile?.full_name || "Your Name"}</span>
-                      {profile?.profile_type === "recruiter" && (
-                        <RecruiterBadge verified={profile?.is_verified_recruiter} />
-                      )}
-                      {endorsements.slice(0, 2).map((e) => (
-                        <EndorsementPill key={e.id} title={e.badge_title} />
-                      ))}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6">
+                  <div className="min-w-0 space-y-2">
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight break-words">
+                      {profile?.full_name || "Your Name"}
                     </h1>
-                    <p className="text-base sm:text-xl text-muted-foreground">
-                      {getProfileSubline(profile, "Welcome to NextGenCollar!")}
-                    </p>
+
+                    {(profile?.profile_type === "recruiter" || endorsements.length > 0) && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        {profile?.profile_type === "recruiter" && (
+                          <RecruiterBadge verified={profile?.is_verified_recruiter} />
+                        )}
+                        {endorsements.slice(0, 2).map((e) => (
+                          <EndorsementPill key={e.id} title={e.badge_title} />
+                        ))}
+                      </div>
+                    )}
+
+                    {getProfileSubline(profile, isOwnProfile ? "Welcome to NextGenCollar!" : "") && (
+                      <p className="text-sm sm:text-base text-muted-foreground break-words">
+                        {getProfileSubline(profile, isOwnProfile ? "Welcome to NextGenCollar!" : "")}
+                      </p>
+                    )}
+
                     <Link to="/my-network" className="text-sm text-primary hover:underline font-medium inline-block">
                       {connectionCount ?? 0} connection{connectionCount !== 1 ? "s" : ""}
                     </Link>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-2 sm:gap-3 sm:flex-shrink-0">
+
                     {!isOwnProfile && (
                       <>
                         {connectionStatus?.status === "accepted" ? (
