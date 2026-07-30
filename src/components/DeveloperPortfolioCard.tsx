@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Github, Linkedin, Globe, FileText, ExternalLink, Code2, Pencil } from "lucide-react";
 import { DeveloperPortfolioModal } from "./DeveloperPortfolioModal";
+import { resolveResumeUrl } from "@/lib/portfolio-validation";
+
 
 interface Props {
   profile: any;
