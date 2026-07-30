@@ -285,116 +285,11 @@ export const DeveloperPortfolioModal = ({ open, onOpenChange, profile }: Props) 
               />
             </div>
 
-            {/* Projects */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Featured Projects ({fields.length}/3)
-                </h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => append(newProject())}
-                  disabled={!canAddProject}
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Add Project
-                </Button>
-              </div>
+            <p className="text-xs text-muted-foreground">
+              Manage your project showcase from the Projects tab on your profile.
+            </p>
 
-              {fields.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-lg">
-                  No projects yet. Add up to 3 to showcase your work.
-                </p>
-              )}
 
-              {fields.map((field, index) => (
-                <div key={field.id} className="border rounded-lg p-4 space-y-3 relative">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold">Project {index + 1}</span>
-                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => remove(index)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name={`featured_projects.${index}.title`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title *</FormLabel>
-                        <FormControl><Input placeholder="Project name" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`featured_projects.${index}.description`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl><Textarea rows={2} placeholder="What does it do?" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Tech stack */}
-                  <div>
-                    <FormLabel>Tech Stack</FormLabel>
-                    <div className="flex flex-wrap gap-2 mt-2 mb-2">
-                      {(form.watch(`featured_projects.${index}.tech_stack`) ?? []).map((t) => (
-                        <Badge key={t} variant="secondary" className="gap-1">
-                          {t}
-                          <button type="button" onClick={() => removeTech(index, t)}>
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add tech and press Enter"
-                        value={techInputs[index] ?? ""}
-                        onChange={(e) => setTechInputs((s) => ({ ...s, [index]: e.target.value }))}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            addTech(index);
-                          }
-                        }}
-                      />
-                      <Button type="button" variant="outline" onClick={() => addTech(index)}>Add</Button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <FormField
-                      control={form.control}
-                      name={`featured_projects.${index}.live_url`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Live URL</FormLabel>
-                          <FormControl><Input placeholder="https://..." {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`featured_projects.${index}.repo_url`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Repo URL</FormLabel>
-                          <FormControl><Input placeholder="https://github.com/..." {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
