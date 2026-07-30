@@ -19,7 +19,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   portfolioSchema, type PortfolioFormData, type FeaturedProject,
   normalizeGithubUrl, normalizeUrl, validateResumeFile,
+  resolveResumeUrl, getStoredFileName,
 } from "@/lib/portfolio-validation";
+
 
 interface Props {
   open: boolean;
