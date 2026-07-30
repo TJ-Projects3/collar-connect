@@ -21,7 +21,7 @@ import {
   normalizeGithubUrl, normalizeUrl, validateResumeFile,
   resolveResumeUrl, getStoredFileName,
 } from "@/lib/portfolio-validation";
-import { openResumeInNewTab, downloadResume, resumeErrorMessage } from "@/lib/resume-file";
+import { downloadResume, resumeErrorMessage, fileToDataUri } from "@/lib/resume-file";
 
 
 
