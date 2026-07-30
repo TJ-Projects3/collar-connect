@@ -400,6 +400,21 @@ const Profile = () => {
               </CardContent>
             </Card>
 
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="overview" className="gap-2">
+                  <Briefcase className="h-4 w-4" /> Overview
+                </TabsTrigger>
+                <TabsTrigger value="projects" className="gap-2">
+                  <Code2 className="h-4 w-4" /> Projects
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="projects" className="mt-4">
+                <ProjectsGrid userId={viewedUserId} isOwnProfile={isOwnProfile} />
+              </TabsContent>
+
+              <TabsContent value="overview" className="mt-4 space-y-4">
             {/* About Section */}
             {profile?.bio && (
               <Card>
