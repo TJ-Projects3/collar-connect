@@ -404,20 +404,21 @@ const Profile = () => {
                 </div>
 
                 {/* Location & Website */}
-                <div className="flex flex-wrap gap-4 text-sm sm:text-base text-muted-foreground mt-4">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground mt-4">
                   {profile?.location && (
-                    <span className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="flex items-center gap-1.5 break-words">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
                       {profile.location}
                     </span>
                   )}
                   {profile?.website && (
-                    <span className="flex items-center gap-2">
-                      <LinkIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="flex items-center gap-1.5 break-all">
+                      <LinkIcon className="h-4 w-4 flex-shrink-0" />
                       {profile.website}
                     </span>
                   )}
                 </div>
+
 
                 <EndorsementsSection endorsements={endorsements} projectTitles={projectTitles} />
               </CardContent>
