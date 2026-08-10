@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
-import { Compass, Cloud, Shield, Database, Server, ArrowLeft, ArrowRight, RotateCcw, Loader2, Sparkles, CheckCircle2, Award, FolderGit2, Target, RefreshCw } from "lucide-react";
+import { Compass, Cloud, Shield, Database, Server, ArrowLeft, ArrowRight, RotateCcw, Loader2, Sparkles, CheckCircle2, Award, FolderGit2, Target, RefreshCw, Briefcase, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { useGenerateRoadmap, type CareerRoadmap } from "@/hooks/useCareerRoadmap";
 
@@ -512,6 +512,42 @@ const RoadmapSection = ({ results }: { results: CareerResults }) => {
                 </ul>
               </div>
             </div>
+
+            {/* Detailed Job Descriptions */}
+            {roadmap.jobDescriptions && roadmap.jobDescriptions.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-muted-foreground" /> Best-fit job descriptions
+                </h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {roadmap.jobDescriptions.map((job) => (
+                    <div key={job.title} className="rounded-lg border p-4 space-y-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <h5 className="font-medium text-sm">{job.title}</h5>
+                        <Badge variant="outline" className="text-[10px] shrink-0">
+                          <DollarSign className="h-3 w-3 mr-0.5" />
+                          {job.salaryRange}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{job.summary}</p>
+                      <p className="text-xs text-foreground leading-relaxed">{job.description}</p>
+                      <div className="text-xs leading-relaxed">
+                        <span className="font-medium">Why it fits:</span>{" "}
+                        <span className="text-muted-foreground">{job.whyItFits}</span>
+                      </div>
+                      <ul className="space-y-1 text-xs text-muted-foreground">
+                        {job.keyResponsibilities.map((r, idx) => (
+                          <li key={idx}>• {r}</li>
+                        ))}
+                      </ul>
+                      <p className="text-[10px] text-muted-foreground">
+                        Time to qualified: {job.timeToQualified}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
       </CardContent>

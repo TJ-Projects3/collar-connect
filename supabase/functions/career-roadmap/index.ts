@@ -22,6 +22,17 @@ const roadmapSchema = z.object({
   projects: z.array(z.object({ title: z.string(), description: z.string() })),
   certifications: z.array(z.string()),
   roles: z.array(z.string()),
+  jobDescriptions: z.array(
+    z.object({
+      title: z.string(),
+      summary: z.string(),
+      description: z.string(),
+      whyItFits: z.string(),
+      keyResponsibilities: z.array(z.string()),
+      salaryRange: z.string(),
+      timeToQualified: z.string(),
+    })
+  ).max(4),
 });
 
 Deno.serve(async (req) => {
@@ -49,7 +60,7 @@ Deno.serve(async (req) => {
       providerOptions: { lovable: { reasoningEffort: "none" } },
       system:
         "You are a senior tech career coach for early-career talent breaking into cloud, security, data, and DevOps roles. Give concrete, current, AI-era advice. Be specific: name real tools, certifications, and project ideas. Keep every string short and scannable.",
-      prompt: `Create a personalized 6-month career roadmap.
+      prompt: `Create a personalized 6-month career roadmap and recommend matching job descriptions.
 
 Primary track: ${primaryTrack}
 Secondary track: ${secondaryTrack}
@@ -63,6 +74,7 @@ Requirements:
 - projects: 3 portfolio project ideas with one-sentence descriptions.
 - certifications: 3 relevant certifications.
 - roles: 4 job titles to target.
+- jobDescriptions: For each role above, write a detailed job description (2-3 sentences), why it fits this specific candidate, 3 key responsibilities, a realistic US salary range, and an estimated time to become qualified. Calibrate ambition and salary to the readiness score and primary track.
 Calibrate ambition to the readiness score.`,
     });
 
@@ -82,3 +94,4 @@ Calibrate ambition to the readiness score.`,
     });
   }
 });
+

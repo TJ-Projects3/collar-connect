@@ -2,6 +2,16 @@ import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { CareerResults } from "@/lib/career-scoring";
 
+export interface JobDescription {
+  title: string;
+  summary: string;
+  description: string;
+  whyItFits: string;
+  keyResponsibilities: string[];
+  salaryRange: string;
+  timeToQualified: string;
+}
+
 export interface CareerRoadmap {
   summary: string;
   phases: { title: string; timeframe: string; focus: string; actions: string[] }[];
@@ -9,6 +19,7 @@ export interface CareerRoadmap {
   projects: { title: string; description: string }[];
   certifications: string[];
   roles: string[];
+  jobDescriptions: JobDescription[];
 }
 
 export const useGenerateRoadmap = () =>
@@ -40,3 +51,4 @@ export const useGenerateRoadmap = () =>
       return data as CareerRoadmap;
     },
   });
+
