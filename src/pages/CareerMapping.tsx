@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
-import { Compass, Cloud, Shield, Database, Server, ArrowLeft, ArrowRight, RotateCcw, Loader2, Sparkles, CheckCircle2, Award, FolderGit2, Target, RefreshCw } from "lucide-react";
+import { Compass, Cloud, Shield, Database, Server, ArrowLeft, ArrowRight, RotateCcw, Loader2, Sparkles, CheckCircle2, Award, FolderGit2, Target, RefreshCw, Briefcase, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { useGenerateRoadmap, type CareerRoadmap } from "@/hooks/useCareerRoadmap";
 
