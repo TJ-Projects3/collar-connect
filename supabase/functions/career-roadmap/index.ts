@@ -31,6 +31,10 @@ const roadmapSchema = z.object({
       keyResponsibilities: z.array(z.string()),
       salaryRange: z.string(),
       timeToQualified: z.string(),
+      benchmarkCompanies: z.array(z.string()),
+      benchmarkRole: z.string(),
+      benchmarkLevel: z.string(),
+      benchmarkGap: z.string(),
     })
   ).max(4),
 });
