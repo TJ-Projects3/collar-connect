@@ -111,15 +111,34 @@ All colors MUST be HSL.
 }
 
 @layer base {
+  html {
+    /* Stop iOS Safari from auto-resizing text and shifting the layout on rotate */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   html, body {
     overflow-x: hidden;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 100%;
+    /* Prevent rubber-band / scroll-chaining that makes the whole frame drift */
+    overscroll-behavior-y: none;
+  }
+  body {
+    position: relative;
+    -webkit-overflow-scrolling: touch;
   }
   /* Prevent long unbroken strings (URLs, etc.) from forcing horizontal scroll on mobile */
   p, span, h1, h2, h3, h4, h5, h6, a {
     overflow-wrap: anywhere;
   }
+  /* iOS zooms in (and visually shifts the frame) when a focused field is under 16px */
+  @media (max-width: 767px) {
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+  }
 }
+
 
 @layer utilities {
   .animate-delay-100 {
