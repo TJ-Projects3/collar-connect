@@ -31,6 +31,10 @@ const roadmapSchema = z.object({
       keyResponsibilities: z.array(z.string()),
       salaryRange: z.string(),
       timeToQualified: z.string(),
+      benchmarkCompanies: z.array(z.string()),
+      benchmarkRole: z.string(),
+      benchmarkLevel: z.string(),
+      benchmarkGap: z.string(),
     })
   ).max(4),
 });
@@ -59,8 +63,8 @@ Deno.serve(async (req) => {
       output: Output.object({ schema: roadmapSchema }),
       providerOptions: { lovable: { reasoningEffort: "none" } },
       system:
-        "You are a senior tech career coach for early-career talent breaking into cloud, security, data, and DevOps roles. Give concrete, current, AI-era advice. Be specific: name real tools, certifications, and project ideas. Keep every string short and scannable.",
-      prompt: `Create a personalized 6-month career roadmap and recommend matching job descriptions.
+        "You are a senior tech career coach for early-career talent breaking into cloud, security, data, and DevOps roles. Give concrete, current, AI-era advice. Benchmark everything against how CFAANG companies (Cloudflare/Coinbase, Facebook/Meta, Apple, Amazon, Netflix, Google, plus Microsoft, Nvidia, Stripe) actually scope and level these roles today. Be specific: name real tools, certifications, project ideas, and real company job ladders. Keep every string short and scannable.",
+      prompt: `Create a personalized 6-month career roadmap and recommend matching job descriptions, scaled off current roles at CFAANG-tier companies.
 
 Primary track: ${primaryTrack}
 Secondary track: ${secondaryTrack}
@@ -70,12 +74,16 @@ Track scores: ${JSON.stringify(trackScores)}
 Requirements:
 - summary: 2 sentences on where this person stands and what to prioritize.
 - phases: exactly 3 phases (e.g. "Days 1-30", "Months 2-3", "Months 4-6"), each with 3-4 concrete actions.
-- skills: 6 skills to build, ordered by priority.
-- projects: 3 portfolio project ideas with one-sentence descriptions.
+- skills: 6 skills to build, ordered by priority — mirror the skills CFAANG job posts currently list for these roles.
+- projects: 3 portfolio project ideas with one-sentence descriptions, scoped like real work at those companies.
 - certifications: 3 relevant certifications.
-- roles: 4 job titles to target.
-- jobDescriptions: For each role above, write a detailed job description (2-3 sentences), why it fits this specific candidate, 3 key responsibilities, a realistic US salary range, and an estimated time to become qualified. Calibrate ambition and salary to the readiness score and primary track.
-Calibrate ambition to the readiness score.`,
+- roles: 4 job titles to target, worded the way CFAANG-tier companies title them today.
+- jobDescriptions: For each role above, write a detailed job description (2-3 sentences), why it fits this specific candidate, 3 key responsibilities, a realistic US salary range, and an estimated time to become qualified. Also include:
+  - benchmarkCompanies: 2-3 real CFAANG-tier companies currently hiring this role.
+  - benchmarkRole: the equivalent real posting title at those companies (e.g. "Cloud Support Engineer I, AWS").
+  - benchmarkLevel: the level/band it maps to (e.g. "Google L3 / Meta E3 / Amazon L4").
+  - benchmarkGap: one sentence on what this candidate still needs to be competitive for that req.
+Ground salary ranges in current CFAANG total-compensation bands for that level, and calibrate ambition to the readiness score.`,
     });
 
     return new Response(JSON.stringify(output), {

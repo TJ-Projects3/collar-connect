@@ -519,6 +519,9 @@ const RoadmapSection = ({ results }: { results: CareerResults }) => {
                 <h4 className="text-sm font-semibold flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-muted-foreground" /> Best-fit job descriptions
                 </h4>
+                <p className="text-xs text-muted-foreground -mt-2">
+                  Benchmarked against current openings and levels at CFAANG-tier companies.
+                </p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {roadmap.jobDescriptions.map((job) => (
                     <div key={job.title} className="rounded-lg border p-4 space-y-2.5">
@@ -540,9 +543,46 @@ const RoadmapSection = ({ results }: { results: CareerResults }) => {
                           <li key={idx}>• {r}</li>
                         ))}
                       </ul>
+                      {(job.benchmarkCompanies?.length ||
+                        job.benchmarkRole ||
+                        job.benchmarkLevel ||
+                        job.benchmarkGap) && (
+                        <div className="rounded-md bg-muted/50 border border-border/60 p-2.5 space-y-1.5">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            CFAANG benchmark
+                          </p>
+                          {job.benchmarkCompanies && job.benchmarkCompanies.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {job.benchmarkCompanies.map((c) => (
+                                <Badge key={c} variant="secondary" className="text-[10px]">
+                                  {c}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          {job.benchmarkRole && (
+                            <p className="text-xs text-foreground leading-relaxed">
+                              <span className="font-medium">Equivalent req:</span> {job.benchmarkRole}
+                            </p>
+                          )}
+                          {job.benchmarkLevel && (
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              <span className="font-medium text-foreground">Level:</span>{" "}
+                              {job.benchmarkLevel}
+                            </p>
+                          )}
+                          {job.benchmarkGap && (
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              <span className="font-medium text-foreground">Gap to close:</span>{" "}
+                              {job.benchmarkGap}
+                            </p>
+                          )}
+                        </div>
+                      )}
                       <p className="text-[10px] text-muted-foreground">
                         Time to qualified: {job.timeToQualified}
                       </p>
+
                     </div>
                   ))}
                 </div>
