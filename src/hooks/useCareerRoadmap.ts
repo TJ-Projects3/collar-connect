@@ -10,6 +10,10 @@ export interface JobDescription {
   keyResponsibilities: string[];
   salaryRange: string;
   timeToQualified: string;
+  benchmarkCompanies?: string[];
+  benchmarkRole?: string;
+  benchmarkLevel?: string;
+  benchmarkGap?: string;
 }
 
 export interface CareerRoadmap {
