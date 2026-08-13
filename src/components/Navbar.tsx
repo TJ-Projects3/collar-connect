@@ -16,6 +16,7 @@ import {
   Shield,
   Menu,
   HelpCircle,
+  Compass,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -359,6 +360,14 @@ export const Navbar = () => {
                     isActive={currentPath === "/calendar"}
                     onClick={closeMobileMenu}
                   />
+                  <MobileNavItem
+                    to="/career-mapping"
+                    icon={Compass}
+                    label="Career Mapping"
+                    isActive={currentPath === "/career-mapping"}
+                    onClick={closeMobileMenu}
+                  />
+
                   <MobileNavItem
                     to="/content-hub"
                     icon={BookOpen}
