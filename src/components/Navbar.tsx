@@ -16,6 +16,7 @@ import {
   Shield,
   Menu,
   HelpCircle,
+  Compass,
 } from "lucide-react";
 import {
   DropdownMenu,
