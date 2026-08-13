@@ -360,6 +360,14 @@ export const Navbar = () => {
                     onClick={closeMobileMenu}
                   />
                   <MobileNavItem
+                    to="/career-mapping"
+                    icon={Compass}
+                    label="Career Mapping"
+                    isActive={currentPath === "/career-mapping"}
+                    onClick={closeMobileMenu}
+                  />
+
+                  <MobileNavItem
                     to="/content-hub"
                     icon={BookOpen}
                     label="Content Hub"
