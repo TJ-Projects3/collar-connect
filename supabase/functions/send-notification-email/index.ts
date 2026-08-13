@@ -195,21 +195,41 @@ serve(async (req) => {
       html,
     });
 
-    // Log the email send
+    const sendError = (emailResponse as any)?.error;
+    const emailId = (emailResponse as any)?.data?.id ?? (emailResponse as any)?.id ?? null;
+
+    if (sendError) {
+      console.error("Resend send failed:", JSON.stringify(sendError));
+    } else {
+      console.log("Resend accepted email:", emailId, "->", recipient.user.email);
+    }
+
+    // Log the email send (reflecting the actual Resend outcome)
     await supabase.from("email_logs").insert({
       user_id: notification.user_id,
       recipient_email: recipient.user.email,
       notification_type: notification.type,
       notification_id: notificationId,
       subject,
-      status: "sent",
-      sent_at: new Date().toISOString(),
+      status: sendError ? "failed" : "sent",
+      error_message: sendError
+        ? (sendError.message ?? JSON.stringify(sendError))
+        : null,
+      sent_at: sendError ? null : new Date().toISOString(),
     });
 
+    if (sendError) {
+      return new Response(
+        JSON.stringify({ success: false, error: sendError }),
+        { status: 502 }
+      );
+    }
+
     return new Response(
-      JSON.stringify({ success: true, emailId: (emailResponse as any).id }),
+      JSON.stringify({ success: true, emailId }),
       { status: 200 }
     );
+
   } catch (error) {
     console.error("Error:", error);
     return new Response(
