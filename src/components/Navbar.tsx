@@ -137,7 +137,7 @@ export const Navbar = () => {
     }
   };
 
-  const canViewTalent = profile?.profile_type === "recruiter" || isAdmin;
+  const showTalent = canViewTalent(profile, isAdmin);
 
   const navItems = [
     { to: "/feed", icon: Home, label: "Home" },
