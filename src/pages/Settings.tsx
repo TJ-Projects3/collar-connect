@@ -19,6 +19,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AVAILABILITY_OPTIONS } from "@/hooks/useTalentCandidates";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useCompany } from "@/hooks/useCompany";
+import { CompanyProfileModal } from "@/components/industry/CompanyProfileModal";
 
 
 const Settings = () => {
