@@ -157,7 +157,7 @@ const Settings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {profile?.profile_type !== "recruiter" && (
+              {isStudent && (
                 <>
                   <div className="space-y-2">
                     <Label>Work Availability</Label>
@@ -181,6 +181,72 @@ const Settings = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <Separator />
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-0.5">
+                      <Label>Visible to industry professionals &amp; companies</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Verified industry accounts can discover your profile and projects. Recruiters
+                        always can.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(profile as any)?.visible_to_industry ?? true}
+                      onCheckedChange={handleIndustryVisibility}
+                      disabled={!profile || updateProfile.isPending}
+                    />
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {isIndustryAccount && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="industry-role">Your role title</Label>
+                      <Input
+                        id="industry-role"
+                        defaultValue={(profile as any)?.industry_role_title ?? ""}
+                        onBlur={(e) => handleIndustryField("industry_role_title", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Senior SRE"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="industry-company">Company</Label>
+                      <Input
+                        id="industry-company"
+                        defaultValue={(profile as any)?.industry_company ?? ""}
+                        onBlur={(e) => handleIndustryField("industry_company", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Cloudflare"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <Label>Company profile</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {company
+                          ? `${company.name}${company.is_verified ? " · verified" : " · pending verification"}`
+                          : "Add a company profile if you represent an employer."}
+                      </p>
+                    </div>
+                    <Button variant="outline" onClick={() => setCompanyModalOpen(true)}>
+                      {company ? "Edit company" : "Add company"}
+                    </Button>
+                  </div>
+                  {!(profile as any)?.industry_verified && (
+                    <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                      Talent discovery unlocks once the NextGen Collar team verifies your industry
+                      account.
+                    </p>
+                  )}
                   <Separator />
                 </>
               )}
