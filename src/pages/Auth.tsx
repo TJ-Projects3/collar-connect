@@ -14,7 +14,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff, GraduationCap, Briefcase } from "lucide-react";
+import { Eye, EyeOff, GraduationCap, Briefcase, Building2 } from "lucide-react";
+
+type SignUpRole = "student" | "recruiter" | "industry";
+
+const ROLE_OPTIONS: {
+  value: SignUpRole;
+  label: string;
+  icon: typeof GraduationCap;
+  accent: string;
+}[] = [
+  { value: "student", label: "Student", icon: GraduationCap, accent: "border-primary bg-primary/5" },
+  {
+    value: "recruiter",
+    label: "Recruiter",
+    icon: Briefcase,
+    accent: "border-secondary bg-secondary/10",
+  },
+  { value: "industry", label: "Industry", icon: Building2, accent: "border-primary bg-primary/5" },
+];
 import { useEffect } from "react";
 
 const Auth = () => {
@@ -23,9 +41,10 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
-  const initialRole = (searchParams.get("role") === "recruiter" ? "recruiter" : "student") as
-    | "student"
-    | "recruiter";
+  const roleParam = searchParams.get("role");
+  const initialRole = (
+    roleParam === "recruiter" || roleParam === "industry" ? roleParam : "student"
+  ) as SignUpRole;
   const initialTab = searchParams.get("mode") === "signup" || searchParams.get("role") ? "signup" : "signin";
 
   // Sign in form state
@@ -34,7 +53,7 @@ const Auth = () => {
   const [showSignInPassword, setShowSignInPassword] = useState(false);
 
   // Sign up form state
-  const [signUpRole, setSignUpRole] = useState<"student" | "recruiter">(initialRole);
+  const [signUpRole, setSignUpRole] = useState<SignUpRole>(initialRole);
   const [signUpName, setSignUpName] = useState("");
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
@@ -126,10 +145,15 @@ const Auth = () => {
                   major: major || undefined,
                   graduation_year: graduationYear || undefined,
                 }
-              : {
-                  company_name: companyName || undefined,
-                  company_title: companyTitle || undefined,
-                }),
+              : signUpRole === "industry"
+                ? {
+                    industry_company: companyName || undefined,
+                    industry_role_title: companyTitle || undefined,
+                  }
+                : {
+                    company_name: companyName || undefined,
+                    company_title: companyTitle || undefined,
+                  }),
           },
         },
       });
@@ -484,31 +508,22 @@ const Auth = () => {
                   <form onSubmit={handleSignUp} className="space-y-4">
                     <div className="space-y-2">
                       <Label>I am a...</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setSignUpRole("student")}
-                          className={`flex flex-col items-center gap-1 rounded-md border-2 p-3 text-sm font-medium transition-all ${
-                            signUpRole === "student"
-                              ? "border-primary bg-primary/5 text-slate-900 font-semibold"
-                              : "border-border text-muted-foreground hover:border-primary/40"
-                          }`}
-                        >
-                          <GraduationCap className="h-5 w-5" />
-                          Student
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSignUpRole("recruiter")}
-                          className={`flex flex-col items-center gap-1 rounded-md border-2 p-3 text-sm font-medium transition-all ${
-                            signUpRole === "recruiter"
-                              ? "border-secondary bg-secondary/10 text-slate-900 font-semibold"
-                              : "border-border text-muted-foreground hover:border-secondary/40"
-                          }`}
-                        >
-                          <Briefcase className="h-5 w-5" />
-                          Recruiter
-                        </button>
+                      <div className="grid grid-cols-3 gap-2">
+                        {ROLE_OPTIONS.map(({ value, label, icon: Icon, accent }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setSignUpRole(value)}
+                            className={`flex flex-col items-center gap-1 rounded-md border-2 p-3 text-xs sm:text-sm font-medium text-center transition-all ${
+                              signUpRole === value
+                                ? `${accent} text-slate-900 font-semibold`
+                                : "border-border text-muted-foreground hover:border-primary/40"
+                            }`}
+                          >
+                            <Icon className="h-5 w-5" />
+                            {label}
+                          </button>
+                        ))}
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -633,8 +648,16 @@ const Auth = () => {
                       </>
                     ) : (
                       <>
+                        {signUpRole === "industry" && (
+                          <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+                            Industry accounts get access to mentorship and opted-in candidate
+                            discovery once the NextGen Collar team verifies your account.
+                          </p>
+                        )}
                         <div className="space-y-2">
-                          <Label htmlFor="signup-company">Company Name</Label>
+                          <Label htmlFor="signup-company">
+                            {signUpRole === "industry" ? "Company / Organization" : "Company Name"}
+                          </Label>
                           <Input
                             id="signup-company"
                             type="text"
@@ -648,7 +671,11 @@ const Auth = () => {
                           <Input
                             id="signup-title"
                             type="text"
-                            placeholder="e.g., Senior Technical Recruiter"
+                            placeholder={
+                              signUpRole === "industry"
+                                ? "e.g., Senior Software Engineer"
+                                : "e.g., Senior Technical Recruiter"
+                            }
                             value={companyTitle}
                             onChange={(e) => setCompanyTitle(e.target.value)}
                           />
