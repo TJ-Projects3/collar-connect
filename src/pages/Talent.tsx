@@ -110,6 +110,25 @@ const Talent = () => {
           <p className="text-muted-foreground mt-1">
             Find student talent by tech stack, school, graduation year, and availability.
           </p>
+
+          {scoped && (
+            <Card className="mt-4 border-secondary/40 bg-secondary/5">
+              <CardContent className="p-4 text-sm space-y-1">
+                <p className="font-semibold">Industry access</p>
+                <p className="text-muted-foreground">
+                  You're browsing students who opted into industry visibility. Resumes and contact
+                  details stay recruiter-only, and you can send intro requests instead of direct
+                  messages.
+                </p>
+                {quota && !quota.uncapped && (
+                  <p className="text-muted-foreground">
+                    Today: {quota.views_used ?? 0}/{quota.views_limit ?? 60} profile views ·{" "}
+                    {quota.contacts_used ?? 0}/{quota.contacts_limit ?? 15} intro requests
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </header>
 
         <div className="flex gap-6">
