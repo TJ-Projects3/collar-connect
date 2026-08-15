@@ -40,7 +40,11 @@ const Talent = () => {
     },
   });
 
-  const { data: candidates, isLoading } = useTalentCandidates();
+  const accessLevel = talentAccessLevel(profile, isAdmin === true);
+  const scoped = accessLevel === "scoped";
+
+  const { data: candidates, isLoading } = useTalentCandidates(accessLevel);
+  const { data: quota } = useTalentQuota(scoped);
   const options = useTalentFilterOptions(candidates);
   const results = useMemo(() => filterCandidates(candidates, filters), [candidates, filters]);
 
@@ -55,8 +59,6 @@ const Talent = () => {
     }
   }, []);
 
-  const canAccess = profile?.profile_type === "recruiter" || isAdmin === true;
-
   if (profileLoading || adminLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -69,7 +71,7 @@ const Talent = () => {
     );
   }
 
-  if (!canAccess) return <Navigate to="/feed" replace />;
+  if (accessLevel === "none") return <Navigate to="/feed" replace />;
 
   type ChipKey = "techStack" | "gradYears" | "universities" | "availability";
 
