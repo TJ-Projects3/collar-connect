@@ -49,6 +49,56 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          company_size: string | null
+          created_at: string
+          description: string | null
+          id: string
+          industry: string | null
+          is_verified: boolean
+          logo_url: string | null
+          name: string
+          owner_id: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          company_size?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          industry?: string | null
+          is_verified?: boolean
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          company_size?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          industry?: string | null
+          is_verified?: boolean
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -711,6 +761,9 @@ export type Database = {
           gpa: number | null
           graduation_year: number | null
           id: string
+          industry_company: string | null
+          industry_role_title: string | null
+          industry_verified: boolean
           is_admin: boolean
           is_verified_recruiter: boolean
           job_title: string | null
@@ -722,6 +775,7 @@ export type Database = {
           resume_url: string | null
           university: string | null
           updated_at: string
+          visible_to_industry: boolean
           website: string | null
         }
         Insert: {
@@ -740,6 +794,9 @@ export type Database = {
           gpa?: number | null
           graduation_year?: number | null
           id: string
+          industry_company?: string | null
+          industry_role_title?: string | null
+          industry_verified?: boolean
           is_admin?: boolean
           is_verified_recruiter?: boolean
           job_title?: string | null
@@ -751,6 +808,7 @@ export type Database = {
           resume_url?: string | null
           university?: string | null
           updated_at?: string
+          visible_to_industry?: boolean
           website?: string | null
         }
         Update: {
@@ -769,6 +827,9 @@ export type Database = {
           gpa?: number | null
           graduation_year?: number | null
           id?: string
+          industry_company?: string | null
+          industry_role_title?: string | null
+          industry_verified?: boolean
           is_admin?: boolean
           is_verified_recruiter?: boolean
           job_title?: string | null
@@ -780,6 +841,7 @@ export type Database = {
           resume_url?: string | null
           university?: string | null
           updated_at?: string
+          visible_to_industry?: boolean
           website?: string | null
         }
         Relationships: []
@@ -1075,6 +1137,45 @@ export type Database = {
           },
         ]
       }
+      talent_access_log: {
+        Row: {
+          access_kind: string
+          created_at: string
+          id: string
+          target_id: string | null
+          viewer_id: string
+        }
+        Insert: {
+          access_kind: string
+          created_at?: string
+          id?: string
+          target_id?: string | null
+          viewer_id: string
+        }
+        Update: {
+          access_kind?: string
+          created_at?: string
+          id?: string
+          target_id?: string | null
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "talent_access_log_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_access_log_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_connections: {
         Row: {
           created_at: string
@@ -1199,6 +1300,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      record_talent_access: {
+        Args: { _kind: string; _target_id: string }
+        Returns: Json
+      }
       send_dm: {
         Args: { message_text: string; recipient: string; sender: string }
         Returns: {
@@ -1220,6 +1325,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      talent_access_quota: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
@@ -1239,7 +1345,7 @@ export type Database = {
         | "executive"
       event_type: "virtual" | "in_person" | "hybrid"
       membership_status: "active" | "expired" | "cancelled" | "pending"
-      profile_type: "student" | "recruiter"
+      profile_type: "student" | "recruiter" | "industry"
       resource_type: "job" | "article" | "video" | "download" | "website"
       work_arrangement: "remote" | "hybrid" | "on_site"
     }
@@ -1388,7 +1494,7 @@ export const Constants = {
       ],
       event_type: ["virtual", "in_person", "hybrid"],
       membership_status: ["active", "expired", "cancelled", "pending"],
-      profile_type: ["student", "recruiter"],
+      profile_type: ["student", "recruiter", "industry"],
       resource_type: ["job", "article", "video", "download", "website"],
       work_arrangement: ["remote", "hybrid", "on_site"],
     },
