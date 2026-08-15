@@ -110,24 +110,37 @@ const Settings = () => {
                   Developer Mode
                 </CardTitle>
                 <CardDescription>
-                  Temporary tool for previewing role-specific UI. Toggles your active profile role between student and recruiter.
+                  Temporary tool for previewing role-specific UI. Switches your active profile role
+                  between student, recruiter, and industry.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="space-y-0.5">
-                    <Label>Recruiter View</Label>
+                    <Label>Active role</Label>
                     <p className="text-sm text-muted-foreground">
-                      Current role: <span className="font-medium">{profile?.profile_type || "student"}</span>
+                      Current role:{" "}
+                      <span className="font-medium">{profile?.profile_type || "student"}</span>
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {updateProfile.isPending && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                    <Switch
-                      checked={profile?.profile_type === "recruiter"}
-                      onCheckedChange={handleToggleRole}
+                    {updateProfile.isPending && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                    <Select
+                      value={profile?.profile_type || "student"}
+                      onValueChange={handleRoleChange}
                       disabled={updateProfile.isPending || !profile}
-                    />
+                    >
+                      <SelectTrigger className="w-full sm:w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="student">Student</SelectItem>
+                        <SelectItem value="recruiter">Recruiter</SelectItem>
+                        <SelectItem value="industry">Industry</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>
