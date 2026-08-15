@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield, Briefcase, Award, Medal } from "lucide-react";
+import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield, Briefcase, Award, Medal, ShieldCheck } from "lucide-react";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
