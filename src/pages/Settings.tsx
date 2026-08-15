@@ -46,13 +46,34 @@ const Settings = () => {
     toast.success("Settings saved successfully!");
   };
 
-  const handleToggleRole = async (checked: boolean) => {
-    const newRole = checked ? "recruiter" : "student";
+  const handleRoleChange = async (newRole: string) => {
     try {
-      await updateProfile.mutateAsync({ profile_type: newRole });
+      await updateProfile.mutateAsync({ profile_type: newRole as any });
       toast.success(`Switched to ${newRole} view`);
     } catch (e: any) {
       toast.error(e?.message || "Failed to switch role");
+    }
+  };
+
+  const handleIndustryVisibility = async (checked: boolean) => {
+    try {
+      await updateProfile.mutateAsync({ visible_to_industry: checked } as any);
+      toast.success(
+        checked ? "You're visible to industry professionals" : "Hidden from industry professionals"
+      );
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to update visibility");
+    }
+  };
+
+  const handleIndustryField = async (
+    field: "industry_role_title" | "industry_company",
+    value: string
+  ) => {
+    try {
+      await updateProfile.mutateAsync({ [field]: value.trim() || null } as any);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to save");
     }
   };
 
