@@ -45,6 +45,12 @@ const Settings = () => {
 
   const canAccessDevMode = isAdmin === true;
 
+  const isStudent = (profile?.profile_type ?? "student") === "student";
+  const isIndustryAccount = profile?.profile_type === "industry";
+  const [companyModalOpen, setCompanyModalOpen] = useState(false);
+  const { data: company } = useCompany();
+
+
 
   const handleSaveSettings = () => {
     toast.success("Settings saved successfully!");
