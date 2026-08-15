@@ -194,7 +194,11 @@ const Talent = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {results.map((candidate) => (
-                  <CandidateCard key={candidate.id} candidate={candidate} />
+                  <CandidateCard
+                    key={candidate.id}
+                    candidate={candidate}
+                    accessLevel={accessLevel}
+                  />
                 ))}
               </div>
             )}
