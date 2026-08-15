@@ -334,13 +334,28 @@ const Profile = () => {
                       {profile?.full_name || "Your Name"}
                     </h1>
 
-                    {(profile?.profile_type === "recruiter" || endorsements.length > 0) && (
+                    {(profile?.profile_type === "recruiter" ||
+                      profile?.profile_type === "industry" ||
+                      endorsements.length > 0) && (
                       <div className="flex flex-wrap items-center gap-2 pt-0.5">
                         {profile?.profile_type === "recruiter" && (
                           <RecruiterBadge
                             size="lg"
                             verified
                             company={profile?.company_name?.trim() || "NextGen Collar"}
+                          />
+                        )}
+                        {profile?.profile_type === "industry" && (
+                          <IndustryBadge
+                            size="lg"
+                            verified={(profile as any)?.industry_verified === true}
+                            company={!!profileCompany}
+                            companyName={
+                              profileCompany?.name ||
+                              (profile as any)?.industry_company?.trim() ||
+                              null
+                            }
+                            logoUrl={profileCompany?.logo_url ?? null}
                           />
                         )}
                         {endorsements.slice(0, 2).map((e) => (
