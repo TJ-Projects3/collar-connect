@@ -21,6 +21,8 @@ import {
   availabilityLabel,
   type TalentFilterState,
 } from "@/hooks/useTalentCandidates";
+import { useTalentQuota } from "@/hooks/useTalentAccess";
+import { talentAccessLevel } from "@/lib/profile-display";
 
 const Talent = () => {
   const { user } = useAuth();
