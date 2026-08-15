@@ -173,15 +173,17 @@ export const CandidateCard = ({
         )}
 
         <div className="mt-auto flex flex-col sm:flex-row gap-2">
-          <Button
-            className="flex-1 gap-2"
-            onClick={() => navigate(`/messages?recipientId=${candidate.id}`)}
-          >
-            <MessageSquare className="h-4 w-4" />
-            Message Candidate
+          <Button className="flex-1 gap-2" onClick={handleContact} disabled={recordAccess.isPending}>
+            {scoped ? <Handshake className="h-4 w-4" /> : <MessageSquare className="h-4 w-4" />}
+            {scoped ? "Request Intro" : "Message Candidate"}
           </Button>
-          <Button variant="outline" className="flex-1" asChild>
-            <Link to={`/profile?userId=${candidate.id}`}>View profile</Link>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={handleViewProfile}
+            disabled={recordAccess.isPending}
+          >
+            View profile
           </Button>
         </div>
       </CardContent>
