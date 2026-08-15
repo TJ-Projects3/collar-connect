@@ -36,12 +36,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useMyConnections } from "@/hooks/useConnections";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { IndustryBadge } from "@/components/IndustryBadge";
+import { useCompany } from "@/hooks/useCompany";
 import { getProfileSubline } from "@/lib/profile-display";
 
 const Profile = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const viewedUserId = searchParams.get("userId") || user?.id || null;
+  const { data: profileCompany } = useCompany(viewedUserId ?? undefined);
   const { data: endorsements = [] } = useStudentEndorsements(viewedUserId);
   const { data: viewedProjects = [] } = useStudentProjects(viewedUserId);
   const projectTitles = Object.fromEntries(viewedProjects.map((p) => [p.id, p.title]));
