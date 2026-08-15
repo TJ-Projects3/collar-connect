@@ -360,6 +360,8 @@ const Settings = () => {
           </Card>
         </div>
       </div>
+
+      <CompanyProfileModal open={companyModalOpen} onOpenChange={setCompanyModalOpen} />
     </div>
   );
 };
