@@ -60,17 +60,29 @@ export const EMPTY_FILTERS: TalentFilterState = {
   verifiedAchievementsOnly: false,
 };
 
-export const useTalentCandidates = () => {
+/**
+ * @param accessLevel "full" for recruiters/admins, "scoped" for industry accounts
+ *   (which only see students who opted into industry visibility).
+ */
+export const useTalentCandidates = (accessLevel: "full" | "scoped" | "none" = "full") => {
   return useQuery({
-    queryKey: ["talent-candidates"],
+    queryKey: ["talent-candidates", accessLevel],
+    enabled: accessLevel !== "none",
     queryFn: async () => {
-      const { data: profiles, error: profilesError } = await supabase
+      let query = supabase
         .from("profiles")
         .select(
-          "id, full_name, avatar_url, university, major, graduation_year, availability, bio, created_at"
+          "id, full_name, avatar_url, university, major, graduation_year, availability, bio, created_at, visible_to_industry"
         )
-        .eq("profile_type", "student")
-        .order("created_at", { ascending: false });
+        .eq("profile_type", "student");
+
+      if (accessLevel === "scoped") {
+        query = query.eq("visible_to_industry", true);
+      }
+
+      const { data: profiles, error: profilesError } = await query.order("created_at", {
+        ascending: false,
+      });
 
       if (profilesError) throw profilesError;
 

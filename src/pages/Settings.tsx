@@ -19,6 +19,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AVAILABILITY_OPTIONS } from "@/hooks/useTalentCandidates";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useCompany } from "@/hooks/useCompany";
+import { CompanyProfileModal } from "@/components/industry/CompanyProfileModal";
 
 
 const Settings = () => {
@@ -41,18 +45,45 @@ const Settings = () => {
 
   const canAccessDevMode = isAdmin === true;
 
+  const isStudent = (profile?.profile_type ?? "student") === "student";
+  const isIndustryAccount = profile?.profile_type === "industry";
+  const [companyModalOpen, setCompanyModalOpen] = useState(false);
+  const { data: company } = useCompany();
+
+
 
   const handleSaveSettings = () => {
     toast.success("Settings saved successfully!");
   };
 
-  const handleToggleRole = async (checked: boolean) => {
-    const newRole = checked ? "recruiter" : "student";
+  const handleRoleChange = async (newRole: string) => {
     try {
-      await updateProfile.mutateAsync({ profile_type: newRole });
+      await updateProfile.mutateAsync({ profile_type: newRole as any });
       toast.success(`Switched to ${newRole} view`);
     } catch (e: any) {
       toast.error(e?.message || "Failed to switch role");
+    }
+  };
+
+  const handleIndustryVisibility = async (checked: boolean) => {
+    try {
+      await updateProfile.mutateAsync({ visible_to_industry: checked } as any);
+      toast.success(
+        checked ? "You're visible to industry professionals" : "Hidden from industry professionals"
+      );
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to update visibility");
+    }
+  };
+
+  const handleIndustryField = async (
+    field: "industry_role_title" | "industry_company",
+    value: string
+  ) => {
+    try {
+      await updateProfile.mutateAsync({ [field]: value.trim() || null } as any);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to save");
     }
   };
 
@@ -89,24 +120,37 @@ const Settings = () => {
                   Developer Mode
                 </CardTitle>
                 <CardDescription>
-                  Temporary tool for previewing role-specific UI. Toggles your active profile role between student and recruiter.
+                  Temporary tool for previewing role-specific UI. Switches your active profile role
+                  between student, recruiter, and industry.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="space-y-0.5">
-                    <Label>Recruiter View</Label>
+                    <Label>Active role</Label>
                     <p className="text-sm text-muted-foreground">
-                      Current role: <span className="font-medium">{profile?.profile_type || "student"}</span>
+                      Current role:{" "}
+                      <span className="font-medium">{profile?.profile_type || "student"}</span>
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {updateProfile.isPending && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                    <Switch
-                      checked={profile?.profile_type === "recruiter"}
-                      onCheckedChange={handleToggleRole}
+                    {updateProfile.isPending && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                    <Select
+                      value={profile?.profile_type || "student"}
+                      onValueChange={handleRoleChange}
                       disabled={updateProfile.isPending || !profile}
-                    />
+                    >
+                      <SelectTrigger className="w-full sm:w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="student">Student</SelectItem>
+                        <SelectItem value="recruiter">Recruiter</SelectItem>
+                        <SelectItem value="industry">Industry</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>
@@ -123,7 +167,7 @@ const Settings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {profile?.profile_type !== "recruiter" && (
+              {isStudent && (
                 <>
                   <div className="space-y-2">
                     <Label>Work Availability</Label>
@@ -147,6 +191,72 @@ const Settings = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <Separator />
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-0.5">
+                      <Label>Visible to industry professionals &amp; companies</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Verified industry accounts can discover your profile and projects. Recruiters
+                        always can.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(profile as any)?.visible_to_industry ?? true}
+                      onCheckedChange={handleIndustryVisibility}
+                      disabled={!profile || updateProfile.isPending}
+                    />
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {isIndustryAccount && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="industry-role">Your role title</Label>
+                      <Input
+                        id="industry-role"
+                        defaultValue={(profile as any)?.industry_role_title ?? ""}
+                        onBlur={(e) => handleIndustryField("industry_role_title", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Senior SRE"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="industry-company">Company</Label>
+                      <Input
+                        id="industry-company"
+                        defaultValue={(profile as any)?.industry_company ?? ""}
+                        onBlur={(e) => handleIndustryField("industry_company", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Cloudflare"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <Label>Company profile</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {company
+                          ? `${company.name}${company.is_verified ? " · verified" : " · pending verification"}`
+                          : "Add a company profile if you represent an employer."}
+                      </p>
+                    </div>
+                    <Button variant="outline" onClick={() => setCompanyModalOpen(true)}>
+                      {company ? "Edit company" : "Add company"}
+                    </Button>
+                  </div>
+                  {!(profile as any)?.industry_verified && (
+                    <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                      Talent discovery unlocks once the NextGen Collar team verifies your industry
+                      account.
+                    </p>
+                  )}
                   <Separator />
                 </>
               )}
@@ -250,6 +360,8 @@ const Settings = () => {
           </Card>
         </div>
       </div>
+
+      <CompanyProfileModal open={companyModalOpen} onOpenChange={setCompanyModalOpen} />
     </div>
   );
 };

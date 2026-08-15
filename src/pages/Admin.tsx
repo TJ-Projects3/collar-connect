@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield, Briefcase, Award, Medal } from "lucide-react";
+import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield, Briefcase, Award, Medal, ShieldCheck } from "lucide-react";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import { EventsTab } from "@/components/admin/EventsTab";
 import { JobsTab } from "@/components/admin/JobsTab";
 import { ProjectAchievementsTab } from "@/components/admin/ProjectAchievementsTab";
 import { EndorsementsTab } from "@/components/admin/EndorsementsTab";
+import { IndustryVerificationTab } from "@/components/admin/IndustryVerificationTab";
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();
@@ -66,7 +67,7 @@ const Admin = () => {
       {/* Main Content */}
       <main className="container py-8">
         <Tabs defaultValue="jobs" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl grid-cols-6">
+          <TabsList className="grid w-full max-w-4xl grid-cols-7">
             <TabsTrigger value="jobs" className="flex items-center gap-2">
               <Briefcase className="h-4 w-4" />
               <span className="hidden sm:inline">Jobs</span>
@@ -90,6 +91,10 @@ const Admin = () => {
             <TabsTrigger value="endorsements" className="flex items-center gap-2">
               <Medal className="h-4 w-4" />
               <span className="hidden sm:inline">Endorsements</span>
+            </TabsTrigger>
+            <TabsTrigger value="industry" className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              <span className="hidden sm:inline">Industry</span>
             </TabsTrigger>
           </TabsList>
 
@@ -115,6 +120,10 @@ const Admin = () => {
 
           <TabsContent value="endorsements">
             <EndorsementsTab />
+          </TabsContent>
+
+          <TabsContent value="industry">
+            <IndustryVerificationTab />
           </TabsContent>
         </Tabs>
       </main>

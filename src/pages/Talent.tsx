@@ -21,6 +21,8 @@ import {
   availabilityLabel,
   type TalentFilterState,
 } from "@/hooks/useTalentCandidates";
+import { useTalentQuota } from "@/hooks/useTalentAccess";
+import { talentAccessLevel } from "@/lib/profile-display";
 
 const Talent = () => {
   const { user } = useAuth();
@@ -40,7 +42,11 @@ const Talent = () => {
     },
   });
 
-  const { data: candidates, isLoading } = useTalentCandidates();
+  const accessLevel = talentAccessLevel(profile, isAdmin === true);
+  const scoped = accessLevel === "scoped";
+
+  const { data: candidates, isLoading } = useTalentCandidates(accessLevel);
+  const { data: quota } = useTalentQuota(scoped);
   const options = useTalentFilterOptions(candidates);
   const results = useMemo(() => filterCandidates(candidates, filters), [candidates, filters]);
 
@@ -55,8 +61,6 @@ const Talent = () => {
     }
   }, []);
 
-  const canAccess = profile?.profile_type === "recruiter" || isAdmin === true;
-
   if (profileLoading || adminLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -69,7 +73,7 @@ const Talent = () => {
     );
   }
 
-  if (!canAccess) return <Navigate to="/feed" replace />;
+  if (accessLevel === "none") return <Navigate to="/feed" replace />;
 
   type ChipKey = "techStack" | "gradYears" | "universities" | "availability";
 
@@ -106,6 +110,25 @@ const Talent = () => {
           <p className="text-muted-foreground mt-1">
             Find student talent by tech stack, school, graduation year, and availability.
           </p>
+
+          {scoped && (
+            <Card className="mt-4 border-secondary/40 bg-secondary/5">
+              <CardContent className="p-4 text-sm space-y-1">
+                <p className="font-semibold">Industry access</p>
+                <p className="text-muted-foreground">
+                  You're browsing students who opted into industry visibility. Resumes and contact
+                  details stay recruiter-only, and you can send intro requests instead of direct
+                  messages.
+                </p>
+                {quota && !quota.uncapped && (
+                  <p className="text-muted-foreground">
+                    Today: {quota.views_used ?? 0}/{quota.views_limit ?? 60} profile views ·{" "}
+                    {quota.contacts_used ?? 0}/{quota.contacts_limit ?? 15} intro requests
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </header>
 
         <div className="flex gap-6">
@@ -190,7 +213,11 @@ const Talent = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {results.map((candidate) => (
-                  <CandidateCard key={candidate.id} candidate={candidate} />
+                  <CandidateCard
+                    key={candidate.id}
+                    candidate={candidate}
+                    accessLevel={accessLevel}
+                  />
                 ))}
               </div>
             )}

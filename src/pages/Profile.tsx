@@ -36,12 +36,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useMyConnections } from "@/hooks/useConnections";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { IndustryBadge } from "@/components/IndustryBadge";
+import { useCompany } from "@/hooks/useCompany";
 import { getProfileSubline } from "@/lib/profile-display";
 
 const Profile = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const viewedUserId = searchParams.get("userId") || user?.id || null;
+  const { data: profileCompany } = useCompany(viewedUserId ?? undefined);
   const { data: endorsements = [] } = useStudentEndorsements(viewedUserId);
   const { data: viewedProjects = [] } = useStudentProjects(viewedUserId);
   const projectTitles = Object.fromEntries(viewedProjects.map((p) => [p.id, p.title]));
@@ -334,13 +337,28 @@ const Profile = () => {
                       {profile?.full_name || "Your Name"}
                     </h1>
 
-                    {(profile?.profile_type === "recruiter" || endorsements.length > 0) && (
+                    {(profile?.profile_type === "recruiter" ||
+                      profile?.profile_type === "industry" ||
+                      endorsements.length > 0) && (
                       <div className="flex flex-wrap items-center gap-2 pt-0.5">
                         {profile?.profile_type === "recruiter" && (
                           <RecruiterBadge
                             size="lg"
                             verified
                             company={profile?.company_name?.trim() || "NextGen Collar"}
+                          />
+                        )}
+                        {profile?.profile_type === "industry" && (
+                          <IndustryBadge
+                            size="lg"
+                            verified={(profile as any)?.industry_verified === true}
+                            company={!!profileCompany}
+                            companyName={
+                              profileCompany?.name ||
+                              (profile as any)?.industry_company?.trim() ||
+                              null
+                            }
+                            logoUrl={profileCompany?.logo_url ?? null}
                           />
                         )}
                         {endorsements.slice(0, 2).map((e) => (

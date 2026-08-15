@@ -3,9 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BadgeCheck, GraduationCap, MessageSquare } from "lucide-react";
+import { BadgeCheck, GraduationCap, Handshake, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 import { availabilityLabel, type Candidate } from "@/hooks/useTalentCandidates";
 import { EndorsementPill } from "@/components/endorsements/EndorsementBadges";
+import { useRecordTalentAccess } from "@/hooks/useTalentAccess";
+import type { TalentAccessLevel } from "@/lib/profile-display";
 
 const getInitials = (name?: string | null) =>
   (name || "?")
@@ -16,12 +19,55 @@ const getInitials = (name?: string | null) =>
     .join("")
     .toUpperCase();
 
-export const CandidateCard = ({ candidate }: { candidate: Candidate }) => {
+export const CandidateCard = ({
+  candidate,
+  accessLevel = "full",
+}: {
+  candidate: Candidate;
+  accessLevel?: TalentAccessLevel;
+}) => {
   const navigate = useNavigate();
+  const recordAccess = useRecordTalentAccess();
+  const scoped = accessLevel === "scoped";
   const topSkills = candidate.skills.slice(0, 5);
   const extraSkills = candidate.skills.length - topSkills.length;
   const availability = availabilityLabel(candidate.availability);
   const project = candidate.topProject;
+
+  // Industry accounts are metered server-side; recruiters go straight through.
+  const handleContact = async () => {
+    if (!scoped) {
+      navigate(`/messages?recipientId=${candidate.id}`);
+      return;
+    }
+    try {
+      const result = await recordAccess.mutateAsync({ targetId: candidate.id, kind: "contact" });
+      if (!result?.allowed) {
+        toast.error("Daily intro request limit reached. Try again tomorrow.");
+        return;
+      }
+      navigate(`/messages?recipientId=${candidate.id}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Could not send intro request");
+    }
+  };
+
+  const handleViewProfile = async () => {
+    if (!scoped) {
+      navigate(`/profile?userId=${candidate.id}`);
+      return;
+    }
+    try {
+      const result = await recordAccess.mutateAsync({ targetId: candidate.id, kind: "view" });
+      if (!result?.allowed) {
+        toast.error("Daily profile view limit reached. Try again tomorrow.");
+        return;
+      }
+      navigate(`/profile?userId=${candidate.id}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Could not open profile");
+    }
+  };
 
   const meta = [
     candidate.university,
@@ -127,15 +173,17 @@ export const CandidateCard = ({ candidate }: { candidate: Candidate }) => {
         )}
 
         <div className="mt-auto flex flex-col sm:flex-row gap-2">
-          <Button
-            className="flex-1 gap-2"
-            onClick={() => navigate(`/messages?recipientId=${candidate.id}`)}
-          >
-            <MessageSquare className="h-4 w-4" />
-            Message Candidate
+          <Button className="flex-1 gap-2" onClick={handleContact} disabled={recordAccess.isPending}>
+            {scoped ? <Handshake className="h-4 w-4" /> : <MessageSquare className="h-4 w-4" />}
+            {scoped ? "Request Intro" : "Message Candidate"}
           </Button>
-          <Button variant="outline" className="flex-1" asChild>
-            <Link to={`/profile?userId=${candidate.id}`}>View profile</Link>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={handleViewProfile}
+            disabled={recordAccess.isPending}
+          >
+            View profile
           </Button>
         </div>
       </CardContent>
