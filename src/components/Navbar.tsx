@@ -1,3 +1,4 @@
+import { canViewTalent } from "@/lib/profile-display";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -143,7 +144,7 @@ export const Navbar = () => {
     { to: "/feed", icon: Home, label: "Home" },
     { to: "/my-network", icon: Users, label: "My Network" },
     { to: "/jobs", icon: Briefcase, label: "Jobs" },
-    ...(canViewTalent ? [{ to: "/talent", icon: Search, label: "Talent" }] : []),
+    ...(showTalent ? [{ to: "/talent", icon: Search, label: "Talent" }] : []),
     { to: "/messages", icon: MessageSquare, label: "Messaging" },
     { to: "/community", icon: HelpCircle, label: "Q&A" },
   ];
