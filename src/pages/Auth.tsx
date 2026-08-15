@@ -14,7 +14,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff, GraduationCap, Briefcase } from "lucide-react";
+import { Eye, EyeOff, GraduationCap, Briefcase, Building2 } from "lucide-react";
+
+type SignUpRole = "student" | "recruiter" | "industry";
+
+const ROLE_OPTIONS: {
+  value: SignUpRole;
+  label: string;
+  icon: typeof GraduationCap;
+  accent: string;
+}[] = [
+  { value: "student", label: "Student", icon: GraduationCap, accent: "border-primary bg-primary/5" },
+  {
+    value: "recruiter",
+    label: "Recruiter",
+    icon: Briefcase,
+    accent: "border-secondary bg-secondary/10",
+  },
+  { value: "industry", label: "Industry", icon: Building2, accent: "border-primary bg-primary/5" },
+];
 import { useEffect } from "react";
 
 const Auth = () => {
