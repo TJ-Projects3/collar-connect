@@ -120,8 +120,10 @@ All colors MUST be HSL.
     overflow-x: hidden;
     width: 100%;
     max-width: 100%;
-    /* Prevent rubber-band / scroll-chaining that makes the whole frame drift */
-    overscroll-behavior-y: none;
+    /* Contain rubber-band / scroll-chaining without disabling normal scrolling */
+    overscroll-behavior-y: contain;
+    /* Keep wheel / trackpad + touch vertical scrolling always available */
+    touch-action: pan-y pinch-zoom;
   }
   body {
     position: relative;
