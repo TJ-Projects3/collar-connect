@@ -115,19 +115,23 @@ All colors MUST be HSL.
     /* Stop iOS Safari from auto-resizing text and shifting the layout on rotate */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-  }
-  html, body {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;
-    /* Contain rubber-band / scroll-chaining without disabling normal scrolling */
-    overscroll-behavior-y: contain;
-    /* Keep wheel / trackpad + touch vertical scrolling always available */
-    touch-action: pan-y pinch-zoom;
+    min-height: 100%;
+    overflow-x: clip;
+    overflow-y: auto;
   }
   body {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100%;
     position: relative;
+    overflow-x: clip;
+    overflow-y: visible;
+    overscroll-behavior-y: auto;
+    touch-action: auto;
     -webkit-overflow-scrolling: touch;
+  }
+  #root {
+    min-height: 100vh;
   }
   /* Prevent long unbroken strings (URLs, etc.) from forcing horizontal scroll on mobile */
   p, span, h1, h2, h3, h4, h5, h6, a {
