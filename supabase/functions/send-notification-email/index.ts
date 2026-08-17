@@ -4,6 +4,32 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+// Sender identity. Prefer a dedicated subdomain (e.g. notifications@mail.nextgencollar.com)
+// so notification mail does not look like same-domain spoofing to the recipient's filter.
+const FROM_ADDRESS =
+  Deno.env.get("NOTIFICATION_FROM_EMAIL") ?? "notifications@nextgencollar.com";
+const FROM = `NextGen Collar <${FROM_ADDRESS}>`;
+const REPLY_TO = Deno.env.get("NOTIFICATION_REPLY_TO") ?? "support@nextgencollar.com";
+
+// Strip HTML to build the plain-text alternative. HTML-only mail is a strong spam signal.
+function toPlainText(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<a [^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, "$2 ($1)")
+    .replace(/<\/(p|div|h1|h2|h3|li|tr)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\n{3,}/g, "\n\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .join("\n")
+    .trim();
+}
+
+
+
 
 serve(async (req) => {
   try {
@@ -187,13 +213,28 @@ serve(async (req) => {
       return new Response(JSON.stringify({ message: "No email needed" }));
     }
 
+    const settingsUrl = `${appUrl}/settings`;
+
+    // Append an unsubscribe pointer so filters see a legitimate opt-out path.
+    html = `${html}
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0 20px 20px; color: #888; font-size: 12px;">
+        <p>Manage or turn off these emails in your <a href="${settingsUrl}">notification settings</a>.</p>
+      </div>`;
+
     // Send email
     const emailResponse = await resend.emails.send({
-      from: "NextGen Collar <notifications@nextgencollar.com>",
+      from: FROM,
       to: recipient.user.email,
+      reply_to: REPLY_TO,
       subject,
       html,
+      text: toPlainText(html),
+      headers: {
+        "List-Unsubscribe": `<${settingsUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
     });
+
 
     const sendError = (emailResponse as any)?.error;
     const emailId = (emailResponse as any)?.data?.id ?? (emailResponse as any)?.id ?? null;
