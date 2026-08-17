@@ -213,13 +213,28 @@ serve(async (req) => {
       return new Response(JSON.stringify({ message: "No email needed" }));
     }
 
+    const settingsUrl = `${appUrl}/settings`;
+
+    // Append an unsubscribe pointer so filters see a legitimate opt-out path.
+    html = `${html}
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0 20px 20px; color: #888; font-size: 12px;">
+        <p>Manage or turn off these emails in your <a href="${settingsUrl}">notification settings</a>.</p>
+      </div>`;
+
     // Send email
     const emailResponse = await resend.emails.send({
-      from: "NextGen Collar <notifications@nextgencollar.com>",
+      from: FROM,
       to: recipient.user.email,
+      reply_to: REPLY_TO,
       subject,
       html,
+      text: toPlainText(html),
+      headers: {
+        "List-Unsubscribe": `<${settingsUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
     });
+
 
     const sendError = (emailResponse as any)?.error;
     const emailId = (emailResponse as any)?.data?.id ?? (emailResponse as any)?.id ?? null;
