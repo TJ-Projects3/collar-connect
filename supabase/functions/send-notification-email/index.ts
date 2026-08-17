@@ -4,6 +4,32 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+// Sender identity. Prefer a dedicated subdomain (e.g. notifications@mail.nextgencollar.com)
+// so notification mail does not look like same-domain spoofing to the recipient's filter.
+const FROM_ADDRESS =
+  Deno.env.get("NOTIFICATION_FROM_EMAIL") ?? "notifications@nextgencollar.com";
+const FROM = `NextGen Collar <${FROM_ADDRESS}>`;
+const REPLY_TO = Deno.env.get("NOTIFICATION_REPLY_TO") ?? "support@nextgencollar.com";
+
+// Strip HTML to build the plain-text alternative. HTML-only mail is a strong spam signal.
+function toPlainText(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<a [^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, "$2 ($1)")
+    .replace(/<\/(p|div|h1|h2|h3|li|tr)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\n{3,}/g, "\n\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .join("\n")
+    .trim();
+}
+
+
+
 
 serve(async (req) => {
   try {
