@@ -147,7 +147,7 @@ const Notifications = () => {
           )}
 
           {/* Notifications Section */}
-          {(notifications as any[]).length === 0 && (pendingRequests as any[]).length === 0 ? (
+          {groups.length === 0 && (pendingRequests as any[]).length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Bell className="h-12 w-12 text-muted-foreground mb-4" />
@@ -157,76 +157,14 @@ const Notifications = () => {
                 </p>
               </CardContent>
             </Card>
-          ) : (notifications as any[]).length > 0 ? (
+          ) : groups.length > 0 ? (
             <>
               <h2 className="text-lg font-semibold mt-6 mb-3">Recent Notifications</h2>
-              <div className="space-y-3">
-                {(notifications as any[]).map((notification: any) => (
-                  <Card
-                    key={notification.id}
-                    className={notification.is_read ? "" : "border-primary/50 bg-primary/5"}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1">
-                          {notification.sender && (
-                            <Avatar className="h-9 w-9">
-                              <AvatarImage
-                                src={notification.sender.avatar_url}
-                                alt={notification.sender.full_name}
-                              />
-                              <AvatarFallback>
-                                {notification.sender.full_name
-                                  ?.split(" ")
-                                  .map((n: string) => n[0])
-                                  .join("")
-                                  .toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                          )}
-                          <div className="flex-shrink-0">
-                            {getNotificationIcon(notification.type)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            {notification.sender?.full_name && (
-                              <p className="text-sm font-medium">
-                                {notification.sender.full_name}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge
-                                className={`text-xs ${getNotificationBadgeColor(notification.type)}`}
-                                variant="secondary"
-                              >
-                                {notification.type}
-                              </Badge>
-                            </div>
-                            {notification.title && (
-                              <p className="text-sm font-semibold mt-1">{notification.title}</p>
-                            )}
-                            {notification.body && (
-                              <p className="text-sm text-muted-foreground">{notification.body}</p>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {format(new Date(notification.created_at), "MMM d, yyyy 'at' h:mm a")}
-                            </p>
-                          </div>
-                        </div>
-                        {!notification.is_read && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-4"
-                            onClick={() => markAsRead(notification.id)}
-                          >
-                            Mark as read
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <NotificationList groups={groups} />
+                </CardContent>
+              </Card>
             </>
           ) : null}
         </div>
