@@ -36,7 +36,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 import { useAdminRole } from "@/hooks/useAdminRole";
-import { useUnreadNotificationCount } from "@/hooks/useNotifications";
+import { useUnreadNotificationCount, useGroupedNotifications, useMarkAllNotificationsRead } from "@/hooks/useNotifications";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { NotificationList } from "@/components/notifications/NotificationList";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SearchDialog } from "@/components/SearchDialog";
