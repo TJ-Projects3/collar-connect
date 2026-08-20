@@ -102,7 +102,15 @@ export const InlineReplies = ({
               const isOwn = user?.id && reply.author_id === user.id;
               const isEditing = editingId === reply.id;
               return (
-                <div key={reply.id} className="flex gap-3 pl-2">
+                <div
+                  key={reply.id}
+                  id={`reply-${reply.id}`}
+                  className={
+                    "flex gap-3 pl-2 rounded-lg transition-shadow " +
+                    (focusReplyId === reply.id ? "ring-2 ring-primary/60 ring-offset-2 ring-offset-background" : "")
+                  }
+                >
+
                   <Avatar className="h-9 w-9 flex-shrink-0">
                     <AvatarImage src={reply.profiles?.avatar_url || undefined} />
                     <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
