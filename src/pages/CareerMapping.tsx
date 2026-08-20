@@ -119,22 +119,26 @@ const CareerMapping = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
-        {view === "intro" && <IntroView onStart={() => setView("quiz")} />}
+      <div className="container mx-auto px-4 py-6 max-w-5xl">
+        {(view === "intro" || view === "quiz") && (
+          <div className="max-w-2xl mx-auto">
+            {view === "intro" && <IntroView onStart={() => setView("quiz")} />}
 
-        {view === "quiz" && (
-          <QuizView
-            section={SECTIONS[currentSection]}
-            sectionIndex={currentSection}
-            totalSections={SECTIONS.length}
-            questions={sectionQuestions}
-            answers={answers}
-            onAnswer={handleAnswer}
-            onNext={handleNext}
-            onBack={handleBack}
-            allAnswered={allSectionAnswered}
-            isLast={currentSection === SECTIONS.length - 1}
-          />
+            {view === "quiz" && (
+              <QuizView
+                section={SECTIONS[currentSection]}
+                sectionIndex={currentSection}
+                totalSections={SECTIONS.length}
+                questions={sectionQuestions}
+                answers={answers}
+                onAnswer={handleAnswer}
+                onNext={handleNext}
+                onBack={handleBack}
+                allAnswered={allSectionAnswered}
+                isLast={currentSection === SECTIONS.length - 1}
+              />
+            )}
+          </div>
         )}
 
         {view === "results" && results && (
