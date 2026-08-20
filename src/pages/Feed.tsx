@@ -23,6 +23,7 @@ import {
 import { FeedProjectEmbed } from "@/components/projects/FeedProjectEmbed";
 import { useFeaturedResources } from "@/hooks/useFeaturedResources";
 import { useTrendingHashtags } from "@/hooks/useTrendingHashtags";
+import { RecommendedPeersCard } from "@/components/community/RecommendedPeersCard";
 import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { CreatePostModal } from "@/components/CreatePostModal";
