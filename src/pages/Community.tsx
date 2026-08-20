@@ -25,6 +25,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { LinkifyText } from "@/components/LinkifyText";
 import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
+import { ThreadSummaryCard } from "@/components/community/ThreadSummaryCard";
+import { RecommendedPeersCard } from "@/components/community/RecommendedPeersCard";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -274,6 +276,15 @@ const QuestionDetail = ({ id }: { id: string }) => {
         <ArrowLeft className="h-4 w-4" /> All questions
       </Button>
 
+      <ThreadSummaryCard
+        questionId={question.id}
+        title={question.title}
+        question={question.body || ""}
+        answers={answers.map((a) => a.body)}
+      />
+
+
+
       <Card>
         <CardContent className="p-5 flex gap-4">
           <VoteBox
@@ -466,8 +477,15 @@ const Community = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       <Navbar />
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-3xl">
-        {id ? <QuestionDetail id={id} /> : <QuestionsList onAsk={() => setAskOpen(true)} />}
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-5xl">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-6">
+          <div className="lg:col-span-8 min-w-0">
+            {id ? <QuestionDetail id={id} /> : <QuestionsList onAsk={() => setAskOpen(true)} />}
+          </div>
+          <aside className="hidden lg:block lg:col-span-4 lg:sticky lg:top-20 lg:self-start space-y-4">
+            <RecommendedPeersCard />
+          </aside>
+        </div>
       </main>
       <AskQuestionModal
         open={askOpen}

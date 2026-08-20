@@ -989,6 +989,44 @@ export type Database = {
           },
         ]
       }
+      question_summaries: {
+        Row: {
+          answer_count: number
+          bullets: Json
+          created_at: string
+          generated_by: string | null
+          question_id: string
+          takeaway: string | null
+          updated_at: string
+        }
+        Insert: {
+          answer_count?: number
+          bullets?: Json
+          created_at?: string
+          generated_by?: string | null
+          question_id: string
+          takeaway?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answer_count?: number
+          bullets?: Json
+          created_at?: string
+          generated_by?: string | null
+          question_id?: string
+          takeaway?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_summaries_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: true
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       question_votes: {
         Row: {
           answer_id: string | null
