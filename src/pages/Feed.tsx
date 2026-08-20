@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Home, Users, Briefcase, MessageSquare,
-  Settings, ThumbsUp, MessageCircle, Share2,
+  Settings, ThumbsUp, MessageCircle,
   TrendingUp, Sparkles, BookOpen, Calendar, Trash2, FileText, Video, Download, Globe, Hash, Compass, Code2
 } from "lucide-react";
 import { FeedProjectEmbed } from "@/components/projects/FeedProjectEmbed";
