@@ -76,16 +76,50 @@ const Settings = () => {
     }
   };
 
-  const handleIndustryField = async (
-    field: "industry_role_title" | "industry_company",
-    value: string
-  ) => {
+  const handleTextField = async (field: string, value: string) => {
     try {
       await updateProfile.mutateAsync({ [field]: value.trim() || null } as any);
     } catch (e: any) {
       toast.error(e?.message || "Failed to save");
     }
   };
+
+  const handleIndustryField = (
+    field: "industry_role_title" | "industry_company",
+    value: string
+  ) => handleTextField(field, value);
+
+  const handleNumberField = async (field: string, value: string) => {
+    const parsed = value.trim() === "" ? null : Number(value);
+    if (parsed !== null && Number.isNaN(parsed)) return;
+    try {
+      await updateProfile.mutateAsync({ [field]: parsed } as any);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to save");
+    }
+  };
+
+  const handleListField = async (field: string, value: string) => {
+    const list = value
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+    try {
+      await updateProfile.mutateAsync({ [field]: list } as any);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to save");
+    }
+  };
+
+  const handleMentorshipOptIn = async (checked: boolean) => {
+    try {
+      await updateProfile.mutateAsync({ mentorship_opt_in: checked } as any);
+      toast.success(checked ? "You're open to mentoring" : "Mentorship turned off");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to update");
+    }
+  };
+
 
   const handleAvailabilityChange = async (value: string) => {
     try {
@@ -238,6 +272,46 @@ const Settings = () => {
                       />
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="industry-yoe">Years of experience</Label>
+                      <Input
+                        id="industry-yoe"
+                        type="number"
+                        min={0}
+                        max={70}
+                        defaultValue={(profile as any)?.years_of_experience ?? ""}
+                        onBlur={(e) => handleNumberField("years_of_experience", e.target.value)}
+                        placeholder="8"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="industry-expertise">Areas of expertise</Label>
+                      <Input
+                        id="industry-expertise"
+                        defaultValue={((profile as any)?.areas_of_expertise ?? []).join(", ")}
+                        onBlur={(e) => handleListField("areas_of_expertise", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Distributed systems, SRE, Go"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-0.5">
+                      <Label>Open to mentoring students</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Students can request mentorship from your profile.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(profile as any)?.mentorship_opt_in ?? false}
+                      onCheckedChange={handleMentorshipOptIn}
+                      disabled={!profile || updateProfile.isPending}
+                    />
+                  </div>
+
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="space-y-0.5">
                       <Label>Company profile</Label>

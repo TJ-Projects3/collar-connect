@@ -43,6 +43,9 @@ import { CommentInput } from "@/components/CommentInput";
 import { renderPostContent } from "@/lib/post-formatting";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { getProfileSubline } from "@/lib/profile-display";
+import { useRecruiterGate } from "@/hooks/useRecruiterGate";
+import { RecruiterStatusNotice } from "@/components/RecruiterStatusNotice";
+
 
 const SUGGESTED_HASHTAGS = ["DiversityInTech", "Cybersecurity", "Internships", "CareerMapping"];
 
@@ -114,6 +117,8 @@ const RotatingPostPrompt = ({ avatarUrl, initials, onOpenPost }: RotatingPostPro
 
 const Feed = () => {
   const { data: profile } = useProfile();
+  const recruiterGate = useRecruiterGate();
+
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [postInitialContent, setPostInitialContent] = useState<string>("");
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
@@ -486,17 +491,24 @@ const Feed = () => {
           {/* Main Feed */}
           <main className="lg:col-span-6 space-y-4 lg:max-w-[640px] lg:mx-auto w-full">
             {/* Create Post */}
-            <RotatingPostPrompt
-              avatarUrl={profile?.avatar_url}
-              initials={getInitials(profile?.full_name)}
-              onOpenPost={openEmptyPostModal}
-            />
+            {recruiterGate.restricted ? (
+              <RecruiterStatusNotice status={recruiterGate.status} action="post to the feed" />
+            ) : (
+              <>
+                <RotatingPostPrompt
+                  avatarUrl={profile?.avatar_url}
+                  initials={getInitials(profile?.full_name)}
+                  onOpenPost={openEmptyPostModal}
+                />
 
-            <CreatePostModal
-              open={isPostModalOpen}
-              onOpenChange={setIsPostModalOpen}
-              initialContent={postInitialContent}
-            />
+                <CreatePostModal
+                  open={isPostModalOpen}
+                  onOpenChange={setIsPostModalOpen}
+                  initialContent={postInitialContent}
+                />
+              </>
+            )}
+
 
 
             {/* Feed filter tabs */}
