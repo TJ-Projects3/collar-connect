@@ -145,6 +145,21 @@ const Feed = () => {
   });
   const { data: posts, isLoading } = usePosts();
 
+  // Deep-link focus (/feed?post=<id>&reply=<id>) coming from notifications
+  const [searchParams] = useSearchParams();
+  const focusPostId = searchParams.get("post");
+  const focusReplyId = searchParams.get("reply");
+
+  useEffect(() => {
+    if (!focusPostId || !posts || posts.length === 0) return;
+    const el = document.getElementById(`post-${focusPostId}`);
+    if (!el) return;
+    const timer = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, [focusPostId, posts]);
+
   const { data: featuredResources, isLoading: featuredLoading } = useFeaturedResources(3);
   const { data: trendingHashtags, isLoading: trendingLoading } = useTrendingHashtags(5);
 
