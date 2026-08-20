@@ -38,7 +38,16 @@ import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useA
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { IndustryBadge } from "@/components/IndustryBadge";
 import { useCompany } from "@/hooks/useCompany";
-import { getProfileSubline } from "@/lib/profile-display";
+import { useAdminRole } from "@/hooks/useAdminRole";
+import { IndustryProfileCard } from "@/components/industry/IndustryProfileCard";
+import { RecruiterProfileCard } from "@/components/recruiter/RecruiterProfileCard";
+import {
+  getProfileSubline,
+  isRecruiterApproved,
+  recruiterStatus,
+  isRecruiter,
+  isIndustry,
+} from "@/lib/profile-display";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -104,6 +113,7 @@ const Profile = () => {
   const deleteExperience = useDeleteExperience();
 
   const isOwnProfile = viewedUserId === user?.id;
+  const { isAdmin: viewerIsAdmin } = useAdminRole();
 
   const handleEditExperience = (exp: Experience) => {
     setEditingExperience(exp);
@@ -344,7 +354,8 @@ const Profile = () => {
                         {profile?.profile_type === "recruiter" && (
                           <RecruiterBadge
                             size="lg"
-                            verified
+                            verified={isRecruiterApproved(profile)}
+                            status={recruiterStatus(profile)}
                             company={profile?.company_name?.trim() || "NextGen Collar"}
                           />
                         )}
@@ -352,6 +363,7 @@ const Profile = () => {
                           <IndustryBadge
                             size="lg"
                             verified={(profile as any)?.industry_verified === true}
+                            mentor={(profile as any)?.mentorship_opt_in === true}
                             company={!!profileCompany}
                             companyName={
                               profileCompany?.name ||
@@ -485,7 +497,17 @@ const Profile = () => {
             )}
 
             {/* Developer Portfolio */}
-            <DeveloperPortfolioCard profile={profile} isOwnProfile={isOwnProfile} />
+            {isIndustry(profile) ? (
+              <IndustryProfileCard profile={profile} isOwnProfile={isOwnProfile} />
+            ) : isRecruiter(profile) ? (
+              <RecruiterProfileCard
+                profile={profile}
+                isOwnProfile={isOwnProfile}
+                isAdmin={viewerIsAdmin}
+              />
+            ) : (
+              <DeveloperPortfolioCard profile={profile} isOwnProfile={isOwnProfile} />
+            )}
 
             {/* Experience Section */}
             <Card>
