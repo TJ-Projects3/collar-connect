@@ -89,7 +89,7 @@ const Messages = () => {
       <div className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Recent Chats */}
         <aside className={`lg:col-span-4 ${activeRecipient ? "hidden lg:block" : "block"}`}>
-          <Card className="h-[calc(100vh-8rem)]">
+          <Card className="h-[calc(100vh-12rem)] md:h-[calc(100vh-8rem)]">
             <CardHeader className="border-b">
               <h3 className="font-semibold">Recent Chats</h3>
             </CardHeader>
@@ -142,7 +142,7 @@ const Messages = () => {
 
         {/* Right: Chat Area */}
         <main className={`lg:col-span-8 ${activeRecipient ? "block" : "hidden lg:block"}`}>
-          <Card className="h-[calc(100vh-8rem)] flex flex-col">
+          <Card className="h-[calc(100vh-12rem)] md:h-[calc(100vh-8rem)] flex flex-col">
             {activeRecipient && activeConversation ? (
               <>
                 {/* Chat Header */}
