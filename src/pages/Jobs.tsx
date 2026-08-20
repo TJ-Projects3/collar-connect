@@ -33,6 +33,16 @@ const workArrangementLabels: Record<string, string> = {
   on_site: "On-site",
 };
 
+/** Only http(s) links may be rendered as hrefs (blocks javascript:/data: URLs). */
+const isSafeUrl = (url: string | null | undefined): boolean => {
+  if (!url) return false;
+  try {
+    return ["http:", "https:"].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+};
+
 const Jobs = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
@@ -321,7 +331,7 @@ const Jobs = () => {
                             {job.contact_phone}
                           </a>
                         )}
-                        {job.contact_url && (
+                        {isSafeUrl(job.contact_url) && (
                           <a 
                             href={job.contact_url}
                             target="_blank"
@@ -336,7 +346,7 @@ const Jobs = () => {
                     </div>
                   )}
                   
-                  {job.external_url && (
+                  {isSafeUrl(job.external_url) && (
                     <Button asChild className="w-full sm:w-auto">
                       <a href={job.external_url} target="_blank" rel="noopener noreferrer">
                         Apply Now

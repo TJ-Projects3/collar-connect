@@ -28,11 +28,34 @@ function toPlainText(html: string): string {
     .trim();
 }
 
+/** Escape user-controlled values before interpolating them into HTML. */
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-
+/** Constant-time-ish comparison to avoid leaking the token via timing. */
+function tokensMatch(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
 
 serve(async (req) => {
   try {
+    // This function is only invoked server-side (DB trigger / backend jobs) with
+    // the service role key. Reject anything else so it can't be abused to send mail.
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
+    if (!serviceRoleKey || !bearer || !tokensMatch(bearer, serviceRoleKey)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
     const { notificationId } = await req.json();
 
     if (!notificationId) {
@@ -41,6 +64,7 @@ serve(async (req) => {
         { status: 400 }
       );
     }
+
 
     // Create Supabase admin client
     const supabase = createClient(
@@ -126,9 +150,9 @@ serve(async (req) => {
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2>You have a new message</h2>
-          <p><strong>${senderName}</strong> sent you a message.</p>
+          <p><strong>${escapeHtml(senderName)}</strong> sent you a message.</p>
           <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <p>${notification.body || notification.title}</p>
+            <p>${escapeHtml(notification.body || notification.title)}</p>
           </div>
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
             You received this email because you have email notifications enabled.
@@ -140,7 +164,7 @@ serve(async (req) => {
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2>New Connection Request</h2>
-          <p><strong>${senderName}</strong> wants to connect with you.</p>
+          <p><strong>${escapeHtml(senderName)}</strong> wants to connect with you.</p>
           <p>
             <a href="${appUrl}/notifications" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px;">
               Review Request
@@ -156,9 +180,9 @@ serve(async (req) => {
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2>Connection Accepted 🎉</h2>
-          <p>You are now connected with <strong>${senderName}</strong>.</p>
+          <p>You are now connected with <strong>${escapeHtml(senderName)}</strong>.</p>
           <p>
-            <a href="${appUrl}/profile/${notification.sender_id}" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px;">
+            <a href="${appUrl}/profile/${encodeURIComponent(notification.sender_id)}" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px;">
               View Profile
             </a>
           </p>
@@ -172,7 +196,7 @@ serve(async (req) => {
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2>New reaction on your post</h2>
-          <p><strong>${senderName}</strong> reacted to your post.</p>
+          <p><strong>${escapeHtml(senderName)}</strong> reacted to your post.</p>
           <p>
             <a href="${appUrl}/feed" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px;">
               View Post
@@ -188,9 +212,9 @@ serve(async (req) => {
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2>New reply on your post</h2>
-          <p><strong>${senderName}</strong> replied to your post:</p>
+          <p><strong>${escapeHtml(senderName)}</strong> replied to your post:</p>
           <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <p>${notification.body || ""}</p>
+            <p>${escapeHtml(notification.body || "")}</p>
           </div>
           <p>
             <a href="${appUrl}/feed" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px;">
