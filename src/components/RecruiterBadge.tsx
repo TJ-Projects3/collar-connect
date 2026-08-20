@@ -9,6 +9,8 @@ interface RecruiterBadgeProps {
   company?: string | null;
   /** `sm` for inline feed/comment usage, `lg` for prominent profile header usage. */
   size?: "sm" | "lg";
+  /** Recruiter approval state; drives the pending/rejected wording. */
+  status?: "pending" | "approved" | "rejected" | null;
 }
 
 /** Sleek identity pill for recruiter accounts. Shares geometry with EndorsementPill. */
@@ -18,12 +20,21 @@ export const RecruiterBadge = ({
   compact,
   company,
   size = "sm",
+  status,
 }: RecruiterBadgeProps) => {
-  // The prominent profile-header pill always reads as a verified identity badge.
   const isProminent = size === "lg";
-  const showVerified = verified || isProminent;
-  const Icon = showVerified ? BadgeCheck : Briefcase;
-  const label = showVerified ? (compact ? "Verified" : "Verified Recruiter") : "Recruiter";
+  // Only approved recruiters get the verified treatment.
+  const showVerified = verified === true;
+  const Icon = showVerified ? BadgeCheck : status === "rejected" ? Briefcase : Briefcase;
+  const label = showVerified
+    ? compact
+      ? "Verified"
+      : "Verified Recruiter"
+    : status === "pending"
+      ? "Recruiter · Pending review"
+      : status === "rejected"
+        ? "Recruiter · Not approved"
+        : "Recruiter";
   const trimmedCompany = company?.trim();
 
   return (

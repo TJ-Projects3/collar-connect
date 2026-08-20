@@ -1,10 +1,12 @@
-import { BadgeCheck, Building2, Factory } from "lucide-react";
+import { BadgeCheck, Building2, Factory, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface IndustryBadgeProps {
   verified?: boolean;
   /** Render as a company account instead of an individual professional. */
   company?: boolean;
+  /** Professional has opted in to mentoring students. */
+  mentor?: boolean;
   /** Company / employer name rendered after a separator dot. */
   companyName?: string | null;
   /** Optional logo shown inline for company accounts. */
@@ -20,15 +22,16 @@ interface IndustryBadgeProps {
 export const IndustryBadge = ({
   verified,
   company,
+  mentor,
   companyName,
   logoUrl,
   size = "sm",
   className,
 }: IndustryBadgeProps) => {
   const isProminent = size === "lg";
-  const label = company ? "Company" : "Industry Professional";
+  const label = company ? "Company" : mentor ? "Industry Mentor" : "Industry Professional";
   const trimmed = companyName?.trim();
-  const Icon = verified ? BadgeCheck : company ? Building2 : Factory;
+  const Icon = verified ? BadgeCheck : company ? Building2 : mentor ? GraduationCap : Factory;
 
   return (
     <span
