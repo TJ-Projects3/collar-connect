@@ -15,20 +15,42 @@ import { getProfileSubline, isRecruiter } from "@/lib/profile-display";
 interface InlineRepliesProps {
   postId: string;
   replyCount: number;
+  defaultExpanded?: boolean;
+  focusReplyId?: string | null;
 }
 
 const stopSpaceKeyPropagation = (e: KeyboardEvent<HTMLElement>) => {
   if (e.key === " ") e.stopPropagation();
 };
 
-export const InlineReplies = ({ postId, replyCount: initialCount }: InlineRepliesProps) => {
+export const InlineReplies = ({
+  postId,
+  replyCount: initialCount,
+  defaultExpanded = false,
+  focusReplyId = null,
+}: InlineRepliesProps) => {
   const { user } = useAuth();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const { data: replies = [], isLoading } = usePostReplies(postId);
   const updateReply = useUpdateReply();
   const deleteReply = useDeleteReply();
+
+  useEffect(() => {
+    if (defaultExpanded) setIsExpanded(true);
+  }, [defaultExpanded]);
+
+  // Scroll to and highlight the deep-linked reply once it is rendered
+  useEffect(() => {
+    if (!focusReplyId || !isExpanded || replies.length === 0) return;
+    const el = document.getElementById(`reply-${focusReplyId}`);
+    if (!el) return;
+    const timer = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [focusReplyId, isExpanded, replies.length]);
 
   // Use live count from fetched replies, fall back to post.reply_count while loading
   const count = replies.length || initialCount || 0;
