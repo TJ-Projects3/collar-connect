@@ -9,6 +9,7 @@ import { availabilityLabel, type Candidate } from "@/hooks/useTalentCandidates";
 import { EndorsementPill } from "@/components/endorsements/EndorsementBadges";
 import { useRecordTalentAccess } from "@/hooks/useTalentAccess";
 import type { TalentAccessLevel } from "@/lib/profile-display";
+import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 
 const getInitials = (name?: string | null) =>
   (name || "?")
@@ -90,6 +91,15 @@ export const CandidateCard = ({
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
+              <ContentActionsMenu
+                size="sm"
+                className="order-last ml-auto"
+                targetType="profile"
+                targetId={candidate.id}
+                authorId={candidate.id}
+                authorName={candidate.full_name}
+                contentPreview={candidate.full_name}
+              />
               <Link
                 to={`/profile?userId=${candidate.id}`}
                 className="font-semibold hover:underline break-words"
