@@ -22,5 +22,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  return <OnboardingWrapper>{children}</OnboardingWrapper>;
+  return (
+    <OnboardingWrapper>
+      <RecruiterPendingGate>{children}</RecruiterPendingGate>
+    </OnboardingWrapper>
+  );
 };
