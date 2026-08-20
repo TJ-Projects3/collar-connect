@@ -25,6 +25,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { LinkifyText } from "@/components/LinkifyText";
 import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ThreadSummaryCard } from "@/components/community/ThreadSummaryCard";
 import { RecommendedPeersCard } from "@/components/community/RecommendedPeersCard";
 import { cn } from "@/lib/utils";
