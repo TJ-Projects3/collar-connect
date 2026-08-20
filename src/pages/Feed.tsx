@@ -296,6 +296,7 @@ const Feed = () => {
               authorName={post.profiles?.full_name}
               contentPreview={post.content}
               onDelete={isOwnPost ? handleDeleteClick : undefined}
+              onShare={() => handleShareClick(post.id)}
             />
           </div>
         </CardHeader>
