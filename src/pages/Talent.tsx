@@ -128,10 +128,12 @@ const Talent = () => {
 
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <header className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold">Candidate Discovery</h1>
-          <p className="text-muted-foreground mt-1">
-            Find student talent by tech stack, school, graduation year, and availability.
-          </p>
+          <PageHeader
+            title="Candidate Discovery"
+            subtitle="Find student talent by tech stack, school, graduation year, and availability."
+            icon={UsersRound}
+          />
+
 
           {scoped && (
             <Card className="mt-4 border-secondary/40 bg-secondary/5">
