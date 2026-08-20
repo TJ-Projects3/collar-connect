@@ -119,22 +119,26 @@ const CareerMapping = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
-        {view === "intro" && <IntroView onStart={() => setView("quiz")} />}
+      <div className="container mx-auto px-4 py-6 max-w-5xl">
+        {(view === "intro" || view === "quiz") && (
+          <div className="max-w-2xl mx-auto">
+            {view === "intro" && <IntroView onStart={() => setView("quiz")} />}
 
-        {view === "quiz" && (
-          <QuizView
-            section={SECTIONS[currentSection]}
-            sectionIndex={currentSection}
-            totalSections={SECTIONS.length}
-            questions={sectionQuestions}
-            answers={answers}
-            onAnswer={handleAnswer}
-            onNext={handleNext}
-            onBack={handleBack}
-            allAnswered={allSectionAnswered}
-            isLast={currentSection === SECTIONS.length - 1}
-          />
+            {view === "quiz" && (
+              <QuizView
+                section={SECTIONS[currentSection]}
+                sectionIndex={currentSection}
+                totalSections={SECTIONS.length}
+                questions={sectionQuestions}
+                answers={answers}
+                onAnswer={handleAnswer}
+                onNext={handleNext}
+                onBack={handleBack}
+                allAnswered={allSectionAnswered}
+                isLast={currentSection === SECTIONS.length - 1}
+              />
+            )}
+          </div>
         )}
 
         {view === "results" && results && (
@@ -393,10 +397,10 @@ const RoadmapSection = ({ results }: { results: CareerResults }) => {
   return (
     <Card className="border-accent/30">
       <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-3">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="min-w-0">
             <h3 className="font-semibold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-accent" />
+              <Sparkles className="h-4 w-4 text-accent shrink-0" />
               Your AI Roadmap
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
@@ -409,7 +413,7 @@ const RoadmapSection = ({ results }: { results: CareerResults }) => {
               size="sm"
               onClick={handleGenerate}
               disabled={generate.isPending}
-              className="gap-1.5 shrink-0"
+              className="gap-1.5 shrink-0 self-start"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${generate.isPending ? "animate-spin" : ""}`} />
               Regenerate
@@ -438,18 +442,21 @@ const RoadmapSection = ({ results }: { results: CareerResults }) => {
             <p className="text-sm text-muted-foreground leading-relaxed">{roadmap.summary}</p>
 
             {/* Phases */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {roadmap.phases.map((phase, i) => (
-                <div key={i} className="relative pl-6">
-                  <span className="absolute left-0 top-1 h-2.5 w-2.5 rounded-full bg-primary" />
+                <div key={i} className="relative pl-7">
+                  <span className="absolute left-0 top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/10" />
                   {i !== roadmap.phases.length - 1 && (
-                    <span className="absolute left-[4px] top-4 bottom-[-16px] w-px bg-border" />
+                    <span
+                      className="absolute left-[4.5px] top-6 bottom-[-22px] w-px bg-border"
+                      aria-hidden="true"
+                    />
                   )}
                   <div className="flex flex-wrap items-center gap-2">
                     <h4 className="font-semibold text-sm">{phase.title}</h4>
                     <Badge variant="secondary" className="text-[10px]">{phase.timeframe}</Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">{phase.focus}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{phase.focus}</p>
                   <ul className="mt-2 space-y-1.5">
                     {phase.actions.map((a, j) => (
                       <li key={j} className="flex gap-2 text-sm">
@@ -469,7 +476,9 @@ const RoadmapSection = ({ results }: { results: CareerResults }) => {
               <h4 className="text-sm font-semibold mb-2">Skills to build</h4>
               <div className="flex flex-wrap gap-1.5">
                 {roadmap.skills.map((s) => (
-                  <Badge key={s} variant="secondary">{s}</Badge>
+                  <Badge key={s} variant="secondary" className="break-words max-w-full text-left whitespace-normal">
+                    {s}
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -477,37 +486,37 @@ const RoadmapSection = ({ results }: { results: CareerResults }) => {
             {/* Projects */}
             <div>
               <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <FolderGit2 className="h-4 w-4 text-muted-foreground" /> Portfolio projects
+                <FolderGit2 className="h-4 w-4 text-muted-foreground shrink-0" /> Portfolio projects
               </h4>
-              <div className="space-y-2">
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {roadmap.projects.map((p) => (
                   <div key={p.title} className="rounded-lg border p-3">
-                    <p className="text-sm font-medium">{p.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>
+                    <p className="text-sm font-medium break-words">{p.title}</p>
+                    <p className="text-xs text-muted-foreground mt-1 break-words">{p.description}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Certifications + Roles */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                  <Award className="h-4 w-4 text-muted-foreground" /> Certifications
+                  <Award className="h-4 w-4 text-muted-foreground shrink-0" /> Certifications
                 </h4>
                 <ul className="space-y-1 text-sm text-muted-foreground">
                   {roadmap.certifications.map((c) => (
-                    <li key={c}>• {c}</li>
+                    <li key={c} className="break-words">• {c}</li>
                   ))}
                 </ul>
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                  <Target className="h-4 w-4 text-muted-foreground" /> Roles to target
+                  <Target className="h-4 w-4 text-muted-foreground shrink-0" /> Roles to target
                 </h4>
                 <ul className="space-y-1 text-sm text-muted-foreground">
                   {roadmap.roles.map((r) => (
-                    <li key={r}>• {r}</li>
+                    <li key={r} className="break-words">• {r}</li>
                   ))}
                 </ul>
               </div>
@@ -516,73 +525,74 @@ const RoadmapSection = ({ results }: { results: CareerResults }) => {
             {/* Detailed Job Descriptions */}
             {roadmap.jobDescriptions && roadmap.jobDescriptions.length > 0 && (
               <div className="space-y-4">
-                <h4 className="text-sm font-semibold flex items-center gap-2">
-                  <Briefcase className="h-4 w-4 text-muted-foreground" /> Best-fit job descriptions
-                </h4>
-                <p className="text-xs text-muted-foreground -mt-2">
-                  Benchmarked against current openings and levels at CFAANG-tier companies.
-                </p>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" /> Best-fit job descriptions
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Benchmarked against current openings and levels at CFAANG-tier companies.
+                  </p>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
                   {roadmap.jobDescriptions.map((job) => (
-                    <div key={job.title} className="rounded-lg border p-4 space-y-2.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <h5 className="font-medium text-sm">{job.title}</h5>
-                        <Badge variant="outline" className="text-[10px] shrink-0">
-                          <DollarSign className="h-3 w-3 mr-0.5" />
+                    <div key={job.title} className="rounded-lg border p-4 space-y-3 min-w-0">
+                      <div className="flex items-start justify-between gap-3 min-w-0">
+                        <h5 className="font-medium text-sm break-words min-w-0 flex-1">{job.title}</h5>
+                        <Badge variant="outline" className="text-[10px] shrink-0 break-words max-w-[140px] text-right whitespace-normal">
+                          <DollarSign className="h-3 w-3 mr-0.5 shrink-0 inline" />
                           {job.salaryRange}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{job.summary}</p>
-                      <p className="text-xs text-foreground leading-relaxed">{job.description}</p>
-                      <div className="text-xs leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed break-words">{job.summary}</p>
+                      <p className="text-xs text-foreground leading-relaxed break-words">{job.description}</p>
+                      <div className="text-xs leading-relaxed break-words">
                         <span className="font-medium">Why it fits:</span>{" "}
                         <span className="text-muted-foreground">{job.whyItFits}</span>
                       </div>
                       <ul className="space-y-1 text-xs text-muted-foreground">
                         {job.keyResponsibilities.map((r, idx) => (
-                          <li key={idx}>• {r}</li>
+                          <li key={idx} className="break-words">• {r}</li>
                         ))}
                       </ul>
                       {(job.benchmarkCompanies?.length ||
                         job.benchmarkRole ||
                         job.benchmarkLevel ||
                         job.benchmarkGap) && (
-                        <div className="rounded-md bg-muted/50 border border-border/60 p-2.5 space-y-1.5">
+                        <div className="rounded-md bg-muted/50 border border-border/60 p-3 space-y-2 min-w-0">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                             CFAANG benchmark
                           </p>
                           {job.benchmarkCompanies && job.benchmarkCompanies.length > 0 && (
                             <div className="flex flex-wrap gap-1">
                               {job.benchmarkCompanies.map((c) => (
-                                <Badge key={c} variant="secondary" className="text-[10px]">
+                                <Badge key={c} variant="secondary" className="text-[10px] break-words whitespace-normal">
                                   {c}
                                 </Badge>
                               ))}
                             </div>
                           )}
                           {job.benchmarkRole && (
-                            <p className="text-xs text-foreground leading-relaxed">
+                            <p className="text-xs text-foreground leading-relaxed break-words">
                               <span className="font-medium">Equivalent req:</span> {job.benchmarkRole}
                             </p>
                           )}
                           {job.benchmarkLevel && (
-                            <p className="text-xs text-muted-foreground leading-relaxed">
+                            <p className="text-xs text-muted-foreground leading-relaxed break-words">
                               <span className="font-medium text-foreground">Level:</span>{" "}
                               {job.benchmarkLevel}
                             </p>
                           )}
                           {job.benchmarkGap && (
-                            <p className="text-xs text-muted-foreground leading-relaxed">
+                            <p className="text-xs text-muted-foreground leading-relaxed break-words">
                               <span className="font-medium text-foreground">Gap to close:</span>{" "}
                               {job.benchmarkGap}
                             </p>
                           )}
                         </div>
                       )}
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-[10px] text-muted-foreground break-words">
                         Time to qualified: {job.timeToQualified}
                       </p>
-
                     </div>
                   ))}
                 </div>
