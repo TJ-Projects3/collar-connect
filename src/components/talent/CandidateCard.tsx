@@ -31,6 +31,7 @@ export const CandidateCard = ({
 }) => {
   const navigate = useNavigate();
   const recordAccess = useRecordTalentAccess();
+  const [blockOpen, setBlockOpen] = useState(false);
   const scoped = accessLevel === "scoped";
   const topSkills = candidate.skills.slice(0, 5);
   const extraSkills = candidate.skills.length - topSkills.length;
