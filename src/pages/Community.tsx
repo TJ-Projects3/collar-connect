@@ -24,6 +24,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { LinkifyText } from "@/components/LinkifyText";
+import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
