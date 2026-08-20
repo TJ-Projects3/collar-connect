@@ -626,7 +626,7 @@ const Feed = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Trending</h3>
+                  <h3 className="font-semibold">Explore Topics</h3>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -649,26 +649,22 @@ const Feed = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">
-                      No trending topics yet. Try one of these to start a conversation:
-                    </p>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {SUGGESTED_HASHTAGS.map((tag) => (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={() => {
-                            setPostInitialContent(`#${tag} `);
-                            setIsPostModalOpen(true);
-                          }}
-                          className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 px-2.5 py-1 text-xs font-medium transition-colors"
-                        >
-                          <Hash className="h-3 w-3" />
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="flex flex-wrap gap-2">
+                    {SUGGESTED_HASHTAGS.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setActiveHashtag(activeHashtag === tag ? null : tag)}
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                          activeHashtag === tag
+                            ? "bg-primary text-primary-foreground ring-1 ring-primary"
+                            : "bg-primary/10 text-primary hover:bg-primary/20"
+                        }`}
+                      >
+                        <Hash className="h-3 w-3" />
+                        {tag}
+                      </button>
+                    ))}
                   </div>
                 )}
               </CardContent>
