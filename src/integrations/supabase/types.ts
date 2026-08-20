@@ -835,7 +835,6 @@ export type Database = {
           featured_projects: Json | null
           full_name: string | null
           github_url: string | null
-          gpa: number | null
           graduation_year: number | null
           hiring_roles: string[]
           id: string
@@ -877,7 +876,6 @@ export type Database = {
           featured_projects?: Json | null
           full_name?: string | null
           github_url?: string | null
-          gpa?: number | null
           graduation_year?: number | null
           hiring_roles?: string[]
           id: string
@@ -919,7 +917,6 @@ export type Database = {
           featured_projects?: Json | null
           full_name?: string | null
           github_url?: string | null
-          gpa?: number | null
           graduation_year?: number | null
           hiring_roles?: string[]
           id?: string
@@ -1429,7 +1426,6 @@ export type Database = {
           post_count: number
         }[]
       }
-      get_user_email: { Args: { user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
