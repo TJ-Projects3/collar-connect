@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Flag, MoreHorizontal, Pencil, Trash2, UserX } from "lucide-react";
+import { Flag, MoreHorizontal, Pencil, Share2, Trash2, UserX } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { TARGET_LABEL, type ReportTargetType } from "@/hooks/useContentReports";
 import { ReportContentDialog } from "@/components/moderation/ReportContentDialog";
