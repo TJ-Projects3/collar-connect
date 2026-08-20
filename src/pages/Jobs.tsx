@@ -331,7 +331,7 @@ const Jobs = () => {
                             {job.contact_phone}
                           </a>
                         )}
-                        {job.contact_url && (
+                        {isSafeUrl(job.contact_url) && (
                           <a 
                             href={job.contact_url}
                             target="_blank"
@@ -346,7 +346,7 @@ const Jobs = () => {
                     </div>
                   )}
                   
-                  {job.external_url && (
+                  {isSafeUrl(job.external_url) && (
                     <Button asChild className="w-full sm:w-auto">
                       <a href={job.external_url} target="_blank" rel="noopener noreferrer">
                         Apply Now
