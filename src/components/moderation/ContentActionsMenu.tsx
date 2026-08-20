@@ -23,6 +23,8 @@ interface ContentActionsMenuProps {
   allowBlock?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** Secondary share/copy-link action, shown at the top of the menu */
+  onShare?: () => void;
   size?: "sm" | "default";
   className?: string;
 }
