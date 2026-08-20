@@ -113,6 +113,7 @@ const Profile = () => {
   const deleteExperience = useDeleteExperience();
 
   const isOwnProfile = viewedUserId === user?.id;
+  const { isAdmin: viewerIsAdmin } = useAdminRole();
 
   const handleEditExperience = (exp: Experience) => {
     setEditingExperience(exp);
@@ -496,7 +497,17 @@ const Profile = () => {
             )}
 
             {/* Developer Portfolio */}
-            <DeveloperPortfolioCard profile={profile} isOwnProfile={isOwnProfile} />
+            {isIndustry(profile) ? (
+              <IndustryProfileCard profile={profile} isOwnProfile={isOwnProfile} />
+            ) : isRecruiter(profile) ? (
+              <RecruiterProfileCard
+                profile={profile}
+                isOwnProfile={isOwnProfile}
+                isAdmin={viewerIsAdmin}
+              />
+            ) : (
+              <DeveloperPortfolioCard profile={profile} isOwnProfile={isOwnProfile} />
+            )}
 
             {/* Experience Section */}
             <Card>
