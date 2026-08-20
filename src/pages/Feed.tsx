@@ -259,7 +259,11 @@ const Feed = () => {
       : [];
 
     return (
-      <Card key={post.id}>
+      <Card
+        key={post.id}
+        id={`post-${post.id}`}
+        className={focusPostId === post.id ? "ring-2 ring-primary/60 ring-offset-2 ring-offset-background" : undefined}
+      >
         <CardHeader className="px-6 pt-6 pb-3 md:px-8 md:pt-7">
           <div className="flex items-start justify-between">
             <Link to={`/profile?userId=${post.author_id}`} className="flex gap-3">
