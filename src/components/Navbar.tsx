@@ -190,6 +190,12 @@ export const Navbar = () => {
     { to: "/community", icon: HelpCircle, label: "Q&A" },
   ];
 
+  // Destinations not present in the mobile bottom nav
+  const bottomNavPaths = ["/feed", "/my-network", "/community", "/messages", "/profile"];
+  const secondaryNavItems = navItems.filter((item) => !bottomNavPaths.includes(item.to));
+
+
+
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "ME";
