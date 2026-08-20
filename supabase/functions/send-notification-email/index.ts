@@ -130,11 +130,6 @@ serve(async (req) => {
           <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <p>${notification.body || notification.title}</p>
           </div>
-          <p>
-            <a href="${appUrl}/messages" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px;">
-              View Message
-            </a>
-          </p>
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
             You received this email because you have email notifications enabled.
           </p>
