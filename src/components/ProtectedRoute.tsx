@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { OnboardingWrapper } from "./OnboardingWrapper";
+import { RecruiterPendingGate } from "./RecruiterPendingGate";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
