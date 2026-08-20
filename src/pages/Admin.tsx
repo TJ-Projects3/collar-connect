@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield, Briefcase, Award, Medal, ShieldCheck, UserCheck } from "lucide-react";
+import { ArrowLeft, FileText, MessageSquare, CalendarDays, Shield, Briefcase, Award, Medal, ShieldCheck, UserCheck, Flag } from "lucide-react";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,7 @@ import { ProjectAchievementsTab } from "@/components/admin/ProjectAchievementsTa
 import { EndorsementsTab } from "@/components/admin/EndorsementsTab";
 import { IndustryVerificationTab } from "@/components/admin/IndustryVerificationTab";
 import { RecruitersTab } from "@/components/admin/RecruitersTab";
+import { ReportsTab } from "@/components/admin/ReportsTab";
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();
@@ -68,7 +69,7 @@ const Admin = () => {
       {/* Main Content */}
       <main className="container py-8">
         <Tabs defaultValue="jobs" className="space-y-6">
-          <TabsList className="grid w-full max-w-5xl grid-cols-8">
+          <TabsList className="grid w-full max-w-6xl grid-cols-9">
             <TabsTrigger value="jobs" className="flex items-center gap-2">
               <Briefcase className="h-4 w-4" />
               <span className="hidden sm:inline">Jobs</span>
@@ -100,6 +101,10 @@ const Admin = () => {
             <TabsTrigger value="industry" className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4" />
               <span className="hidden sm:inline">Industry</span>
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2">
+              <Flag className="h-4 w-4" />
+              <span className="hidden sm:inline">Reports</span>
             </TabsTrigger>
           </TabsList>
 
@@ -133,6 +138,10 @@ const Admin = () => {
 
           <TabsContent value="industry">
             <IndustryVerificationTab />
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <ReportsTab />
           </TabsContent>
         </Tabs>
       </main>

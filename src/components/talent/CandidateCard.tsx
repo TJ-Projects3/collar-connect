@@ -3,12 +3,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BadgeCheck, GraduationCap, Handshake, MessageSquare } from "lucide-react";
+import { BadgeCheck, GraduationCap, Handshake, MessageSquare, UserX } from "lucide-react";
+import { useState } from "react";
+import { BlockUserDialog } from "@/components/moderation/BlockUserDialog";
 import { toast } from "sonner";
 import { availabilityLabel, type Candidate } from "@/hooks/useTalentCandidates";
 import { EndorsementPill } from "@/components/endorsements/EndorsementBadges";
 import { useRecordTalentAccess } from "@/hooks/useTalentAccess";
 import type { TalentAccessLevel } from "@/lib/profile-display";
+import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 
 const getInitials = (name?: string | null) =>
   (name || "?")
@@ -28,6 +31,7 @@ export const CandidateCard = ({
 }) => {
   const navigate = useNavigate();
   const recordAccess = useRecordTalentAccess();
+  const [blockOpen, setBlockOpen] = useState(false);
   const scoped = accessLevel === "scoped";
   const topSkills = candidate.skills.slice(0, 5);
   const extraSkills = candidate.skills.length - topSkills.length;
@@ -90,6 +94,15 @@ export const CandidateCard = ({
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="order-last ml-auto h-7 w-7 text-muted-foreground hover:text-destructive"
+                aria-label="Block this user"
+                onClick={() => setBlockOpen(true)}
+              >
+                <UserX className="h-4 w-4" />
+              </Button>
               <Link
                 to={`/profile?userId=${candidate.id}`}
                 className="font-semibold hover:underline break-words"
@@ -187,6 +200,13 @@ export const CandidateCard = ({
           </Button>
         </div>
       </CardContent>
+
+      <BlockUserDialog
+        open={blockOpen}
+        onOpenChange={setBlockOpen}
+        userId={candidate.id}
+        userName={candidate.full_name}
+      />
     </Card>
   );
 };
