@@ -378,19 +378,24 @@ const QuestionDetail = ({ id }: { id: string }) => {
                             {a.is_accepted ? "Unaccept" : "Accept"}
                           </Button>
                         )}
-                        {isAnswerOwner && (
-                          <Button
-                            size="sm" variant="ghost"
-                            className="text-destructive hover:text-destructive gap-1 h-7 text-xs"
-                            onClick={() => {
-                              if (confirm("Delete this answer?")) {
-                                deleteAnswer.mutate({ id: a.id, questionId: question.id });
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
+                        <ContentActionsMenu
+                          size="sm"
+                          targetType="answer"
+                          targetId={a.id}
+                          authorId={a.author_id}
+                          authorName={a.profiles?.full_name}
+                          contentPreview={a.body}
+                          allowBlock={!a.is_anonymous}
+                          onDelete={
+                            isAnswerOwner
+                              ? () => {
+                                  if (confirm("Delete this answer?")) {
+                                    deleteAnswer.mutate({ id: a.id, questionId: question.id });
+                                  }
+                                }
+                              : undefined
+                          }
+                        />
                       </div>
                     </div>
                   </div>
