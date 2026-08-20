@@ -272,7 +272,7 @@ const QuestionDetail = ({ id }: { id: string }) => {
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" size="sm" onClick={() => navigate("/community")} className="gap-1">
+      <Button variant="ghost" size="sm" onClick={() => navigate("/community")} className="-ml-2 gap-1 text-muted-foreground">
         <ArrowLeft className="h-4 w-4" /> All questions
       </Button>
 
