@@ -22,7 +22,13 @@ import {
   type TalentFilterState,
 } from "@/hooks/useTalentCandidates";
 import { useTalentQuota } from "@/hooks/useTalentAccess";
-import { talentAccessLevel } from "@/lib/profile-display";
+import {
+  talentAccessLevel,
+  isRecruiterRestricted,
+  recruiterStatus,
+} from "@/lib/profile-display";
+import { RecruiterStatusNotice } from "@/components/RecruiterStatusNotice";
+
 
 const Talent = () => {
   const { user } = useAuth();
@@ -73,7 +79,23 @@ const Talent = () => {
     );
   }
 
-  if (accessLevel === "none") return <Navigate to="/feed" replace />;
+  if (accessLevel === "none") {
+    if (isRecruiterRestricted(profile, isAdmin === true)) {
+      return (
+        <div className="min-h-screen bg-background">
+          <Navbar />
+          <div className="container mx-auto max-w-2xl px-4 py-10">
+            <RecruiterStatusNotice
+              status={recruiterStatus(profile)}
+              action="search student talent"
+            />
+          </div>
+        </div>
+      );
+    }
+    return <Navigate to="/feed" replace />;
+  }
+
 
   type ChipKey = "techStack" | "gradYears" | "universities" | "availability";
 

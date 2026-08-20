@@ -13,6 +13,9 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Send, ArrowLeft } from "lucide-react";
 import { LinkifyText } from "@/components/LinkifyText";
+import { useRecruiterGate } from "@/hooks/useRecruiterGate";
+import { RecruiterStatusNotice } from "@/components/RecruiterStatusNotice";
+
 
 const formatMessageTime = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -26,7 +29,10 @@ const Messages = () => {
   const { user } = useAuth();
   const { data: conversations = [] } = useConversations();
   const sendMessage = useSendMessage();
+  const gate = useRecruiterGate();
   const [searchParams, setSearchParams] = useSearchParams();
+
+
 
   const [activeRecipient, setActiveRecipient] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
@@ -220,25 +226,34 @@ const Messages = () => {
 
                 {/* Input Area */}
                 <div className="border-t p-4">
-                  <div className="flex gap-2">
-                    <Textarea
-                      placeholder="Type a message..."
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="min-h-[44px] max-h-32 resize-none"
-                      rows={1}
+                  {gate.restricted ? (
+                    <RecruiterStatusNotice
+                      status={gate.status}
+                      action="message members"
+                      className="border-0 shadow-none"
                     />
-                    <Button
-                      onClick={handleSend}
-                      disabled={sendMessage.isPending || !messageText.trim()}
-                      size="icon"
-                      className="shrink-0"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Textarea
+                        placeholder="Type a message..."
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="min-h-[44px] max-h-32 resize-none"
+                        rows={1}
+                      />
+                      <Button
+                        onClick={handleSend}
+                        disabled={sendMessage.isPending || !messageText.trim()}
+                        size="icon"
+                        className="shrink-0"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
+
               </>
             ) : activeRecipient && !activeConversation ? (
               // New conversation - need to fetch recipient profile
@@ -286,6 +301,8 @@ const NewConversationView = ({
 }) => {
   const { data: messages = [], isLoading: messagesLoading } = useConversationMessages(recipientId);
   const { user } = useAuth();
+  const gate = useRecruiterGate();
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch recipient profile
@@ -361,25 +378,34 @@ const NewConversationView = ({
       </ScrollArea>
 
       <div className="border-t p-4">
-        <div className="flex gap-2">
-          <Textarea
-            placeholder="Type a message..."
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="min-h-[44px] max-h-32 resize-none"
-            rows={1}
+        {gate.restricted ? (
+          <RecruiterStatusNotice
+            status={gate.status}
+            action="message members"
+            className="border-0 shadow-none"
           />
-          <Button
-            onClick={handleSend}
-            disabled={sendMessage.isPending || !messageText.trim()}
-            size="icon"
-            className="shrink-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+        ) : (
+          <div className="flex gap-2">
+            <Textarea
+              placeholder="Type a message..."
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="min-h-[44px] max-h-32 resize-none"
+              rows={1}
+            />
+            <Button
+              onClick={handleSend}
+              disabled={sendMessage.isPending || !messageText.trim()}
+              size="icon"
+              className="shrink-0"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
+
     </>
   );
 };

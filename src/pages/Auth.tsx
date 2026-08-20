@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+
 import {
   Card,
   CardContent,
@@ -68,6 +70,15 @@ const Auth = () => {
   // Recruiter-specific
   const [companyName, setCompanyName] = useState("");
   const [companyTitle, setCompanyTitle] = useState("");
+  const [companyEmail, setCompanyEmail] = useState("");
+  const [companyWebsite, setCompanyWebsite] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [hiringRoles, setHiringRoles] = useState("");
+  // Industry-professional-specific
+  const [yearsOfExperience, setYearsOfExperience] = useState("");
+  const [areasOfExpertise, setAreasOfExpertise] = useState("");
+  const [mentorshipOptIn, setMentorshipOptIn] = useState(false);
+
 
   // Password reset state
   const [resetEmail, setResetEmail] = useState("");
@@ -149,11 +160,19 @@ const Auth = () => {
                 ? {
                     industry_company: companyName || undefined,
                     industry_role_title: companyTitle || undefined,
+                    years_of_experience: yearsOfExperience || undefined,
+                    areas_of_expertise: areasOfExpertise || undefined,
+                    mentorship_opt_in: mentorshipOptIn,
                   }
                 : {
                     company_name: companyName || undefined,
                     company_title: companyTitle || undefined,
+                    company_email: companyEmail || undefined,
+                    company_website: companyWebsite || undefined,
+                    linkedin_url: linkedinUrl || undefined,
+                    hiring_roles: hiringRoles || undefined,
                   }),
+
           },
         },
       });
@@ -164,8 +183,12 @@ const Auth = () => {
 
       toast({
         title: "Account created!",
-        description: "Welcome to NextGen Collar.",
+        description:
+          signUpRole === "recruiter"
+            ? "Your recruiter account is pending review. Candidate search, messaging, and posting unlock once you're approved."
+            : "Welcome to NextGen Collar.",
       });
+
       navigate("/feed");
     } catch (error: any) {
       toast({
@@ -648,10 +671,15 @@ const Auth = () => {
                       </>
                     ) : (
                       <>
-                        {signUpRole === "industry" && (
+                        {signUpRole === "industry" ? (
                           <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
                             Industry accounts get access to mentorship and opted-in candidate
                             discovery once the NextGen Collar team verifies your account.
+                          </p>
+                        ) : (
+                          <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+                            Recruiter accounts are reviewed before candidate search, direct
+                            messaging, and posting are unlocked.
                           </p>
                         )}
                         <div className="space-y-2">
@@ -680,7 +708,103 @@ const Auth = () => {
                             onChange={(e) => setCompanyTitle(e.target.value)}
                           />
                         </div>
+
+                        {signUpRole === "recruiter" && (
+                          <>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="space-y-2">
+                                <Label htmlFor="signup-company-email">Work Email</Label>
+                                <Input
+                                  id="signup-company-email"
+                                  type="email"
+                                  placeholder="you@company.com"
+                                  value={companyEmail}
+                                  onChange={(e) => setCompanyEmail(e.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="signup-company-website">Company Website</Label>
+                                <Input
+                                  id="signup-company-website"
+                                  type="url"
+                                  placeholder="https://company.com"
+                                  value={companyWebsite}
+                                  onChange={(e) => setCompanyWebsite(e.target.value)}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="signup-linkedin">LinkedIn URL</Label>
+                              <Input
+                                id="signup-linkedin"
+                                type="url"
+                                placeholder="https://linkedin.com/in/you"
+                                value={linkedinUrl}
+                                onChange={(e) => setLinkedinUrl(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="signup-hiring-roles">Roles You're Hiring For</Label>
+                              <Input
+                                id="signup-hiring-roles"
+                                type="text"
+                                placeholder="Software Engineer Intern, Data Analyst"
+                                value={hiringRoles}
+                                onChange={(e) => setHiringRoles(e.target.value)}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Separate multiple roles with commas.
+                              </p>
+                            </div>
+                          </>
+                        )}
+
+                        {signUpRole === "industry" && (
+                          <>
+                            <div className="space-y-2">
+                              <Label htmlFor="signup-yoe">Years of Experience</Label>
+                              <Input
+                                id="signup-yoe"
+                                type="number"
+                                min={0}
+                                max={70}
+                                placeholder="8"
+                                value={yearsOfExperience}
+                                onChange={(e) => setYearsOfExperience(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="signup-expertise">Areas of Expertise</Label>
+                              <Input
+                                id="signup-expertise"
+                                type="text"
+                                placeholder="Distributed systems, SRE, Go"
+                                value={areasOfExpertise}
+                                onChange={(e) => setAreasOfExpertise(e.target.value)}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Separate multiple areas with commas.
+                              </p>
+                            </div>
+                            <div className="flex items-start gap-3 rounded-md border p-3">
+                              <Checkbox
+                                id="signup-mentorship"
+                                checked={mentorshipOptIn}
+                                onCheckedChange={(v) => setMentorshipOptIn(v === true)}
+                              />
+                              <div className="space-y-0.5">
+                                <Label htmlFor="signup-mentorship">
+                                  I'm open to mentoring students
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                  Students can request mentorship from your profile.
+                                </p>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </>
+
                     )}
 
                     <Button

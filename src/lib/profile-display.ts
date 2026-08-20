@@ -12,22 +12,40 @@ type AnyProfile = {
   industry_role_title?: string | null;
   industry_company?: string | null;
   industry_verified?: boolean | null;
+  current_role?: string | null;
+  current_company?: string | null;
+  recruiter_status?: string | null;
 } | null | undefined;
 
 export const isRecruiter = (p: AnyProfile) => p?.profile_type === "recruiter";
 export const isIndustry = (p: AnyProfile) => p?.profile_type === "industry";
 export const isIndustryVerified = (p: AnyProfile) => isIndustry(p) && p?.industry_verified === true;
 
+export type RecruiterStatus = "pending" | "approved" | "rejected";
+
+export const recruiterStatus = (p: AnyProfile): RecruiterStatus | null =>
+  isRecruiter(p) ? ((p?.recruiter_status as RecruiterStatus) ?? "pending") : null;
+
+export const isRecruiterApproved = (p: AnyProfile) => recruiterStatus(p) === "approved";
+
+/**
+ * Recruiters awaiting review (or rejected) cannot search students, send DMs,
+ * or post announcements. Enforced in RLS; this mirrors it for UX.
+ */
+export const isRecruiterRestricted = (p: AnyProfile, isAdmin?: boolean) =>
+  !isAdmin && isRecruiter(p) && !isRecruiterApproved(p);
+
 /**
  * Tiered talent access.
- * - "full": recruiters and admins. Everything, no caps.
+ * - "full": approved recruiters and admins. Everything, no caps.
  * - "scoped": verified industry accounts. No resume/contact email, capped, intro requests only.
- * - "none": everyone else.
+ * - "none": everyone else, including recruiters pending review.
  */
 export type TalentAccessLevel = "full" | "scoped" | "none";
 
 export const talentAccessLevel = (p: AnyProfile, isAdmin?: boolean): TalentAccessLevel => {
-  if (isAdmin || isRecruiter(p)) return "full";
+  if (isAdmin) return "full";
+  if (isRecruiter(p)) return isRecruiterApproved(p) ? "full" : "none";
   if (isIndustryVerified(p)) return "scoped";
   return "none";
 };
@@ -35,10 +53,14 @@ export const talentAccessLevel = (p: AnyProfile, isAdmin?: boolean): TalentAcces
 export const canViewTalent = (p: AnyProfile, isAdmin?: boolean) =>
   talentAccessLevel(p, isAdmin) !== "none";
 
+
 export const getIndustryHeadline = (p: AnyProfile): string => {
-  const parts = [p?.industry_role_title, p?.industry_company].filter(Boolean) as string[];
+  const role = p?.current_role || p?.industry_role_title;
+  const company = p?.current_company || p?.industry_company;
+  const parts = [role, company].filter(Boolean) as string[];
   return parts.join(" @ ");
 };
+
 
 export const getProfileSubline = (p: AnyProfile, fallback = "Member"): string => {
   if (!p) return fallback;

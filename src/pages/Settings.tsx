@@ -47,6 +47,8 @@ const Settings = () => {
 
   const isStudent = (profile?.profile_type ?? "student") === "student";
   const isIndustryAccount = profile?.profile_type === "industry";
+  const isRecruiterAccount = profile?.profile_type === "recruiter";
+
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const { data: company } = useCompany();
 
@@ -76,16 +78,50 @@ const Settings = () => {
     }
   };
 
-  const handleIndustryField = async (
-    field: "industry_role_title" | "industry_company",
-    value: string
-  ) => {
+  const handleTextField = async (field: string, value: string) => {
     try {
       await updateProfile.mutateAsync({ [field]: value.trim() || null } as any);
     } catch (e: any) {
       toast.error(e?.message || "Failed to save");
     }
   };
+
+  const handleIndustryField = (
+    field: "industry_role_title" | "industry_company",
+    value: string
+  ) => handleTextField(field, value);
+
+  const handleNumberField = async (field: string, value: string) => {
+    const parsed = value.trim() === "" ? null : Number(value);
+    if (parsed !== null && Number.isNaN(parsed)) return;
+    try {
+      await updateProfile.mutateAsync({ [field]: parsed } as any);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to save");
+    }
+  };
+
+  const handleListField = async (field: string, value: string) => {
+    const list = value
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+    try {
+      await updateProfile.mutateAsync({ [field]: list } as any);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to save");
+    }
+  };
+
+  const handleMentorshipOptIn = async (checked: boolean) => {
+    try {
+      await updateProfile.mutateAsync({ mentorship_opt_in: checked } as any);
+      toast.success(checked ? "You're open to mentoring" : "Mentorship turned off");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to update");
+    }
+  };
+
 
   const handleAvailabilityChange = async (value: string) => {
     try {
@@ -238,6 +274,46 @@ const Settings = () => {
                       />
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="industry-yoe">Years of experience</Label>
+                      <Input
+                        id="industry-yoe"
+                        type="number"
+                        min={0}
+                        max={70}
+                        defaultValue={(profile as any)?.years_of_experience ?? ""}
+                        onBlur={(e) => handleNumberField("years_of_experience", e.target.value)}
+                        placeholder="8"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="industry-expertise">Areas of expertise</Label>
+                      <Input
+                        id="industry-expertise"
+                        defaultValue={((profile as any)?.areas_of_expertise ?? []).join(", ")}
+                        onBlur={(e) => handleListField("areas_of_expertise", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Distributed systems, SRE, Go"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-0.5">
+                      <Label>Open to mentoring students</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Students can request mentorship from your profile.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(profile as any)?.mentorship_opt_in ?? false}
+                      onCheckedChange={handleMentorshipOptIn}
+                      disabled={!profile || updateProfile.isPending}
+                    />
+                  </div>
+
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="space-y-0.5">
                       <Label>Company profile</Label>
@@ -260,6 +336,87 @@ const Settings = () => {
                   <Separator />
                 </>
               )}
+
+              {isRecruiterAccount && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-company">Company name</Label>
+                      <Input
+                        id="recruiter-company"
+                        defaultValue={(profile as any)?.company_name ?? ""}
+                        onBlur={(e) => handleTextField("company_name", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Acme Corp"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-title">Your title</Label>
+                      <Input
+                        id="recruiter-title"
+                        defaultValue={(profile as any)?.company_title ?? ""}
+                        onBlur={(e) => handleTextField("company_title", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Senior Technical Recruiter"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-email">Work email</Label>
+                      <Input
+                        id="recruiter-email"
+                        type="email"
+                        defaultValue={(profile as any)?.company_email ?? ""}
+                        onBlur={(e) => handleTextField("company_email", e.target.value)}
+                        placeholder="you@company.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-website">Company website</Label>
+                      <Input
+                        id="recruiter-website"
+                        type="url"
+                        defaultValue={(profile as any)?.company_website ?? ""}
+                        onBlur={(e) => handleTextField("company_website", e.target.value)}
+                        placeholder="https://company.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-linkedin">LinkedIn URL</Label>
+                      <Input
+                        id="recruiter-linkedin"
+                        type="url"
+                        defaultValue={(profile as any)?.linkedin_url ?? ""}
+                        onBlur={(e) => handleTextField("linkedin_url", e.target.value)}
+                        placeholder="https://linkedin.com/in/you"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-roles">Roles you're hiring for</Label>
+                      <Input
+                        id="recruiter-roles"
+                        defaultValue={((profile as any)?.hiring_roles ?? []).join(", ")}
+                        onBlur={(e) => handleListField("hiring_roles", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Software Engineer Intern, Data Analyst"
+                      />
+                    </div>
+                  </div>
+                  {((profile as any)?.recruiter_status ?? "pending") !== "approved" && (
+                    <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                      Your recruiter account is {(profile as any)?.recruiter_status ?? "pending"}.
+                      Candidate search, direct messaging, and posting unlock once approved.
+                    </p>
+                  )}
+                  <Separator />
+                </>
+              )}
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Profile Visibility</Label>
