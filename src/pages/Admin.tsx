@@ -51,23 +51,17 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center gap-4">
-          <Link to="/feed">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            <h1 className="text-xl font-semibold">Admin Dashboard</h1>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
-      <main className="container py-8">
+      <main className="container px-3 sm:px-4 py-6">
+        <PageHeader
+          title="Admin Dashboard"
+          subtitle="Manage jobs, resources, events, reports, and verifications."
+          icon={Shield}
+          backTo="/feed"
+          backLabel="Back to feed"
+        />
         <Tabs defaultValue="jobs" className="space-y-6">
           <TabsList className="grid w-full max-w-6xl grid-cols-9">
             <TabsTrigger value="jobs" className="flex items-center gap-2">
