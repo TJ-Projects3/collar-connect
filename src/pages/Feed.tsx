@@ -590,6 +590,9 @@ const Feed = () => {
 
           {/* Right Sidebar */}
           <aside className="lg:col-span-3 space-y-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+            {/* Recommended Peers */}
+            <RecommendedPeersCard />
+
             {/* Featured Resources */}
             <Card>
               <CardHeader className="pb-3">
