@@ -33,6 +33,16 @@ const workArrangementLabels: Record<string, string> = {
   on_site: "On-site",
 };
 
+/** Only http(s) links may be rendered as hrefs (blocks javascript:/data: URLs). */
+const isSafeUrl = (url: string | null | undefined): boolean => {
+  if (!url) return false;
+  try {
+    return ["http:", "https:"].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+};
+
 const Jobs = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
