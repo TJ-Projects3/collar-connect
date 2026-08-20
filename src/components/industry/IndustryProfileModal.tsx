@@ -212,13 +212,14 @@ export const IndustryProfileModal = ({ open, onOpenChange, profile }: Props) => 
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={updateProfile.isPending}>
-            {updateProfile.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save profile
-          </Button>
+          <ModalActions
+            submitLabel="Save profile"
+            pendingLabel="Saving..."
+            onSubmit={handleSave}
+            onCancel={() => onOpenChange(false)}
+            isPending={updateProfile.isPending}
+            className="w-full"
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>
