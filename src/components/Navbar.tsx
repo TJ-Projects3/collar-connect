@@ -322,28 +322,10 @@ export const Navbar = () => {
             </DropdownMenu>
           </nav>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation — primary destinations live in the bottom nav */}
           <div className="flex md:hidden items-center gap-1">
-            {/* Compact nav icons for mobile */}
-            <Link
-              to="/feed"
-              className={cn(
-                "p-2 rounded-lg transition-colors",
-                currentPath === "/feed" ? "text-foreground bg-muted" : "text-muted-foreground"
-              )}
-            >
-              <Home className="h-5 w-5" />
-            </Link>
-            <Link
-              to="/messages"
-              className={cn(
-                "p-2 rounded-lg transition-colors",
-                currentPath === "/messages" ? "text-foreground bg-muted" : "text-muted-foreground"
-              )}
-            >
-              <MessageSquare className="h-5 w-5" />
-            </Link>
             <NotificationBell currentPath={currentPath} />
+
 
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
