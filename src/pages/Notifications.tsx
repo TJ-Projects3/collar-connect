@@ -1,61 +1,35 @@
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, MessageCircle, Users, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Bell, Users, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useEffect, useRef } from "react";
-import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/useNotifications";
+import {
+  useGroupedNotifications,
+  useMarkAllNotificationsRead,
+} from "@/hooks/useNotifications";
+import { NotificationList } from "@/components/notifications/NotificationList";
 import { usePendingConnectionRequests, useAcceptConnectionRequest, useRejectConnectionRequest } from "@/hooks/useConnections";
-import { useToast } from "@/hooks/use-toast";
 
 const Notifications = () => {
-  const { data: notifications = [] } = useNotifications();
+  const { data: groups = [] } = useGroupedNotifications();
   const { data: pendingRequests = [] } = usePendingConnectionRequests();
-  const { mutate: markAsRead } = useMarkNotificationRead();
   const { mutate: markAllRead, isPending: markingAllRead } = useMarkAllNotificationsRead();
   const { mutate: acceptRequest, isPending: accepting } = useAcceptConnectionRequest();
   const { mutate: rejectRequest, isPending: rejecting } = useRejectConnectionRequest();
-  const { toast } = useToast();
   const hasMarkedRead = useRef(false);
+
+  const unreadCount = groups.reduce((sum, g) => sum + (g.is_read ? 0 : g.ids.length), 0);
 
   // Auto-mark all notifications as read when visiting the page
   useEffect(() => {
-    const unreadNotifications = (notifications as any[]).filter((n) => !n.is_read);
-    if (unreadNotifications.length > 0 && !hasMarkedRead.current) {
+    if (unreadCount > 0 && !hasMarkedRead.current) {
       hasMarkedRead.current = true;
       markAllRead();
     }
-  }, [notifications, markAllRead]);
+  }, [unreadCount, markAllRead]);
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case "connection_request":
-        return <Users className="h-5 w-5 text-blue-500" />;
-      case "connection_accepted":
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case "message":
-        return <MessageCircle className="h-5 w-5 text-purple-500" />;
-      default:
-        return <Bell className="h-5 w-5 text-primary" />;
-    }
-  };
-
-  const getNotificationBadgeColor = (type: string) => {
-    switch (type) {
-      case "connection_request":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
-      case "connection_accepted":
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
-      case "message":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400";
-      default:
-        return "bg-primary/10 text-primary";
-    }
-  };
-
-  const unreadCount = (notifications as any[]).filter((n) => !n.is_read).length;
 
   const handleAccept = (connectionId: string) => {
     acceptRequest(connectionId);
@@ -173,7 +147,7 @@ const Notifications = () => {
           )}
 
           {/* Notifications Section */}
-          {(notifications as any[]).length === 0 && (pendingRequests as any[]).length === 0 ? (
+          {groups.length === 0 && (pendingRequests as any[]).length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Bell className="h-12 w-12 text-muted-foreground mb-4" />
@@ -183,76 +157,14 @@ const Notifications = () => {
                 </p>
               </CardContent>
             </Card>
-          ) : (notifications as any[]).length > 0 ? (
+          ) : groups.length > 0 ? (
             <>
               <h2 className="text-lg font-semibold mt-6 mb-3">Recent Notifications</h2>
-              <div className="space-y-3">
-                {(notifications as any[]).map((notification: any) => (
-                  <Card
-                    key={notification.id}
-                    className={notification.is_read ? "" : "border-primary/50 bg-primary/5"}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1">
-                          {notification.sender && (
-                            <Avatar className="h-9 w-9">
-                              <AvatarImage
-                                src={notification.sender.avatar_url}
-                                alt={notification.sender.full_name}
-                              />
-                              <AvatarFallback>
-                                {notification.sender.full_name
-                                  ?.split(" ")
-                                  .map((n: string) => n[0])
-                                  .join("")
-                                  .toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                          )}
-                          <div className="flex-shrink-0">
-                            {getNotificationIcon(notification.type)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            {notification.sender?.full_name && (
-                              <p className="text-sm font-medium">
-                                {notification.sender.full_name}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge
-                                className={`text-xs ${getNotificationBadgeColor(notification.type)}`}
-                                variant="secondary"
-                              >
-                                {notification.type}
-                              </Badge>
-                            </div>
-                            {notification.title && (
-                              <p className="text-sm font-semibold mt-1">{notification.title}</p>
-                            )}
-                            {notification.body && (
-                              <p className="text-sm text-muted-foreground">{notification.body}</p>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {format(new Date(notification.created_at), "MMM d, yyyy 'at' h:mm a")}
-                            </p>
-                          </div>
-                        </div>
-                        {!notification.is_read && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-4"
-                            onClick={() => markAsRead(notification.id)}
-                          >
-                            Mark as read
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <NotificationList groups={groups} />
+                </CardContent>
+              </Card>
             </>
           ) : null}
         </div>

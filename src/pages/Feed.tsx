@@ -23,7 +23,7 @@ import {
 import { FeedProjectEmbed } from "@/components/projects/FeedProjectEmbed";
 import { useFeaturedResources } from "@/hooks/useFeaturedResources";
 import { useTrendingHashtags } from "@/hooks/useTrendingHashtags";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { CreatePostModal } from "@/components/CreatePostModal";
 import { ReplyModal } from "@/components/ReplyModal";
@@ -145,6 +145,21 @@ const Feed = () => {
   });
   const { data: posts, isLoading } = usePosts();
 
+  // Deep-link focus (/feed?post=<id>&reply=<id>) coming from notifications
+  const [searchParams] = useSearchParams();
+  const focusPostId = searchParams.get("post");
+  const focusReplyId = searchParams.get("reply");
+
+  useEffect(() => {
+    if (!focusPostId || !posts || posts.length === 0) return;
+    const el = document.getElementById(`post-${focusPostId}`);
+    if (!el) return;
+    const timer = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, [focusPostId, posts]);
+
   const { data: featuredResources, isLoading: featuredLoading } = useFeaturedResources(3);
   const { data: trendingHashtags, isLoading: trendingLoading } = useTrendingHashtags(5);
 
@@ -244,7 +259,11 @@ const Feed = () => {
       : [];
 
     return (
-      <Card key={post.id}>
+      <Card
+        key={post.id}
+        id={`post-${post.id}`}
+        className={focusPostId === post.id ? "ring-2 ring-primary/60 ring-offset-2 ring-offset-background" : undefined}
+      >
         <CardHeader className="px-6 pt-6 pb-3 md:px-8 md:pt-7">
           <div className="flex items-start justify-between">
             <Link to={`/profile?userId=${post.author_id}`} className="flex gap-3">
@@ -301,7 +320,12 @@ const Feed = () => {
           )}
 
           {/* Inline Replies */}
-          <InlineReplies postId={post.id} replyCount={liveReplyCount} />
+          <InlineReplies
+            postId={post.id}
+            replyCount={liveReplyCount}
+            defaultExpanded={focusPostId === post.id && !!focusReplyId}
+            focusReplyId={focusPostId === post.id ? focusReplyId : null}
+          />
         </CardContent>
 
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 px-6 pb-5 md:px-8">

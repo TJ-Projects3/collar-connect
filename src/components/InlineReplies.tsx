@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -15,20 +15,42 @@ import { getProfileSubline, isRecruiter } from "@/lib/profile-display";
 interface InlineRepliesProps {
   postId: string;
   replyCount: number;
+  defaultExpanded?: boolean;
+  focusReplyId?: string | null;
 }
 
 const stopSpaceKeyPropagation = (e: KeyboardEvent<HTMLElement>) => {
   if (e.key === " ") e.stopPropagation();
 };
 
-export const InlineReplies = ({ postId, replyCount: initialCount }: InlineRepliesProps) => {
+export const InlineReplies = ({
+  postId,
+  replyCount: initialCount,
+  defaultExpanded = false,
+  focusReplyId = null,
+}: InlineRepliesProps) => {
   const { user } = useAuth();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const { data: replies = [], isLoading } = usePostReplies(postId);
   const updateReply = useUpdateReply();
   const deleteReply = useDeleteReply();
+
+  useEffect(() => {
+    if (defaultExpanded) setIsExpanded(true);
+  }, [defaultExpanded]);
+
+  // Scroll to and highlight the deep-linked reply once it is rendered
+  useEffect(() => {
+    if (!focusReplyId || !isExpanded || replies.length === 0) return;
+    const el = document.getElementById(`reply-${focusReplyId}`);
+    if (!el) return;
+    const timer = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [focusReplyId, isExpanded, replies.length]);
 
   // Use live count from fetched replies, fall back to post.reply_count while loading
   const count = replies.length || initialCount || 0;
@@ -80,7 +102,15 @@ export const InlineReplies = ({ postId, replyCount: initialCount }: InlineReplie
               const isOwn = user?.id && reply.author_id === user.id;
               const isEditing = editingId === reply.id;
               return (
-                <div key={reply.id} className="flex gap-3 pl-2">
+                <div
+                  key={reply.id}
+                  id={`reply-${reply.id}`}
+                  className={
+                    "flex gap-3 pl-2 rounded-lg transition-shadow " +
+                    (focusReplyId === reply.id ? "ring-2 ring-primary/60 ring-offset-2 ring-offset-background" : "")
+                  }
+                >
+
                   <Avatar className="h-9 w-9 flex-shrink-0">
                     <AvatarImage src={reply.profiles?.avatar_url || undefined} />
                     <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
