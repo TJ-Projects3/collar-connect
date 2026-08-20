@@ -746,20 +746,26 @@ export type Database = {
       }
       profiles: {
         Row: {
+          areas_of_expertise: string[]
           availability:
             | Database["public"]["Enums"]["availability_status"]
             | null
           avatar_url: string | null
           bio: string | null
           company: string | null
+          company_email: string | null
           company_name: string | null
           company_title: string | null
+          company_website: string | null
           created_at: string
+          current_company: string | null
+          current_role: string | null
           featured_projects: Json | null
           full_name: string | null
           github_url: string | null
           gpa: number | null
           graduation_year: number | null
+          hiring_roles: string[]
           id: string
           industry_company: string | null
           industry_role_title: string | null
@@ -770,29 +776,38 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           major: string | null
+          mentorship_opt_in: boolean
           portfolio_url: string | null
           profile_type: Database["public"]["Enums"]["profile_type"]
+          recruiter_status: Database["public"]["Enums"]["recruiter_status"]
           resume_url: string | null
           university: string | null
           updated_at: string
           visible_to_industry: boolean
           website: string | null
+          years_of_experience: number | null
         }
         Insert: {
+          areas_of_expertise?: string[]
           availability?:
             | Database["public"]["Enums"]["availability_status"]
             | null
           avatar_url?: string | null
           bio?: string | null
           company?: string | null
+          company_email?: string | null
           company_name?: string | null
           company_title?: string | null
+          company_website?: string | null
           created_at?: string
+          current_company?: string | null
+          current_role?: string | null
           featured_projects?: Json | null
           full_name?: string | null
           github_url?: string | null
           gpa?: number | null
           graduation_year?: number | null
+          hiring_roles?: string[]
           id: string
           industry_company?: string | null
           industry_role_title?: string | null
@@ -803,29 +818,38 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
+          mentorship_opt_in?: boolean
           portfolio_url?: string | null
           profile_type?: Database["public"]["Enums"]["profile_type"]
+          recruiter_status?: Database["public"]["Enums"]["recruiter_status"]
           resume_url?: string | null
           university?: string | null
           updated_at?: string
           visible_to_industry?: boolean
           website?: string | null
+          years_of_experience?: number | null
         }
         Update: {
+          areas_of_expertise?: string[]
           availability?:
             | Database["public"]["Enums"]["availability_status"]
             | null
           avatar_url?: string | null
           bio?: string | null
           company?: string | null
+          company_email?: string | null
           company_name?: string | null
           company_title?: string | null
+          company_website?: string | null
           created_at?: string
+          current_company?: string | null
+          current_role?: string | null
           featured_projects?: Json | null
           full_name?: string | null
           github_url?: string | null
           gpa?: number | null
           graduation_year?: number | null
+          hiring_roles?: string[]
           id?: string
           industry_company?: string | null
           industry_role_title?: string | null
@@ -836,13 +860,16 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
+          mentorship_opt_in?: boolean
           portfolio_url?: string | null
           profile_type?: Database["public"]["Enums"]["profile_type"]
+          recruiter_status?: Database["public"]["Enums"]["recruiter_status"]
           resume_url?: string | null
           university?: string | null
           updated_at?: string
           visible_to_industry?: boolean
           website?: string | null
+          years_of_experience?: number | null
         }
         Relationships: []
       }
@@ -1304,6 +1331,7 @@ export type Database = {
         Args: { _kind: string; _target_id: string }
         Returns: Json
       }
+      recruiter_blocked: { Args: { _user_id: string }; Returns: boolean }
       send_dm: {
         Args: { message_text: string; recipient: string; sender: string }
         Returns: {
@@ -1346,6 +1374,7 @@ export type Database = {
       event_type: "virtual" | "in_person" | "hybrid"
       membership_status: "active" | "expired" | "cancelled" | "pending"
       profile_type: "student" | "recruiter" | "industry"
+      recruiter_status: "pending" | "approved" | "rejected"
       resource_type: "job" | "article" | "video" | "download" | "website"
       work_arrangement: "remote" | "hybrid" | "on_site"
     }
@@ -1495,6 +1524,7 @@ export const Constants = {
       event_type: ["virtual", "in_person", "hybrid"],
       membership_status: ["active", "expired", "cancelled", "pending"],
       profile_type: ["student", "recruiter", "industry"],
+      recruiter_status: ["pending", "approved", "rejected"],
       resource_type: ["job", "article", "video", "download", "website"],
       work_arrangement: ["remote", "hybrid", "on_site"],
     },
