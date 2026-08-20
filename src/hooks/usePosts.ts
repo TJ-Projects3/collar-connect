@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { fetchBlockedIds } from "@/hooks/useBlockedUsers";
 
 export const usePosts = () => {
   return useQuery({
@@ -31,7 +32,10 @@ export const usePosts = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      const blockedIds = await fetchBlockedIds();
+      if (blockedIds.size === 0) return data;
+      return (data ?? []).filter((post) => !post.author_id || !blockedIds.has(post.author_id));
     },
   });
 };

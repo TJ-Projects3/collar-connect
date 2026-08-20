@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchBlockedIds } from "@/hooks/useBlockedUsers";
 
 export type QuestionSort = "new" | "top" | "unanswered";
 
@@ -67,7 +68,8 @@ export const useQuestions = (sort: QuestionSort = "new", search = "") => {
 
       const { data, error } = await query.limit(100);
       if (error) throw error;
-      const rows = (data ?? []) as any[];
+      const blockedIds = await fetchBlockedIds();
+      const rows = ((data ?? []) as any[]).filter((r) => !blockedIds.has(r.author_id));
       // Only fetch author profiles for non-anonymous rows OR when viewer is the author
       const visibleIds = rows
         .filter((r) => !r.is_anonymous || r.author_id === user?.id)
@@ -111,7 +113,8 @@ export const useAnswers = (questionId: string | undefined) => {
         .order("upvotes", { ascending: false })
         .order("created_at", { ascending: true });
       if (error) throw error;
-      const rows = (data ?? []) as any[];
+      const blockedIds = await fetchBlockedIds();
+      const rows = ((data ?? []) as any[]).filter((r) => !blockedIds.has(r.author_id));
       const visibleIds = rows
         .filter((r) => !r.is_anonymous || r.author_id === user?.id)
         .map((r) => r.author_id);

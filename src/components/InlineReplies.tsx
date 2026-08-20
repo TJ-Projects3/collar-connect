@@ -3,7 +3,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 import { usePostReplies, useUpdateReply, useDeleteReply } from "@/hooks/usePostReplies";
 import { formatDistanceToNow } from "date-fns";
 import { LinkifyText } from "@/components/LinkifyText";
@@ -102,26 +103,22 @@ export const InlineReplies = ({ postId, replyCount: initialCount }: InlineReplie
                             {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
                           </span>
                         </div>
-                        {isOwn && !isEditing && (
+                        {!isEditing && (
                           <div className="flex items-center gap-1 flex-shrink-0">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                              onClick={() => startEdit(reply)}
-                              aria-label="Edit comment"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                              onClick={() => deleteReply.mutate({ replyId: reply.id, postId })}
-                              aria-label="Delete comment"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <ContentActionsMenu
+                              size="sm"
+                              targetType="reply"
+                              targetId={reply.id}
+                              authorId={reply.author_id}
+                              authorName={reply.profiles?.full_name}
+                              contentPreview={reply.content}
+                              onEdit={isOwn ? () => startEdit(reply) : undefined}
+                              onDelete={
+                                isOwn
+                                  ? () => deleteReply.mutate({ replyId: reply.id, postId })
+                                  : undefined
+                              }
+                            />
                           </div>
                         )}
                       </div>

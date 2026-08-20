@@ -45,6 +45,7 @@ import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { getProfileSubline } from "@/lib/profile-display";
 import { useRecruiterGate } from "@/hooks/useRecruiterGate";
 import { RecruiterStatusNotice } from "@/components/RecruiterStatusNotice";
+import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 
 
 const SUGGESTED_HASHTAGS = ["DiversityInTech", "Cybersecurity", "Internships", "CareerMapping"];
@@ -268,16 +269,14 @@ const Feed = () => {
                 </p>
               </div>
             </Link>
-            {isOwnPost && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleDeleteClick}
-                className="text-muted-foreground hover:text-destructive hover:bg-muted/50"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
+            <ContentActionsMenu
+              targetType="post"
+              targetId={post.id}
+              authorId={post.author_id}
+              authorName={post.profiles?.full_name}
+              contentPreview={post.content}
+              onDelete={isOwnPost ? handleDeleteClick : undefined}
+            />
           </div>
         </CardHeader>
         <CardContent className="px-6 pb-3 md:px-8">

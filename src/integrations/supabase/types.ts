@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_users: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       career_assessments: {
         Row: {
           answers: Json
@@ -98,6 +119,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_reports: {
+        Row: {
+          content_preview: string | null
+          created_at: string
+          details: string | null
+          id: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          target_author_id: string | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target_type"]
+          updated_at: string
+        }
+        Insert: {
+          content_preview?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_author_id?: string | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target_type"]
+          updated_at?: string
+        }
+        Update: {
+          content_preview?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason?: Database["public"]["Enums"]["report_reason"]
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_author_id?: string | null
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["report_target_type"]
+          updated_at?: string
+        }
+        Relationships: []
       }
       conversation_participants: {
         Row: {
@@ -1327,6 +1396,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_blocked: { Args: { _a: string; _b: string }; Returns: boolean }
       record_talent_access: {
         Args: { _kind: string; _target_id: string }
         Returns: Json
@@ -1375,6 +1445,15 @@ export type Database = {
       membership_status: "active" | "expired" | "cancelled" | "pending"
       profile_type: "student" | "recruiter" | "industry"
       recruiter_status: "pending" | "approved" | "rejected"
+      report_reason:
+        | "spam"
+        | "harassment"
+        | "sexual"
+        | "violence"
+        | "misinformation"
+        | "other"
+      report_status: "open" | "reviewed" | "dismissed"
+      report_target_type: "post" | "reply" | "question" | "answer"
       resource_type: "job" | "article" | "video" | "download" | "website"
       work_arrangement: "remote" | "hybrid" | "on_site"
     }
@@ -1525,6 +1604,16 @@ export const Constants = {
       membership_status: ["active", "expired", "cancelled", "pending"],
       profile_type: ["student", "recruiter", "industry"],
       recruiter_status: ["pending", "approved", "rejected"],
+      report_reason: [
+        "spam",
+        "harassment",
+        "sexual",
+        "violence",
+        "misinformation",
+        "other",
+      ],
+      report_status: ["open", "reviewed", "dismissed"],
+      report_target_type: ["post", "reply", "question", "answer"],
       resource_type: ["job", "article", "video", "download", "website"],
       work_arrangement: ["remote", "hybrid", "on_site"],
     },

@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Lock, User, Eye, Save, FlaskConical, Loader2 } from "lucide-react";
+import { Bell, Lock, User, Eye, Save, FlaskConical, Loader2, UserX, Trash2 } from "lucide-react";
+import { useBlockedUsers } from "@/hooks/useBlockedUsers";
+import { BlockedUsersDialog } from "@/components/settings/BlockedUsersDialog";
+import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
 import { EmailNotificationSettings } from "@/components/EmailNotificationSettings";
 import { toast } from "sonner";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
@@ -50,6 +53,10 @@ const Settings = () => {
   const isRecruiterAccount = profile?.profile_type === "recruiter";
 
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
+  const [blockedUsersOpen, setBlockedUsersOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const { data: blockedUsers } = useBlockedUsers();
+  const blockedCount = blockedUsers?.length ?? 0;
   const { data: company } = useCompany();
 
 
@@ -507,10 +514,23 @@ const Settings = () => {
               <Button variant="outline" className="w-full justify-start">
                 Download Your Data
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setBlockedUsersOpen(true)}
+              >
+                <UserX className="mr-2 h-4 w-4" />
                 Manage Blocked Users
+                {blockedCount > 0 && (
+                  <span className="ml-auto text-xs text-muted-foreground">{blockedCount}</span>
+                )}
               </Button>
-              <Button variant="outline" className="w-full justify-start text-destructive">
+              <Button
+                variant="outline"
+                className="w-full justify-start border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => setDeleteAccountOpen(true)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
                 Delete Account
               </Button>
             </CardContent>
@@ -519,6 +539,8 @@ const Settings = () => {
       </div>
 
       <CompanyProfileModal open={companyModalOpen} onOpenChange={setCompanyModalOpen} />
+      <BlockedUsersDialog open={blockedUsersOpen} onOpenChange={setBlockedUsersOpen} />
+      <DeleteAccountDialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen} />
     </div>
   );
 };

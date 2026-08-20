@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchBlockedIds } from "@/hooks/useBlockedUsers";
 
 // Hook to get replies for a post
 export const usePostReplies = (postId: string) => {
@@ -18,12 +19,19 @@ export const usePostReplies = (postId: string) => {
       if (repliesError) throw repliesError;
       if (!replies || replies.length === 0) return [];
 
+      // Hide replies from users blocked in either direction
+      const blockedIds = await fetchBlockedIds();
+      const visibleReplies = blockedIds.size
+        ? replies.filter((reply) => !reply.author_id || !blockedIds.has(reply.author_id))
+        : replies;
+      if (visibleReplies.length === 0) return [];
+
       // Then get the profile data for each reply author
-      const authorIds = replies
+      const authorIds = visibleReplies
         .map(reply => reply.author_id)
         .filter((id): id is string => id !== null);
 
-      if (authorIds.length === 0) return replies.map(reply => ({ ...reply, profiles: null }));
+      if (authorIds.length === 0) return visibleReplies.map(reply => ({ ...reply, profiles: null }));
 
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
@@ -34,7 +42,7 @@ export const usePostReplies = (postId: string) => {
 
       // Combine the data
       const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
-      return replies.map(reply => ({
+      return visibleReplies.map(reply => ({
         ...reply,
         profiles: reply.author_id ? profilesMap.get(reply.author_id) || null : null
       }));
