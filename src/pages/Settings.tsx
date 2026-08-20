@@ -47,6 +47,8 @@ const Settings = () => {
 
   const isStudent = (profile?.profile_type ?? "student") === "student";
   const isIndustryAccount = profile?.profile_type === "industry";
+  const isRecruiterAccount = profile?.profile_type === "recruiter";
+
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const { data: company } = useCompany();
 
