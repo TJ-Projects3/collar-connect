@@ -233,21 +233,13 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
                   }
                 />
               </div>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createPost.isPending || uploading}
-                >
-                  {createPost.isPending ? "Posting..." : "Post"}
-                </Button>
-              </div>
+              <ModalActions
+                type="submit"
+                submitLabel="Post"
+                pendingLabel="Posting..."
+                onCancel={() => onOpenChange(false)}
+                isPending={createPost.isPending || uploading}
+              />
             </div>
           </form>
         </Form>
