@@ -350,7 +350,8 @@ export const Navbar = () => {
                   </div>
                 </SheetHeader>
                 <div className="p-4 space-y-1">
-                  {navItems.map((item) => (
+                  {/* Primary destinations live in the bottom nav; only secondary ones here */}
+                  {secondaryNavItems.map((item) => (
                     <MobileNavItem
                       key={item.label}
                       to={item.to}
@@ -370,13 +371,7 @@ export const Navbar = () => {
                     />
                   )}
                   <div className="my-2 border-t" />
-                  <MobileNavItem
-                    to="/profile"
-                    icon={Users}
-                    label="View Profile"
-                    isActive={currentPath === "/profile"}
-                    onClick={closeMobileMenu}
-                  />
+
                   <MobileNavItem
                     to="/calendar"
                     icon={Calendar}
