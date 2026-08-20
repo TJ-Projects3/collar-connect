@@ -130,10 +130,15 @@ export const AskQuestionModal = ({ open, onOpenChange, onCreated }: AskQuestionM
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={submit} disabled={!title.trim() || createQuestion.isPending}>
-            {createQuestion.isPending ? "Posting..." : "Post Question"}
-          </Button>
+          <ModalActions
+            submitLabel="Post question"
+            pendingLabel="Posting..."
+            onSubmit={submit}
+            onCancel={() => onOpenChange(false)}
+            disabled={!title.trim()}
+            isPending={createQuestion.isPending}
+            className="w-full"
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>
