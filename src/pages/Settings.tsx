@@ -334,6 +334,87 @@ const Settings = () => {
                   <Separator />
                 </>
               )}
+
+              {isRecruiterAccount && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-company">Company name</Label>
+                      <Input
+                        id="recruiter-company"
+                        defaultValue={(profile as any)?.company_name ?? ""}
+                        onBlur={(e) => handleTextField("company_name", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Acme Corp"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-title">Your title</Label>
+                      <Input
+                        id="recruiter-title"
+                        defaultValue={(profile as any)?.company_title ?? ""}
+                        onBlur={(e) => handleTextField("company_title", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Senior Technical Recruiter"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-email">Work email</Label>
+                      <Input
+                        id="recruiter-email"
+                        type="email"
+                        defaultValue={(profile as any)?.company_email ?? ""}
+                        onBlur={(e) => handleTextField("company_email", e.target.value)}
+                        placeholder="you@company.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-website">Company website</Label>
+                      <Input
+                        id="recruiter-website"
+                        type="url"
+                        defaultValue={(profile as any)?.company_website ?? ""}
+                        onBlur={(e) => handleTextField("company_website", e.target.value)}
+                        placeholder="https://company.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-linkedin">LinkedIn URL</Label>
+                      <Input
+                        id="recruiter-linkedin"
+                        type="url"
+                        defaultValue={(profile as any)?.linkedin_url ?? ""}
+                        onBlur={(e) => handleTextField("linkedin_url", e.target.value)}
+                        placeholder="https://linkedin.com/in/you"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recruiter-roles">Roles you're hiring for</Label>
+                      <Input
+                        id="recruiter-roles"
+                        defaultValue={((profile as any)?.hiring_roles ?? []).join(", ")}
+                        onBlur={(e) => handleListField("hiring_roles", e.target.value)}
+                        onKeyDownCapture={(e) => {
+                          if (e.key === " ") e.stopPropagation();
+                        }}
+                        placeholder="Software Engineer Intern, Data Analyst"
+                      />
+                    </div>
+                  </div>
+                  {((profile as any)?.recruiter_status ?? "pending") !== "approved" && (
+                    <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                      Your recruiter account is {(profile as any)?.recruiter_status ?? "pending"}.
+                      Candidate search, direct messaging, and posting unlock once approved.
+                    </p>
+                  )}
+                  <Separator />
+                </>
+              )}
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Profile Visibility</Label>
