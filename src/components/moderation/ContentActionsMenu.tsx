@@ -38,6 +38,7 @@ export const ContentActionsMenu = ({
   allowBlock = true,
   onEdit,
   onDelete,
+  onShare,
   size = "default",
   className,
 }: ContentActionsMenuProps) => {
