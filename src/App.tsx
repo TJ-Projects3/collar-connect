@@ -19,6 +19,7 @@ import Talent from "./pages/Talent";
 
 import Notifications from "./pages/Notifications";
 import Admin from "./pages/Admin";
+import RecruiterReview from "./pages/RecruiterReview";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -142,6 +143,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Admin />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/recruiters"
+                element={
+                  <ProtectedRoute>
+                    <RecruiterReview />
                   </ProtectedRoute>
                 }
               />
