@@ -305,7 +305,7 @@ export const notificationLink = (group: NotificationGroup): string => {
         ? `/feed?post=${group.reference_id}&reply=${group.secondary_reference_id}`
         : `/feed?post=${group.reference_id}`;
     case "message":
-      return group.sender_link ?? "/messages";
+      return group.senders[0]?.id ? `/messages?recipientId=${group.senders[0].id}` : "/messages";
     case "connection_request":
     case "connection_accepted":
       return group.senders[0]?.id ? `/profile?userId=${group.senders[0].id}` : "/my-network";
