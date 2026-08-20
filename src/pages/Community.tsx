@@ -276,6 +276,15 @@ const QuestionDetail = ({ id }: { id: string }) => {
         <ArrowLeft className="h-4 w-4" /> All questions
       </Button>
 
+      <ThreadSummaryCard
+        questionId={question.id}
+        title={question.title}
+        question={question.body || ""}
+        answers={answers.map((a) => a.body)}
+      />
+
+
+
       <Card>
         <CardContent className="p-5 flex gap-4">
           <VoteBox
