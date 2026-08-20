@@ -138,13 +138,12 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
     <div className="space-y-4">
       <Card>
         <CardContent className="p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-secondary" />
-            <h1 className="text-xl font-bold">Community Q&amp;A</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Ask questions, share advice, and learn from students and recruiters across the community.
-          </p>
+          <PageHeader
+            title="Community Q&amp;A"
+            subtitle="Ask questions, share advice, and learn from students and recruiters across the community."
+            icon={Sparkles}
+            className="mb-0"
+          />
           <div className="flex flex-col sm:flex-row gap-2">
             <Button onClick={onAsk} className="gap-2">
               <Plus className="h-4 w-4" /> Ask a Question
