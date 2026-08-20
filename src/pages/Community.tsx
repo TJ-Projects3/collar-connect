@@ -304,19 +304,25 @@ const QuestionDetail = ({ id }: { id: string }) => {
                 isAnonymous={question.is_anonymous}
                 isSelf={user?.id === question.author_id}
               />
-              {isOwner && (
-                <Button
-                  size="sm" variant="ghost"
-                  className="text-destructive hover:text-destructive gap-1"
-                  onClick={() => {
-                    if (confirm("Delete this question and all its answers?")) {
-                      deleteQuestion.mutate(question.id, { onSuccess: () => navigate("/community") });
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" /> Delete
-                </Button>
-              )}
+              <ContentActionsMenu
+                targetType="question"
+                targetId={question.id}
+                authorId={question.author_id}
+                authorName={question.profiles?.full_name}
+                contentPreview={question.title}
+                allowBlock={!question.is_anonymous}
+                onDelete={
+                  isOwner
+                    ? () => {
+                        if (confirm("Delete this question and all its answers?")) {
+                          deleteQuestion.mutate(question.id, {
+                            onSuccess: () => navigate("/community"),
+                          });
+                        }
+                      }
+                    : undefined
+                }
+              />
             </div>
           </div>
         </CardContent>
