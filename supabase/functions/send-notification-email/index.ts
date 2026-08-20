@@ -28,11 +28,34 @@ function toPlainText(html: string): string {
     .trim();
 }
 
+/** Escape user-controlled values before interpolating them into HTML. */
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-
+/** Constant-time-ish comparison to avoid leaking the token via timing. */
+function tokensMatch(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
 
 serve(async (req) => {
   try {
+    // This function is only invoked server-side (DB trigger / backend jobs) with
+    // the service role key. Reject anything else so it can't be abused to send mail.
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
+    if (!serviceRoleKey || !bearer || !tokensMatch(bearer, serviceRoleKey)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
     const { notificationId } = await req.json();
 
     if (!notificationId) {
@@ -41,6 +64,7 @@ serve(async (req) => {
         { status: 400 }
       );
     }
+
 
     // Create Supabase admin client
     const supabase = createClient(
