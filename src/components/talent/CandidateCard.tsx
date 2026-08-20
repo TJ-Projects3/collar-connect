@@ -200,6 +200,13 @@ export const CandidateCard = ({
           </Button>
         </div>
       </CardContent>
+
+      <BlockUserDialog
+        open={blockOpen}
+        onOpenChange={setBlockOpen}
+        userId={candidate.id}
+        userName={candidate.full_name}
+      />
     </Card>
   );
 };
