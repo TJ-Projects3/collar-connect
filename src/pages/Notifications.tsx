@@ -1,61 +1,35 @@
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, MessageCircle, Users, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Bell, Users, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useEffect, useRef } from "react";
-import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/useNotifications";
+import {
+  useGroupedNotifications,
+  useMarkAllNotificationsRead,
+} from "@/hooks/useNotifications";
+import { NotificationList } from "@/components/notifications/NotificationList";
 import { usePendingConnectionRequests, useAcceptConnectionRequest, useRejectConnectionRequest } from "@/hooks/useConnections";
-import { useToast } from "@/hooks/use-toast";
 
 const Notifications = () => {
-  const { data: notifications = [] } = useNotifications();
+  const { data: groups = [] } = useGroupedNotifications();
   const { data: pendingRequests = [] } = usePendingConnectionRequests();
-  const { mutate: markAsRead } = useMarkNotificationRead();
   const { mutate: markAllRead, isPending: markingAllRead } = useMarkAllNotificationsRead();
   const { mutate: acceptRequest, isPending: accepting } = useAcceptConnectionRequest();
   const { mutate: rejectRequest, isPending: rejecting } = useRejectConnectionRequest();
-  const { toast } = useToast();
   const hasMarkedRead = useRef(false);
+
+  const unreadCount = groups.reduce((sum, g) => sum + (g.is_read ? 0 : g.ids.length), 0);
 
   // Auto-mark all notifications as read when visiting the page
   useEffect(() => {
-    const unreadNotifications = (notifications as any[]).filter((n) => !n.is_read);
-    if (unreadNotifications.length > 0 && !hasMarkedRead.current) {
+    if (unreadCount > 0 && !hasMarkedRead.current) {
       hasMarkedRead.current = true;
       markAllRead();
     }
-  }, [notifications, markAllRead]);
+  }, [unreadCount, markAllRead]);
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case "connection_request":
-        return <Users className="h-5 w-5 text-blue-500" />;
-      case "connection_accepted":
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case "message":
-        return <MessageCircle className="h-5 w-5 text-purple-500" />;
-      default:
-        return <Bell className="h-5 w-5 text-primary" />;
-    }
-  };
-
-  const getNotificationBadgeColor = (type: string) => {
-    switch (type) {
-      case "connection_request":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
-      case "connection_accepted":
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
-      case "message":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400";
-      default:
-        return "bg-primary/10 text-primary";
-    }
-  };
-
-  const unreadCount = (notifications as any[]).filter((n) => !n.is_read).length;
 
   const handleAccept = (connectionId: string) => {
     acceptRequest(connectionId);
