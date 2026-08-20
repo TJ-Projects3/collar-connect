@@ -1,48 +1,40 @@
-# Industry Mode: Companies & Professionals with Talent Access
+# Three Roles + Recruiter Approval Gating
 
-Today the platform has exactly two personas (`student`, `recruiter`), and Talent Discovery at `/talent` is gated to recruiters and admins only. This adds a third persona — **industry** — covering career professionals *and* company/employer accounts who are part of the tech industry and legitimately need to browse talent, even though they aren't recruiters.
+Keep one role field (`profiles.profile_type`, already `student | recruiter | industry`) and treat `industry` as the industry professional persona. Replace the recruiter boolean with a three-state approval status, add the requested role-specific fields, and enforce the pending-recruiter restrictions in the database.
 
-## Personas after this change
+## 1. Profile fields
 
-| Type | Who | Talent access |
-|---|---|---|
-| `student` | Students building a portfolio | No |
-| `recruiter` | Hiring / talent acquisition | Full |
-| `industry` | Engineers, managers, founders, company accounts | Yes, scoped (see below) |
+Industry professional:
+- `years_of_experience` (int), `current_company` (text), `current_role` (text), `mentorship_opt_in` (boolean, default false), `areas_of_expertise` (text array, default empty)
+- The existing `industry_company` / `industry_role_title` stay and are backfilled into `current_company` / `current_role`, so today's badges keep working.
 
-## What "scoped" talent access means
+Recruiter:
+- `company_email`, `hiring_roles` (text array), `company_website`, `linkedin_url` — `company_name` already exists and is reused.
 
-Industry accounts get the same `/talent` page, but with guardrails so it doesn't become an open resume dump:
+Approval:
+- New `recruiter_status` enum (`pending` / `approved` / `rejected`), default `pending`.
+- Backfilled from `is_verified_recruiter` (true -> approved, otherwise pending). The old boolean is kept in sync by trigger for one release so nothing breaks mid-deploy, and the admin verification tab writes `recruiter_status` from now on.
 
-- Candidate cards show name, headline, school, grad year, skills, projects, endorsements.
-- Resume download and contact email stay hidden — recruiter-only.
-- "Message Candidate" becomes "Request Intro", which sends a DM only if the student has opted into industry contact.
-- A per-day view/contact cap for industry accounts (recruiters unlimited).
+## 2. Pending recruiters are blocked
 
-## Company accounts
+A `security definer` helper (`public.recruiter_blocked(uid)`) returns true when the user is a recruiter whose status is not `approved`. It is applied so pending recruiters cannot:
 
-A company is an industry account with a company profile attached: logo, name, website, size, industry, short description, and a verified flag. Verification is a work-email domain match against the website domain, or admin approval — same pattern already used for recruiter verification. Unverified industry accounts get no talent access at all; the badge and the access both unlock on verification.
+- **Search students** — student profile rows and `student_projects` become invisible to them (talent discovery returns nothing).
+- **Send direct messages** — the insert policy on `messages` and the `send_dm` function both reject them.
+- **Post announcements** — the insert policy on `posts` rejects them.
 
-## Student control
+Approved recruiters, students, industry accounts, and admins are unaffected.
 
-Students get a single toggle in Settings: **"Visible to industry professionals & companies"** (on by default, same as current recruiter visibility). Off means industry accounts never see them; recruiters still do.
+## 3. App-side changes
 
-## Badge treatment
-
-Reuse the existing high-contrast pill pattern from `RecruiterBadge`, in the secondary cyan instead of primary navy:
-- Person: `Industry Professional · Senior SRE @ Cloudflare`
-- Company: `Company · Cloudflare` with the logo inline and a checkmark when verified.
-
-## Build order
-
-1. **Schema** — extend `profile_type` enum with `industry`; add `industry_role_title`, `industry_company`, `industry_verified`, and `visible_to_industry` (default true) on `profiles`; new `companies` table with GRANTs + RLS, linked to an owning profile.
-2. **Access layer** — replace the scattered `profile_type === "recruiter"` checks with a shared `canViewTalent` / `talentAccessLevel` helper in `src/lib/profile-display.ts`, used by `Navbar`, `Talent.tsx`, and `useTalentCandidates`.
-3. **Query filtering** — `useTalentCandidates` respects `visible_to_industry` when the viewer is industry-tier.
-4. **UI** — `IndustryBadge` component; field-level gating on `CandidateCard`; "Request Intro" flow; company profile form.
-5. **Settings** — student visibility toggle, and add `industry` to the existing admin Developer Mode role switcher so you can test all three modes.
+- `useProfile` / talent access helpers read `recruiter_status`; `canViewTalent` requires `approved` for recruiters.
+- Signup collects the new recruiter fields (company email, website, LinkedIn, hiring roles) and the industry fields (years of experience, company, role, expertise, mentorship opt-in).
+- Settings gains inputs for the new industry and recruiter fields.
+- A clear "pending review" banner replaces the talent page, the message composer, and the post composer for pending recruiters, plus a friendly message for rejected accounts.
+- Admin verification tab switches to Approve / Reject buttons driven by `recruiter_status`.
 
 ## Technical notes
 
-- The enum change is additive, so existing `student`/`recruiter` rows are untouched.
-- RLS on `student_projects`, `experiences`, and `profiles` needs new policies for the industry role — currently they assume recruiter-or-owner.
-- Rate limiting is enforced in a `talent_access_log` table checked by an RPC, not client-side, since client checks are trivially bypassed.
+- One migration: enum creation, columns with safe defaults, backfill, GRANT-preserving `ALTER`s (no new tables), the helper function, and the replaced RLS policies.
+- Profile read policy is split so non-student rows stay readable to everyone while student rows are hidden from blocked recruiters — this keeps the feed, messaging, and network pages working.
+- Client-side gating is UX only; enforcement lives in RLS and `send_dm`.
