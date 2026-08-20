@@ -344,7 +344,8 @@ const Profile = () => {
                         {profile?.profile_type === "recruiter" && (
                           <RecruiterBadge
                             size="lg"
-                            verified
+                            verified={isRecruiterApproved(profile)}
+                            status={recruiterStatus(profile)}
                             company={profile?.company_name?.trim() || "NextGen Collar"}
                           />
                         )}
@@ -352,6 +353,7 @@ const Profile = () => {
                           <IndustryBadge
                             size="lg"
                             verified={(profile as any)?.industry_verified === true}
+                            mentor={(profile as any)?.mentorship_opt_in === true}
                             company={!!profileCompany}
                             companyName={
                               profileCompany?.name ||
