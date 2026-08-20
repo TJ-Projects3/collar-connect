@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ModalActions } from "@/components/layout/ModalActions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -161,13 +162,14 @@ export const CompanyProfileModal = ({ open, onOpenChange }: CompanyProfileModalP
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={saveCompany.isPending}>
-            {saveCompany.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save company
-          </Button>
+          <ModalActions
+            submitLabel="Save company"
+            pendingLabel="Saving..."
+            onSubmit={handleSave}
+            onCancel={() => onOpenChange(false)}
+            isPending={saveCompany.isPending}
+            className="w-full"
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Flag, MoreHorizontal, Pencil, Trash2, UserX } from "lucide-react";
+import { Flag, MoreHorizontal, Pencil, Share2, Trash2, UserX } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { TARGET_LABEL, type ReportTargetType } from "@/hooks/useContentReports";
 import { ReportContentDialog } from "@/components/moderation/ReportContentDialog";
@@ -23,6 +23,8 @@ interface ContentActionsMenuProps {
   allowBlock?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** Secondary share/copy-link action, shown at the top of the menu */
+  onShare?: () => void;
   size?: "sm" | "default";
   className?: string;
 }
@@ -36,6 +38,7 @@ export const ContentActionsMenu = ({
   allowBlock = true,
   onEdit,
   onDelete,
+  onShare,
   size = "default",
   className,
 }: ContentActionsMenuProps) => {
@@ -62,6 +65,15 @@ export const ContentActionsMenu = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
+          {onShare && (
+            <>
+              <DropdownMenuItem onSelect={onShare}>
+                <Share2 className="mr-2 h-4 w-4" />
+                Share {label}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           {!isOwn && (
             <DropdownMenuItem onSelect={() => setReportOpen(true)}>
               <Flag className="mr-2 h-4 w-4" />

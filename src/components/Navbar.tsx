@@ -190,6 +190,12 @@ export const Navbar = () => {
     { to: "/community", icon: HelpCircle, label: "Q&A" },
   ];
 
+  // Destinations not present in the mobile bottom nav
+  const bottomNavPaths = ["/feed", "/my-network", "/community", "/messages", "/profile"];
+  const secondaryNavItems = navItems.filter((item) => !bottomNavPaths.includes(item.to));
+
+
+
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "ME";
@@ -322,28 +328,10 @@ export const Navbar = () => {
             </DropdownMenu>
           </nav>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation — primary destinations live in the bottom nav */}
           <div className="flex md:hidden items-center gap-1">
-            {/* Compact nav icons for mobile */}
-            <Link
-              to="/feed"
-              className={cn(
-                "p-2 rounded-lg transition-colors",
-                currentPath === "/feed" ? "text-foreground bg-muted" : "text-muted-foreground"
-              )}
-            >
-              <Home className="h-5 w-5" />
-            </Link>
-            <Link
-              to="/messages"
-              className={cn(
-                "p-2 rounded-lg transition-colors",
-                currentPath === "/messages" ? "text-foreground bg-muted" : "text-muted-foreground"
-              )}
-            >
-              <MessageSquare className="h-5 w-5" />
-            </Link>
             <NotificationBell currentPath={currentPath} />
+
 
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -368,7 +356,8 @@ export const Navbar = () => {
                   </div>
                 </SheetHeader>
                 <div className="p-4 space-y-1">
-                  {navItems.map((item) => (
+                  {/* Primary destinations live in the bottom nav; only secondary ones here */}
+                  {secondaryNavItems.map((item) => (
                     <MobileNavItem
                       key={item.label}
                       to={item.to}
@@ -388,13 +377,7 @@ export const Navbar = () => {
                     />
                   )}
                   <div className="my-2 border-t" />
-                  <MobileNavItem
-                    to="/profile"
-                    icon={Users}
-                    label="View Profile"
-                    isActive={currentPath === "/profile"}
-                    onClick={closeMobileMenu}
-                  />
+
                   <MobileNavItem
                     to="/calendar"
                     icon={Calendar}

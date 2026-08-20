@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { ModalActions } from "@/components/layout/ModalActions";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -303,18 +304,13 @@ export const ReplyModal = ({
                     }
                   />
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={createReply.isPending || uploading}>
-                    {createReply.isPending ? "Posting..." : "Reply"}
-                  </Button>
-                </div>
+                <ModalActions
+                  type="submit"
+                  submitLabel="Reply"
+                  pendingLabel="Posting..."
+                  onCancel={() => onOpenChange(false)}
+                  isPending={createReply.isPending || uploading}
+                />
               </div>
             </form>
           </Form>

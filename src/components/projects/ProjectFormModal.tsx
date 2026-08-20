@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ModalActions } from "@/components/layout/ModalActions";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -344,15 +345,14 @@ export const ProjectFormModal = ({ open, onOpenChange, project }: Props) => {
               />
             )}
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isPending || uploading}>
-                {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isEditing ? "Save changes" : "Add project"}
-              </Button>
-            </div>
+            <ModalActions
+              type="submit"
+              submitLabel={isEditing ? "Save changes" : "Add project"}
+              pendingLabel={isEditing ? "Saving..." : "Adding..."}
+              onCancel={() => onOpenChange(false)}
+              isPending={isPending || uploading}
+              className="pt-2"
+            />
           </form>
         </Form>
       </DialogContent>

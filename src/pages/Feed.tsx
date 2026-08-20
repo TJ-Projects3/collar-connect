@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Home, Users, Briefcase, MessageSquare,
-  Settings, ThumbsUp, MessageCircle, Share2,
+  Settings, ThumbsUp, MessageCircle,
   TrendingUp, Sparkles, BookOpen, Calendar, Trash2, FileText, Video, Download, Globe, Hash, Compass, Code2
 } from "lucide-react";
 import { FeedProjectEmbed } from "@/components/projects/FeedProjectEmbed";
@@ -296,6 +296,7 @@ const Feed = () => {
               authorName={post.profiles?.full_name}
               contentPreview={post.content}
               onDelete={isOwnPost ? handleDeleteClick : undefined}
+              onShare={() => handleShareClick(post.id)}
             />
           </div>
         </CardHeader>
@@ -396,7 +397,7 @@ const Feed = () => {
           </div>
 
           {/* Action bar */}
-          <div className="flex items-center justify-between border-t pt-2 -mx-2">
+          <div className="grid grid-cols-2 items-center border-t pt-2 -mx-2">
             <ReactionPicker
               current={likesData?.userReaction ?? null}
               disabled={toggleLike.isPending}
@@ -411,15 +412,6 @@ const Feed = () => {
             >
               <MessageCircle className="h-4 w-4" />
               <span>Comment</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2 text-muted-foreground"
-              onClick={() => handleShareClick(post.id)}
-            >
-              <Share2 className="h-4 w-4" />
-              <span>Share</span>
             </Button>
           </div>
 

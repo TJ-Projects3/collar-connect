@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { SlidersHorizontal, Users, X } from "lucide-react";
+import { SlidersHorizontal, Users, UsersRound, X } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,10 +129,12 @@ const Talent = () => {
 
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <header className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold">Candidate Discovery</h1>
-          <p className="text-muted-foreground mt-1">
-            Find student talent by tech stack, school, graduation year, and availability.
-          </p>
+          <PageHeader
+            title="Candidate Discovery"
+            subtitle="Find student talent by tech stack, school, graduation year, and availability."
+            icon={UsersRound}
+          />
+
 
           {scoped && (
             <Card className="mt-4 border-secondary/40 bg-secondary/5">

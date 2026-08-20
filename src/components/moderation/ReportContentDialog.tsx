@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
+import { ModalActions } from "@/components/layout/ModalActions";
 import {
   Dialog,
   DialogContent,
@@ -94,12 +95,14 @@ export const ReportContentDialog = ({
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={submitReport.isPending}>
-            {submitReport.isPending ? "Submitting..." : "Submit report"}
-          </Button>
+          <ModalActions
+            submitLabel="Submit report"
+            pendingLabel="Submitting..."
+            onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
+            isPending={submitReport.isPending}
+            className="w-full"
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>
