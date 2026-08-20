@@ -38,7 +38,16 @@ import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useA
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { IndustryBadge } from "@/components/IndustryBadge";
 import { useCompany } from "@/hooks/useCompany";
-import { getProfileSubline } from "@/lib/profile-display";
+import { useAdminRole } from "@/hooks/useAdminRole";
+import { IndustryProfileCard } from "@/components/industry/IndustryProfileCard";
+import { RecruiterProfileCard } from "@/components/recruiter/RecruiterProfileCard";
+import {
+  getProfileSubline,
+  isRecruiterApproved,
+  recruiterStatus,
+  isRecruiter,
+  isIndustry,
+} from "@/lib/profile-display";
 
 const Profile = () => {
   const { user } = useAuth();
