@@ -65,6 +65,15 @@ export const ContentActionsMenu = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
+          {onShare && (
+            <>
+              <DropdownMenuItem onSelect={onShare}>
+                <Share2 className="mr-2 h-4 w-4" />
+                Share {label}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           {!isOwn && (
             <DropdownMenuItem onSelect={() => setReportOpen(true)}>
               <Flag className="mr-2 h-4 w-4" />
