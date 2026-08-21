@@ -42,6 +42,8 @@ import { useCompany } from "@/hooks/useCompany";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { IndustryProfileCard } from "@/components/industry/IndustryProfileCard";
 import { RecruiterProfileCard } from "@/components/recruiter/RecruiterProfileCard";
+import { StudentProfileCard } from "@/components/student/StudentProfileCard";
+import { formatGraduation } from "@/lib/profile-options";
 import {
   getProfileSubline,
   isRecruiterApproved,
@@ -49,6 +51,7 @@ import {
   isRecruiter,
   isIndustry,
 } from "@/lib/profile-display";
+
 
 const Profile = () => {
   const { user } = useAuth();
