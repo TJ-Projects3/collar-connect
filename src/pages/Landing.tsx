@@ -31,7 +31,7 @@ const roleValues = [
     description:
       "Share career insights, answer questions in the Q&A forum, and guide the next generation of engineers.",
     gradient: "from-secondary/20 to-secondary/5",
-    roleTag: <IndustryBadge mentor compact />,
+    roleTag: <IndustryBadge mentor />,
     cta: { label: "Share your expertise", role: "industry" },
   },
   {
