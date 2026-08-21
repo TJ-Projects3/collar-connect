@@ -12,8 +12,9 @@ import { useStudentEndorsements } from "@/hooks/useEndorsements";
 import { useStudentProjects } from "@/hooks/useStudentProjects";
 import { 
   Mail, MapPin, Link as LinkIcon, Briefcase, Calendar,
-  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus, Code2
+  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus, Code2, GraduationCap
 } from "lucide-react";
+
 import { ProfileButton } from "@/components/ProfileButton";
 import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
@@ -42,6 +43,8 @@ import { useCompany } from "@/hooks/useCompany";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { IndustryProfileCard } from "@/components/industry/IndustryProfileCard";
 import { RecruiterProfileCard } from "@/components/recruiter/RecruiterProfileCard";
+import { StudentProfileCard } from "@/components/student/StudentProfileCard";
+import { formatGraduation } from "@/lib/profile-options";
 import {
   getProfileSubline,
   isRecruiterApproved,
@@ -49,6 +52,7 @@ import {
   isRecruiter,
   isIndustry,
 } from "@/lib/profile-display";
+
 
 const Profile = () => {
   const { user } = useAuth();
@@ -115,6 +119,9 @@ const Profile = () => {
 
   const isOwnProfile = viewedUserId === user?.id;
   const { isAdmin: viewerIsAdmin } = useAdminRole();
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+
+
 
   const handleEditExperience = (exp: Experience) => {
     setEditingExperience(exp);
@@ -452,7 +459,9 @@ const Profile = () => {
                         </Button>
                       </>
                     )}
-                    {isOwnProfile && <ProfileButton />}
+                    {isOwnProfile && (
+                      <ProfileButton open={editProfileOpen} onOpenChange={setEditProfileOpen} />
+                    )}
                   </div>
                 </div>
 
@@ -471,6 +480,44 @@ const Profile = () => {
                     </span>
                   )}
                 </div>
+
+                {/* Academic + availability tags (students) */}
+                {profile?.profile_type === "student" && (() => {
+                  const academic = [(profile as any)?.major, (profile as any)?.university]
+                    .filter(Boolean)
+                    .join(" · ");
+                  const graduation = formatGraduation(
+                    (profile as any)?.graduation_month,
+                    (profile as any)?.graduation_year
+                  );
+                  const statuses: string[] = (profile as any)?.work_status ?? [];
+                  if (!academic && !graduation && statuses.length === 0) return null;
+                  return (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {academic && (
+                        <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-secondary/40 bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
+                          <GraduationCap className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                          <span className="break-words">{academic}</span>
+                        </span>
+                      )}
+                      {graduation && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
+                          <Calendar className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                          Expected {graduation}
+                        </span>
+                      )}
+                      {statuses.map((s) => (
+                        <span
+                          key={s}
+                          className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })()}
+
 
 
                 <EndorsementsSection endorsements={endorsements} projectTitles={projectTitles} />
@@ -506,18 +553,31 @@ const Profile = () => {
               </Card>
             )}
 
-            {/* Developer Portfolio */}
+            {/* Role-specific details */}
             {isIndustry(profile) ? (
-              <IndustryProfileCard profile={profile} isOwnProfile={isOwnProfile} />
+              <IndustryProfileCard
+                profile={profile}
+                isOwnProfile={isOwnProfile}
+                onEdit={() => setEditProfileOpen(true)}
+              />
             ) : isRecruiter(profile) ? (
               <RecruiterProfileCard
                 profile={profile}
                 isOwnProfile={isOwnProfile}
                 isAdmin={viewerIsAdmin}
+                onEdit={() => setEditProfileOpen(true)}
               />
             ) : (
-              <DeveloperPortfolioCard profile={profile} isOwnProfile={isOwnProfile} />
+              <>
+                <StudentProfileCard
+                  profile={profile}
+                  isOwnProfile={isOwnProfile}
+                  onEdit={() => setEditProfileOpen(true)}
+                />
+                <DeveloperPortfolioCard profile={profile} isOwnProfile={isOwnProfile} />
+              </>
             )}
+
 
             {/* Experience Section */}
             <Card>
