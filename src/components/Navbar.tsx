@@ -65,64 +65,110 @@ const NotificationBell = ({ currentPath }: { currentPath: string }) => {
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
   const { data: groups = [] } = useGroupedNotifications();
   const { mutate: markAllRead, isPending: markingAllRead } = useMarkAllNotificationsRead();
+  const { mutate: clearAll, isPending: clearingAll } = useClearAllNotifications();
   const [open, setOpen] = useState(false);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+
+  const hasNotifications = groups.length > 0;
+
+  const handleClearAll = () => {
+    clearAll(undefined, {
+      onSuccess: () => setClearDialogOpen(false),
+    });
+  };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "flex flex-col items-center justify-center px-2 md:px-3 py-1 min-w-[60px] md:min-w-[80px] border-b-2 transition-colors hover:text-foreground relative",
-            currentPath === "/notifications" ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"
-          )}
-          aria-label="Notifications"
-        >
-          <div className="relative">
-            <Bell className="h-5 w-5 md:h-6 md:w-6" />
-            {unreadCount > 0 && (
-              <Badge
-                variant="destructive"
-                className="absolute -top-1 -right-2 h-4 w-4 min-w-[1.05rem] flex items-center justify-center p-0 text-[10px] leading-none"
-              >
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </Badge>
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "flex flex-col items-center justify-center px-2 md:px-3 py-1 min-w-[60px] md:min-w-[80px] border-b-2 transition-colors hover:text-foreground relative",
+              currentPath === "/notifications" ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"
             )}
-          </div>
-          <span className="text-[10px] md:text-xs mt-1 hidden md:block">Notifications</span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-[22rem] p-0">
-        <div className="flex items-center justify-between border-b px-3 py-2">
-          <span className="text-sm font-semibold">Notifications</span>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={() => markAllRead()}
-              disabled={markingAllRead}
-            >
-              Mark all as read
-            </Button>
-          )}
-        </div>
-        <NotificationList
-          groups={groups.slice(0, 12)}
-          compact
-          onNavigate={() => setOpen(false)}
-        />
-        <div className="border-t px-3 py-2 text-center">
-          <Link
-            to="/notifications"
-            onClick={() => setOpen(false)}
-            className="text-sm text-primary hover:underline"
+            aria-label="Notifications"
           >
-            See all notifications
-          </Link>
-        </div>
-      </PopoverContent>
-    </Popover>
+            <div className="relative">
+              <Bell className="h-5 w-5 md:h-6 md:w-6" />
+              {unreadCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-2 h-4 w-4 min-w-[1.05rem] flex items-center justify-center p-0 text-[10px] leading-none"
+                >
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </Badge>
+              )}
+            </div>
+            <span className="text-[10px] md:text-xs mt-1 hidden md:block">Notifications</span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-[22rem] p-0">
+          <div className="flex items-center justify-between border-b px-3 py-2">
+            <span className="text-sm font-semibold">Notifications</span>
+            <div className="flex items-center gap-1">
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => markAllRead()}
+                  disabled={markingAllRead}
+                >
+                  Mark all as read
+                </Button>
+              )}
+              {hasNotifications && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-destructive hover:text-destructive"
+                  onClick={() => setClearDialogOpen(true)}
+                  disabled={clearingAll}
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
+          </div>
+          <NotificationList
+            groups={groups.slice(0, 12)}
+            compact
+            onNavigate={() => setOpen(false)}
+          />
+          <div className="border-t px-3 py-2 text-center">
+            <Link
+              to="/notifications"
+              onClick={() => setOpen(false)}
+              className="text-sm text-primary hover:underline"
+            >
+              See all notifications
+            </Link>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all notifications?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all your notifications. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearAll}
+              disabled={clearingAll}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {clearingAll ? "Clearing..." : "Clear all"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
