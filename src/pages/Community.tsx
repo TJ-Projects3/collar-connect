@@ -133,17 +133,17 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Card>
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-5 space-y-4">
           <PageHeader
             title="Community Q&amp;A"
             subtitle="Ask questions, share advice, and learn from students and recruiters across the community."
             icon={Sparkles}
             className="mb-0"
           />
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button onClick={onAsk} className="gap-2">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={onAsk} className="gap-2 shrink-0">
               <Plus className="h-4 w-4" /> Ask a Question
             </Button>
             <div className="relative flex-1">
@@ -156,15 +156,14 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
               />
             </div>
           </div>
-          <div className="flex items-center gap-1 flex-wrap">
-            <Filter className="h-4 w-4 text-muted-foreground mr-1" />
+          <div className="flex items-center gap-2 flex-wrap">
             {(["new", "top", "unanswered"] as QuestionSort[]).map((s) => (
               <Button
                 key={s}
                 size="sm"
-                variant={sort === s ? "default" : "ghost"}
+                variant={sort === s ? "default" : "outline"}
                 onClick={() => setSort(s)}
-                className="capitalize h-8"
+                className="capitalize h-9 px-4 rounded-full"
               >
                 {s === "top" ? "Top" : s === "new" ? "New" : "Unanswered"}
               </Button>
