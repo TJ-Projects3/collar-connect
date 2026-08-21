@@ -68,15 +68,28 @@ const Notifications = () => {
               </p>
             )}
           </div>
-          {unreadCount > 0 && (
-            <Button
-              variant="outline"
-              onClick={() => markAllRead()}
-              disabled={markingAllRead}
-            >
-              {markingAllRead ? <Loader2 className="h-4 w-4 animate-spin" /> : "Mark all as read"}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => markAllRead()}
+                disabled={markingAllRead}
+              >
+                {markingAllRead ? <Loader2 className="h-4 w-4 animate-spin" /> : "Mark all as read"}
+              </Button>
+            )}
+            {hasNotifications && (
+              <Button
+                variant="outline"
+                onClick={() => setClearDialogOpen(true)}
+                disabled={clearingAll}
+                className="text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+              >
+                {clearingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1" />}
+                Clear all
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4">
