@@ -2,9 +2,8 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Users, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Bell, Users, CheckCircle, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { useEffect, useRef } from "react";
 import {
   useGroupedNotifications,
   useMarkAllNotificationsRead,
@@ -18,17 +17,9 @@ const Notifications = () => {
   const { mutate: markAllRead, isPending: markingAllRead } = useMarkAllNotificationsRead();
   const { mutate: acceptRequest, isPending: accepting } = useAcceptConnectionRequest();
   const { mutate: rejectRequest, isPending: rejecting } = useRejectConnectionRequest();
-  const hasMarkedRead = useRef(false);
 
   const unreadCount = groups.reduce((sum, g) => sum + (g.is_read ? 0 : g.ids.length), 0);
 
-  // Auto-mark all notifications as read when visiting the page
-  useEffect(() => {
-    if (unreadCount > 0 && !hasMarkedRead.current) {
-      hasMarkedRead.current = true;
-      markAllRead();
-    }
-  }, [unreadCount, markAllRead]);
 
 
   const handleAccept = (connectionId: string) => {
@@ -150,11 +141,9 @@ const Notifications = () => {
           {groups.length === 0 && (pendingRequests as any[]).length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <Bell className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">No notifications yet</p>
-                <p className="text-sm text-muted-foreground">
-                  You're all caught up! Notifications will appear here.
-                </p>
+                <CheckCircle2 className="h-12 w-12 text-muted-foreground/60 mb-4" />
+                <p className="text-lg font-medium">You're all caught up!</p>
+                <p className="text-sm text-muted-foreground">No new notifications.</p>
               </CardContent>
             </Card>
           ) : groups.length > 0 ? (

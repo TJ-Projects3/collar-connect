@@ -250,6 +250,46 @@ export const useMarkNotificationsRead = () => {
   });
 };
 
+// Mark several notifications as unread again
+export const useMarkNotificationsUnread = () => {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (notificationIds: string[]) => {
+      if (notificationIds.length === 0) return;
+      const { error } = await supabase
+        .from("notifications" as any)
+        .update({ is_read: false })
+        .in("id", notificationIds);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+    },
+  });
+};
+
+// Delete a group of notifications
+export const useDeleteNotifications = () => {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (notificationIds: string[]) => {
+      if (notificationIds.length === 0) return;
+      const { error } = await supabase
+        .from("notifications" as any)
+        .delete()
+        .in("id", notificationIds);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+    },
+  });
+};
+
 // Mark all notifications as read
 export const useMarkAllNotificationsRead = () => {
   const { user } = useAuth();

@@ -1,13 +1,25 @@
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Bell, MessageCircle, Users, CheckCircle, ThumbsUp, MessageSquare } from "lucide-react";
+import {
+  Bell,
+  MessageCircle,
+  Users,
+  CheckCircle,
+  CheckCircle2,
+  ThumbsUp,
+  MessageSquare,
+  X,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   groupLabel,
   notificationLink,
   useMarkNotificationsRead,
+  useMarkNotificationsUnread,
+  useDeleteNotifications,
   type NotificationGroup,
 } from "@/hooks/useNotifications";
 
@@ -51,14 +63,20 @@ export const NotificationList = ({
   groups,
   compact = false,
   onNavigate,
-  emptyMessage = "You're all caught up!",
+  emptyMessage = "No new notifications.",
 }: NotificationListProps) => {
   const navigate = useNavigate();
   const markRead = useMarkNotificationsRead();
+  const markUnread = useMarkNotificationsUnread();
+  const deleteGroup = useDeleteNotifications();
 
   if (groups.length === 0) {
     return (
-      <div className="py-8 text-center text-sm text-muted-foreground">{emptyMessage}</div>
+      <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center">
+        <CheckCircle2 className="h-10 w-10 text-muted-foreground/60" />
+        <p className="text-sm font-medium">You're all caught up!</p>
+        <p className="text-xs text-muted-foreground">{emptyMessage}</p>
+      </div>
     );
   }
 
@@ -68,17 +86,25 @@ export const NotificationList = ({
     navigate(notificationLink(group));
   };
 
+  const toggleRead = (group: NotificationGroup) => {
+    if (group.is_read) markUnread.mutate(group.ids);
+    else markRead.mutate(group.ids);
+  };
+
   return (
     <ul className={cn("divide-y divide-border", compact && "max-h-[22rem] overflow-y-auto")}>
       {groups.map((group) => (
-        <li key={group.key}>
+        <li
+          key={group.key}
+          className={cn(
+            "group relative transition-colors",
+            group.is_read ? "bg-transparent" : "bg-primary/5"
+          )}
+        >
           <button
             type="button"
             onClick={() => handleClick(group)}
-            className={cn(
-              "w-full text-left flex gap-3 px-3 py-3 transition-colors hover:bg-muted/60",
-              !group.is_read && "bg-primary/5"
-            )}
+            className="w-full text-left flex gap-3 px-3 py-3 pr-16 transition-colors hover:bg-muted/60"
           >
             <div className="relative flex-shrink-0">
               <Avatar className={compact ? "h-9 w-9" : "h-10 w-10"}>
@@ -99,7 +125,12 @@ export const NotificationList = ({
                 </Badge>
                 {!group.is_read && <span className="h-2 w-2 rounded-full bg-primary" />}
               </div>
-              <p className={cn("mt-1 text-sm", !group.is_read && "font-medium")}>
+              <p
+                className={cn(
+                  "mt-1 text-sm",
+                  group.is_read ? "text-muted-foreground" : "font-medium text-foreground"
+                )}
+              >
                 {groupLabel(group)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -107,6 +138,51 @@ export const NotificationList = ({
               </p>
             </div>
           </button>
+
+          <div className="absolute right-2 top-2 flex items-center gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={group.is_read ? "Mark as unread" : "Mark as read"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleRead(group);
+                  }}
+                  className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted"
+                >
+                  <span
+                    className={cn(
+                      "h-2.5 w-2.5 rounded-full border",
+                      group.is_read
+                        ? "border-muted-foreground/60 bg-transparent"
+                        : "border-primary bg-primary"
+                    )}
+                  />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                {group.is_read ? "Mark as unread" : "Mark as read"}
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Dismiss notification"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteGroup.mutate(group.ids);
+                  }}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="left">Dismiss</TooltipContent>
+            </Tooltip>
+          </div>
         </li>
       ))}
     </ul>
