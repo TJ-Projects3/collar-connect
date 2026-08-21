@@ -27,12 +27,19 @@ const Notifications = () => {
   const { data: groups = [] } = useGroupedNotifications();
   const { data: pendingRequests = [] } = usePendingConnectionRequests();
   const { mutate: markAllRead, isPending: markingAllRead } = useMarkAllNotificationsRead();
+  const { mutate: clearAll, isPending: clearingAll } = useClearAllNotifications();
   const { mutate: acceptRequest, isPending: accepting } = useAcceptConnectionRequest();
   const { mutate: rejectRequest, isPending: rejecting } = useRejectConnectionRequest();
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const unreadCount = groups.reduce((sum, g) => sum + (g.is_read ? 0 : g.ids.length), 0);
+  const hasNotifications = groups.length > 0;
 
-
+  const handleClearAll = () => {
+    clearAll(undefined, {
+      onSuccess: () => setClearDialogOpen(false),
+    });
+  };
 
   const handleAccept = (connectionId: string) => {
     acceptRequest(connectionId);
