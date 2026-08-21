@@ -463,6 +463,7 @@ const Profile = () => {
                     {isOwnProfile && (
                       <ProfileButton open={editProfileOpen} onOpenChange={setEditProfileOpen} />
                     )}
+                    <ResumeActions value={profile?.resume_url} />
                   </div>
                 </div>
 
@@ -482,7 +483,7 @@ const Profile = () => {
                   )}
                 </div>
 
-                {/* Academic + availability tags (students) */}
+                {/* Academic + availability pills (students) */}
                 {profile?.profile_type === "student" && (() => {
                   const academic = [(profile as any)?.major, (profile as any)?.university]
                     .filter(Boolean)
@@ -496,24 +497,23 @@ const Profile = () => {
                   return (
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {academic && (
-                        <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-secondary/40 bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
+                        <span className={pillClass("academic")}>
                           <GraduationCap className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
                           <span className="break-words">{academic}</span>
                         </span>
                       )}
                       {graduation && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
+                        <span className={pillClass("neutral")}>
                           <Calendar className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
                           Expected {graduation}
                         </span>
                       )}
                       {statuses.map((s) => (
-                        <span
-                          key={s}
-                          className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                        >
+                        <span key={s} className={pillClass("primary")}>
                           {s}
                         </span>
+                      ))}
+
                       ))}
                     </div>
                   );
