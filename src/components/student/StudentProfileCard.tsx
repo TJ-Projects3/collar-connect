@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { GraduationCap, Pencil, Target, Wrench, ShieldCheck } from "lucide-react";
-import { formatGraduation } from "@/lib/profile-options";
+import { pillClass } from "@/lib/profile-display";
 
 interface Props {
   profile: any;
@@ -10,18 +9,14 @@ interface Props {
   onEdit?: () => void;
 }
 
-/** Student academics, skills, target tracks, and work status. */
+/** Student skills, target tracks, and work status. Academics live in the header pills. */
 export const StudentProfileCard = ({ profile, isOwnProfile, onEdit }: Props) => {
   const skills: string[] = profile?.technical_skills ?? [];
   const tracks: string[] = profile?.target_tracks ?? [];
   const workStatus: string[] = profile?.work_status ?? [];
   const workAuth: string | null = profile?.work_authorization ?? null;
-  const graduation = formatGraduation(profile?.graduation_month, profile?.graduation_year);
-  const academics = [profile?.major, profile?.university].filter(Boolean) as string[];
 
-  const isEmpty =
-    !academics.length && !graduation && !skills.length && !tracks.length &&
-    !workStatus.length && !workAuth;
+  const isEmpty = !skills.length && !tracks.length && !workStatus.length && !workAuth;
 
   if (isEmpty && !isOwnProfile) return null;
 
@@ -32,6 +27,7 @@ export const StudentProfileCard = ({ profile, isOwnProfile, onEdit }: Props) => 
           <GraduationCap className="h-5 w-5 text-secondary" />
           Student profile
         </h2>
+
         {isOwnProfile && onEdit && (
           <Button variant="ghost" size="sm" className="gap-2" onClick={onEdit}>
             <Pencil className="h-4 w-4" />
