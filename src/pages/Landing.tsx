@@ -7,7 +7,6 @@ import {
   Compass,
   Heart,
   MessageSquare,
-  Smartphone,
   Target,
   Users,
 } from "lucide-react";
