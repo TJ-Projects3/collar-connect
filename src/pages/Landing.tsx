@@ -10,26 +10,26 @@ import {
   Users,
 } from "lucide-react";
 
-const coreValues = [
+const roleValues = [
   {
-    icon: BadgeCheck,
-    title: "Verified Portfolios",
+    icon: Compass,
+    title: "AI Career Roadmaps & Verified Portfolios",
     description:
-      "Students showcase real projects and experiences that recruiters can trust at a glance.",
+      "Get personalized 6-month career maps, showcase real GitHub and portfolio projects, and get discovered by the right people.",
     gradient: "from-primary/20 to-primary/5",
   },
   {
-    icon: Compass,
-    title: "Career Mapping",
+    icon: Users,
+    title: "Mentorship & Community Leadership",
     description:
-      "Guided pathways help students discover roles, build skills, and track their progress.",
+      "Share career insights, answer questions in the Q&A forum, and guide the next generation of engineers.",
     gradient: "from-secondary/20 to-secondary/5",
   },
   {
-    icon: Users,
-    title: "Direct Connections",
+    icon: BadgeCheck,
+    title: "Vetted Candidate Sourcing",
     description:
-      "One-click messaging and networking that brings students and recruiters together.",
+      "Direct messaging and access to pre-vetted, high-potential diverse tech talent without the resume clutter.",
     gradient: "from-accent/20 to-accent/5",
   },
 ];
@@ -39,7 +39,7 @@ const liveFeatures = [
     icon: Heart,
     title: "Vibrant Community Feed",
     description:
-      "A multi-reaction system powers an engaging feed where students and recruiters celebrate wins and share insights.",
+      "A multi-reaction system powers an engaging feed where students, recruiters, and working industry professionals connect, celebrate wins, and share insights.",
   },
   {
     icon: Smartphone,
@@ -108,8 +108,9 @@ const Landing = () => {
                   className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed opacity-0 animate-fade-in-up"
                   style={{ animationDelay: "150ms" }}
                 >
-                  Helping students map their tech careers while empowering
-                  recruiters to discover vetted, diverse talent.
+                  Helping students map their tech careers, empowering industry
+                  mentors to share insights, and enabling recruiters to discover
+                  vetted, diverse talent.
                 </p>
 
                 <div
@@ -130,6 +131,14 @@ const Landing = () => {
                     className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 border-2 hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-[0_0_28px_-6px_hsl(var(--accent)/0.4)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 ease-premium"
                   >
                     Find Top Talent
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => navigate("/auth?role=industry&mode=signup")}
+                    className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 border-2 hover:bg-secondary hover:text-secondary-foreground hover:border-secondary hover:shadow-[0_0_28px_-6px_hsl(var(--secondary)/0.4)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 ease-premium"
+                  >
+                    Join as an Industry Mentor / Professional
                   </Button>
                 </div>
               </div>
@@ -182,24 +191,24 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* Core Value Grid */}
+        {/* Three Pillars / Role Breakdown */}
         <section className="py-16 sm:py-20 lg:py-24 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
               <h3 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 opacity-0 animate-fade-in-up">
-                Built for Students. Built for Recruiters.
+                Built for Students, Mentors & Recruiters.
               </h3>
               <p
                 className="text-base sm:text-lg text-muted-foreground opacity-0 animate-fade-in-up"
                 style={{ animationDelay: "150ms" }}
               >
-                Three pillars that make NextGen Collar the place where careers
-                launch and teams grow.
+                A complete ecosystem designed to launch careers, share industry
+                wisdom, and hire top diverse talent.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {coreValues.map((value, idx) => (
+              {roleValues.map((value, idx) => (
                 <Card
                   key={idx}
                   className="group relative overflow-hidden rounded-2xl border bg-card p-6 sm:p-8 shadow-card opacity-0 animate-fade-in-up hover:-translate-y-2 hover:shadow-[0_20px_40px_-12px_hsl(var(--primary)/0.18)] hover:ring-1 hover:ring-primary/20 transition-all duration-500 ease-premium"
@@ -276,8 +285,9 @@ const Landing = () => {
               className="text-base sm:text-lg opacity-90 max-w-2xl mx-auto mb-8 opacity-0 animate-fade-in-up"
               style={{ animationDelay: "150ms" }}
             >
-              Whether you are mapping your career or searching for your next
-              great hire, NextGen Collar is where it happens.
+              Whether you are mapping your career, sharing your expertise, or
+              searching for your next great hire, NextGen Collar is where it
+              happens.
             </p>
             <div
               className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 opacity-0 animate-fade-in-up"
@@ -290,6 +300,14 @@ const Landing = () => {
                 className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[0_0_28px_-6px_hsl(var(--secondary-foreground)/0.35)] transition-all duration-300 ease-premium"
               >
                 Map Your Career
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate("/auth?role=industry&mode=signup")}
+                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-primary-foreground/50 hover:shadow-[0_0_28px_-6px_hsl(var(--primary-foreground)/0.25)] transition-all duration-300 ease-premium"
+              >
+                Join as a Mentor / Professional
               </Button>
               <Button
                 size="lg"
