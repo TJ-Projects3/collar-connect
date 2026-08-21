@@ -42,7 +42,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ReactionPicker, REACTIONS, reactionMeta } from "@/components/ReactionPicker";
 import { CommentInput } from "@/components/CommentInput";
 import { renderPostContent } from "@/lib/post-formatting";
-import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { RoleBadge } from "@/components/RoleBadge";
 import { getProfileSubline } from "@/lib/profile-display";
 import { useRecruiterGate } from "@/hooks/useRecruiterGate";
 import { RecruiterStatusNotice } from "@/components/RecruiterStatusNotice";
@@ -277,9 +277,7 @@ const Feed = () => {
               <div className="cursor-pointer">
                 <h3 className="font-semibold flex items-center gap-2 flex-wrap">
                   <span>{post.profiles?.full_name || "Unknown User"}</span>
-                  {post.profiles?.profile_type === "recruiter" && (
-                    <RecruiterBadge verified={post.profiles?.is_verified_recruiter} />
-                  )}
+                  <RoleBadge profile={post.profiles} compact />
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {getProfileSubline(post.profiles)}
