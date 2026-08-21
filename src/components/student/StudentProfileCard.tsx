@@ -35,32 +35,23 @@ export const StudentProfileCard = ({ profile, isOwnProfile, onEdit }: Props) => 
           </Button>
         )}
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         {isEmpty ? (
           <p className="text-sm text-muted-foreground">
-            Add your school, skills, and target career track so recruiters and mentors can find you.
+            Add your skills and target career track so recruiters and mentors can find you.
           </p>
         ) : (
           <>
-            {(academics.length > 0 || graduation) && (
-              <div className="space-y-1">
-                {academics.length > 0 && (
-                  <p className="font-medium break-words">{academics.join(" · ")}</p>
-                )}
-                {graduation && (
-                  <p className="text-sm text-muted-foreground">Expected graduation {graduation}</p>
-                )}
-              </div>
-            )}
-
             {skills.length > 0 && (
               <div className="space-y-2">
                 <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <Wrench className="h-3.5 w-3.5" /> Skills & tools
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap items-center gap-2">
                   {skills.map((s) => (
-                    <Badge key={s} variant="secondary" className="break-words">{s}</Badge>
+                    <span key={s} className={pillClass("academic")}>
+                      <span className="break-words">{s}</span>
+                    </span>
                   ))}
                 </div>
               </div>
@@ -71,9 +62,11 @@ export const StudentProfileCard = ({ profile, isOwnProfile, onEdit }: Props) => 
                 <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <Target className="h-3.5 w-3.5" /> Target tracks
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap items-center gap-2">
                   {tracks.map((t) => (
-                    <Badge key={t} variant="outline" className="break-words">{t}</Badge>
+                    <span key={t} className={pillClass("outline")}>
+                      <span className="break-words">{t}</span>
+                    </span>
                   ))}
                 </div>
               </div>
@@ -84,18 +77,23 @@ export const StudentProfileCard = ({ profile, isOwnProfile, onEdit }: Props) => 
                 <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <ShieldCheck className="h-3.5 w-3.5" /> Work status
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap items-center gap-2">
                   {workStatus.map((w) => (
-                    <Badge key={w} className="break-words">{w}</Badge>
+                    <span key={w} className={pillClass("primary")}>
+                      <span className="break-words">{w}</span>
+                    </span>
                   ))}
                   {workAuth && (
-                    <Badge variant="outline" className="break-words">{workAuth}</Badge>
+                    <span className={pillClass("neutral")}>
+                      <span className="break-words">{workAuth}</span>
+                    </span>
                   )}
                 </div>
               </div>
             )}
           </>
         )}
+
       </CardContent>
     </Card>
   );
