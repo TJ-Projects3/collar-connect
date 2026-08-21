@@ -1,25 +1,20 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Github, Linkedin, Globe, FileText, ExternalLink, Code2, Pencil, Download, Loader2 } from "lucide-react";
+import { Github, Linkedin, Globe, Code2, Pencil } from "lucide-react";
 import { DeveloperPortfolioModal } from "./DeveloperPortfolioModal";
-import { ResumePreviewModal } from "./ResumePreviewModal";
-import { resolveResumeUrl, getStoredFileName } from "@/lib/portfolio-validation";
-import { downloadResume, resumeErrorMessage } from "@/lib/resume-file";
-import { useToast } from "@/hooks/use-toast";
-
 
 interface Props {
   profile: any;
   isOwnProfile: boolean;
 }
 
+/**
+ * Professional links (GitHub / LinkedIn / Portfolio).
+ * Resume actions live in the profile header action row via <ResumeActions />.
+ */
 export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
   const [open, setOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [busy, setBusy] = useState<null | "download">(null);
-  const { toast } = useToast();
 
   const links = [
     { url: profile?.github_url, icon: Github, label: "GitHub" },
@@ -27,53 +22,29 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
     { url: profile?.portfolio_url, icon: Globe, label: "Portfolio" },
   ].filter((l) => !!l.url);
 
-  const resumeUrl = resolveResumeUrl(profile?.resume_url);
-  const hasResume = !!resumeUrl;
-
-  const handleDownload = async () => {
-    setBusy("download");
-    try {
-      await downloadResume(profile?.resume_url);
-    } catch (e) {
-      toast({
-        title: "Couldn't download the resume",
-        description: resumeErrorMessage(e),
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(null);
-    }
-  };
-
-
-  const hasAnything = links.length > 0 || hasResume;
-
-  if (!isOwnProfile && !hasAnything) return null;
-
+  if (!isOwnProfile && links.length === 0) return null;
 
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <h2 className="text-xl font-bold flex items-center gap-2">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <h2 className="flex items-center gap-2 text-xl font-bold">
             <Code2 className="h-5 w-5 text-primary" />
-            Developer Portfolio
+            Developer links
           </h2>
           {isOwnProfile && (
-            <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-              <Pencil className="h-4 w-4 mr-1" /> Edit
+            <Button variant="ghost" size="sm" className="gap-2" onClick={() => setOpen(true)}>
+              <Pencil className="h-4 w-4" />
+              {links.length === 0 ? "Add" : "Edit"}
             </Button>
           )}
         </CardHeader>
-        <CardContent className="space-y-5">
-          {!hasAnything && isOwnProfile && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Add your links, resume, and projects to showcase your work.
+        <CardContent className="space-y-4">
+          {links.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Add your GitHub, LinkedIn, portfolio, and resume so recruiters can see your work.
             </p>
-          )}
-
-          {/* Links + Resume */}
-          {(links.length > 0 || hasResume) && (
+          ) : (
             <div className="flex flex-wrap gap-2">
               {links.map(({ url, icon: Icon, label }) => (
                 <Button key={label} variant="outline" size="sm" asChild className="gap-2">
@@ -82,51 +53,14 @@ export const DeveloperPortfolioCard = ({ profile, isOwnProfile }: Props) => {
                   </a>
                 </Button>
               ))}
-              {hasResume && (
-                <>
-                  <Button
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setPreviewOpen(true)}
-                  >
-                    <FileText className="h-4 w-4" />
-                    View Resume
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-2"
-                    disabled={busy !== null}
-                    onClick={handleDownload}
-                  >
-                    {busy === "download" ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
-                    Download Resume
-                  </Button>
-                </>
-              )}
-
-
             </div>
           )}
-
         </CardContent>
       </Card>
-
-      <ResumePreviewModal
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        value={profile?.resume_url}
-        title={getStoredFileName(profile?.resume_url, "Resume")}
-      />
 
       {isOwnProfile && (
         <DeveloperPortfolioModal open={open} onOpenChange={setOpen} profile={profile} />
       )}
-
     </>
   );
 };
