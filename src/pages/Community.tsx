@@ -185,8 +185,8 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
       {questions.map((q) => (
         <Link key={q.id} to={`/community?id=${q.id}`} className="block">
           <Card className="hover:border-primary/40 transition-colors">
-            <CardContent className="p-4 flex gap-3">
-              <div className="flex-shrink-0">
+            <CardContent className="p-5 flex gap-4">
+              <div className="flex-shrink-0 pt-0.5">
                 <VoteBox
                   score={q.upvotes}
                   myVote={myVotes?.get(q.id) ?? 0}
@@ -194,31 +194,31 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
                   size="sm"
                 />
               </div>
-              <div className="flex-1 min-w-0 space-y-2">
-                <h2 className="font-semibold text-base leading-snug line-clamp-2">{q.title}</h2>
+              <div className="flex-1 min-w-0 space-y-3">
+                <h2 className="font-semibold text-base leading-snug">{q.title}</h2>
                 {q.body && (
-                  <p className="text-sm text-muted-foreground line-clamp-2 whitespace-pre-wrap break-words">
+                  <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-wrap break-words leading-relaxed">
                     {q.body}
                   </p>
                 )}
                 {q.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {q.tags.map((t) => (
                       <Badge key={t} variant="secondary" className="text-[10px]">#{t}</Badge>
                     ))}
                   </div>
                 )}
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-3 pt-1">
                   <AuthorLine
                     profile={q.profiles}
                     timestamp={q.created_at}
                     isAnonymous={q.is_anonymous}
                     isSelf={user?.id === q.author_id}
                   />
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
+                  <Badge variant="outline" className="shrink-0 gap-1.5 px-2.5 py-1 text-xs font-medium">
                     <MessageSquare className="h-3.5 w-3.5" />
                     {q.answer_count} {q.answer_count === 1 ? "answer" : "answers"}
-                  </span>
+                  </Badge>
                 </div>
               </div>
             </CardContent>
