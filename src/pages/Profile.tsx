@@ -387,12 +387,9 @@ const Profile = () => {
                           />
                         )}
                         {profile?.profile_type === "student" && (
-                          <StudentBadge
-                            size="lg"
-                            school={(profile as any)?.university}
-                            graduationYear={(profile as any)?.graduation_year}
-                          />
+                          <StudentBadge size="lg" compact />
                         )}
+
                         {endorsements.slice(0, 2).map((e) => (
 
                           <EndorsementPill key={e.id} title={e.badge_title} />
