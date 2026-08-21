@@ -34,9 +34,6 @@ import { useToast } from "@/hooks/use-toast";
 const initialsOf = (name?: string | null) =>
   (name || "U").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
-const isRecruiter = (p: Question["profiles"] | Answer["profiles"]) =>
-  !!p && (p.profile_type === "recruiter" || p.is_verified_recruiter);
-
 interface VoteBoxProps {
   score: number;
   myVote: number;

@@ -26,7 +26,6 @@ import { useProfile } from "@/hooks/useProfile";
 import { useCreateReply, usePostReplies } from "@/hooks/usePostReplies";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleBadge } from "@/components/RoleBadge";
-import { isRecruiter } from "@/lib/profile-display";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GifPicker } from "@/components/GifPicker";
