@@ -306,12 +306,16 @@ const Profile = () => {
     );
   };
 
-  // The recruiter pill already carries the company name, so avoid printing it twice.
+  // The role pill and metadata pills already carry company / school details,
+  // so the subline stays a headline and never repeats them.
   const rawSubline = getProfileSubline(profile, isOwnProfile ? "Welcome to NextGenCollar!" : "");
   const headerSubline =
     profile?.profile_type === "recruiter" && profile?.company_name
       ? profile?.company_title || ""
-      : rawSubline;
+      : profile?.profile_type === "student"
+        ? profile?.job_title || (isOwnProfile ? "Welcome to NextGenCollar!" : "")
+        : rawSubline;
+
 
   return (
 
