@@ -514,7 +514,6 @@ const Profile = () => {
                         </span>
                       ))}
 
-                      ))}
                     </div>
                   );
                 })()}
