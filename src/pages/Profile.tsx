@@ -12,8 +12,9 @@ import { useStudentEndorsements } from "@/hooks/useEndorsements";
 import { useStudentProjects } from "@/hooks/useStudentProjects";
 import { 
   Mail, MapPin, Link as LinkIcon, Briefcase, Calendar,
-  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus, Code2
+  ThumbsUp, MessageCircle, Share2, Plus, Pencil, Trash2, UserPlus, Code2, GraduationCap
 } from "lucide-react";
+
 import { ProfileButton } from "@/components/ProfileButton";
 import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
