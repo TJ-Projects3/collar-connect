@@ -824,8 +824,10 @@ export type Database = {
             | null
           avatar_url: string | null
           bio: string | null
+          booking_url: string | null
           company: string | null
           company_email: string | null
+          company_email_domain: string | null
           company_name: string | null
           company_title: string | null
           company_website: string | null
@@ -835,8 +837,10 @@ export type Database = {
           featured_projects: Json | null
           full_name: string | null
           github_url: string | null
+          graduation_month: number | null
           graduation_year: number | null
           hiring_roles: string[]
+          hiring_work_types: string[]
           id: string
           industry_company: string | null
           industry_role_title: string | null
@@ -847,15 +851,21 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           major: string | null
+          mentorship_offerings: string[]
           mentorship_opt_in: boolean
           portfolio_url: string | null
           profile_type: Database["public"]["Enums"]["profile_type"]
           recruiter_status: Database["public"]["Enums"]["recruiter_status"]
           resume_url: string | null
+          seniority_level: string | null
+          target_tracks: string[]
+          technical_skills: string[]
           university: string | null
           updated_at: string
           visible_to_industry: boolean
           website: string | null
+          work_authorization: string | null
+          work_status: string[]
           years_of_experience: number | null
         }
         Insert: {
@@ -865,8 +875,10 @@ export type Database = {
             | null
           avatar_url?: string | null
           bio?: string | null
+          booking_url?: string | null
           company?: string | null
           company_email?: string | null
+          company_email_domain?: string | null
           company_name?: string | null
           company_title?: string | null
           company_website?: string | null
@@ -876,8 +888,10 @@ export type Database = {
           featured_projects?: Json | null
           full_name?: string | null
           github_url?: string | null
+          graduation_month?: number | null
           graduation_year?: number | null
           hiring_roles?: string[]
+          hiring_work_types?: string[]
           id: string
           industry_company?: string | null
           industry_role_title?: string | null
@@ -888,15 +902,21 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
+          mentorship_offerings?: string[]
           mentorship_opt_in?: boolean
           portfolio_url?: string | null
           profile_type?: Database["public"]["Enums"]["profile_type"]
           recruiter_status?: Database["public"]["Enums"]["recruiter_status"]
           resume_url?: string | null
+          seniority_level?: string | null
+          target_tracks?: string[]
+          technical_skills?: string[]
           university?: string | null
           updated_at?: string
           visible_to_industry?: boolean
           website?: string | null
+          work_authorization?: string | null
+          work_status?: string[]
           years_of_experience?: number | null
         }
         Update: {
@@ -906,8 +926,10 @@ export type Database = {
             | null
           avatar_url?: string | null
           bio?: string | null
+          booking_url?: string | null
           company?: string | null
           company_email?: string | null
+          company_email_domain?: string | null
           company_name?: string | null
           company_title?: string | null
           company_website?: string | null
@@ -917,8 +939,10 @@ export type Database = {
           featured_projects?: Json | null
           full_name?: string | null
           github_url?: string | null
+          graduation_month?: number | null
           graduation_year?: number | null
           hiring_roles?: string[]
+          hiring_work_types?: string[]
           id?: string
           industry_company?: string | null
           industry_role_title?: string | null
@@ -929,15 +953,21 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
+          mentorship_offerings?: string[]
           mentorship_opt_in?: boolean
           portfolio_url?: string | null
           profile_type?: Database["public"]["Enums"]["profile_type"]
           recruiter_status?: Database["public"]["Enums"]["recruiter_status"]
           resume_url?: string | null
+          seniority_level?: string | null
+          target_tracks?: string[]
+          technical_skills?: string[]
           university?: string | null
           updated_at?: string
           visible_to_industry?: boolean
           website?: string | null
+          work_authorization?: string | null
+          work_status?: string[]
           years_of_experience?: number | null
         }
         Relationships: []
