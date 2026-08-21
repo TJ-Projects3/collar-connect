@@ -136,7 +136,7 @@ function DiscussionMock() {
           <div className="mt-1.5 flex gap-2">
             <div className="h-5 w-5 rounded-full bg-secondary/20 flex-shrink-0" />
             <div className="rounded-lg bg-secondary/10 px-2.5 py-1">
-              <p className="text-[10px] text-secondary-foreground">
+              <p className="text-[10px] text-secondary">
                 Start with networking fundamentals + a home lab.
               </p>
             </div>
