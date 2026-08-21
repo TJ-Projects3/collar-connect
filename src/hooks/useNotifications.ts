@@ -314,6 +314,29 @@ export const useMarkAllNotificationsRead = () => {
   });
 };
 
+// Delete all notifications for the current user
+export const useClearAllNotifications = () => {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("notifications" as any)
+        .delete()
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+    },
+  });
+};
+
 // Delete a notification
 export const useDeleteNotification = () => {
   const qc = useQueryClient();
