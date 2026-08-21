@@ -2,9 +2,8 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Users, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Bell, Users, CheckCircle, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { useEffect, useRef } from "react";
 import {
   useGroupedNotifications,
   useMarkAllNotificationsRead,
@@ -18,17 +17,9 @@ const Notifications = () => {
   const { mutate: markAllRead, isPending: markingAllRead } = useMarkAllNotificationsRead();
   const { mutate: acceptRequest, isPending: accepting } = useAcceptConnectionRequest();
   const { mutate: rejectRequest, isPending: rejecting } = useRejectConnectionRequest();
-  const hasMarkedRead = useRef(false);
 
   const unreadCount = groups.reduce((sum, g) => sum + (g.is_read ? 0 : g.ids.length), 0);
 
-  // Auto-mark all notifications as read when visiting the page
-  useEffect(() => {
-    if (unreadCount > 0 && !hasMarkedRead.current) {
-      hasMarkedRead.current = true;
-      markAllRead();
-    }
-  }, [unreadCount, markAllRead]);
 
 
   const handleAccept = (connectionId: string) => {
