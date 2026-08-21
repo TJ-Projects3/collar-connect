@@ -349,6 +349,7 @@ const Profile = () => {
 
                     {(profile?.profile_type === "recruiter" ||
                       profile?.profile_type === "industry" ||
+                      profile?.profile_type === "student" ||
                       endorsements.length > 0) && (
                       <div className="flex flex-wrap items-center gap-2 pt-0.5">
                         {profile?.profile_type === "recruiter" && (
@@ -373,7 +374,15 @@ const Profile = () => {
                             logoUrl={profileCompany?.logo_url ?? null}
                           />
                         )}
+                        {profile?.profile_type === "student" && (
+                          <StudentBadge
+                            size="lg"
+                            school={(profile as any)?.university}
+                            graduationYear={(profile as any)?.graduation_year}
+                          />
+                        )}
                         {endorsements.slice(0, 2).map((e) => (
+
                           <EndorsementPill key={e.id} title={e.badge_title} />
                         ))}
                       </div>
