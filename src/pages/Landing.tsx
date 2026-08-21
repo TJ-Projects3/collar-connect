@@ -54,10 +54,10 @@ const liveFeatures = [
     preview: <CommunityFeedMock />,
   },
   {
-    icon: Smartphone,
-    title: "Seamless Mobile Experience",
+    icon: Target,
+    title: "AI Career Roadmaps",
     description:
-      "Every screen is built to feel native on phones, so talent and opportunities are never out of reach.",
+      "Personalized 6-month roadmaps and CFAANG benchmarking turn career uncertainty into a concrete, role-specific action plan.",
     preview: <RoadmapMock />,
   },
   {
