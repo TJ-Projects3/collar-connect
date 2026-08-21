@@ -44,6 +44,7 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 import { IndustryProfileCard } from "@/components/industry/IndustryProfileCard";
 import { RecruiterProfileCard } from "@/components/recruiter/RecruiterProfileCard";
 import { StudentProfileCard } from "@/components/student/StudentProfileCard";
+import { ResumeActions } from "@/components/ResumeActions";
 import { formatGraduation } from "@/lib/profile-options";
 import {
   getProfileSubline,
@@ -51,7 +52,9 @@ import {
   recruiterStatus,
   isRecruiter,
   isIndustry,
+  pillClass,
 } from "@/lib/profile-display";
+
 
 
 const Profile = () => {
