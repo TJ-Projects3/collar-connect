@@ -87,30 +87,32 @@ const AuthorLine = ({
 }) => {
   if (isAnonymous) {
     return (
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Avatar className="h-6 w-6">
-          <AvatarFallback className="bg-muted text-muted-foreground text-[10px]">?</AvatarFallback>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+        <Avatar className="h-8 w-8">
+          <AvatarFallback className="bg-muted text-muted-foreground text-[11px]">?</AvatarFallback>
         </Avatar>
-        <span className="font-medium text-foreground">Anonymous</span>
-        {isSelf && <span className="text-[10px] uppercase tracking-wide text-secondary">you</span>}
-        <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+        <span className="font-medium text-foreground truncate">Anonymous</span>
+        {isSelf && <span className="text-[10px] uppercase tracking-wide text-secondary shrink-0">you</span>}
+        <span className="shrink-0">· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
       </div>
     );
   }
   return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <Avatar className="h-6 w-6">
+    <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+      <Avatar className="h-8 w-8 shrink-0">
         <AvatarImage src={profile?.avatar_url || undefined} />
-        <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">
+        <AvatarFallback className="bg-primary text-primary-foreground text-[11px]">
           {initialsOf(profile?.full_name)}
         </AvatarFallback>
       </Avatar>
-      <Link to={profile?.id ? `/profile?userId=${profile.id}` : "#"} className="font-medium text-foreground hover:underline">
-        {profile?.full_name || "Anonymous"}
-      </Link>
-      <RoleBadge profile={profile} compact />
-      {profile?.job_title && <span className="hidden sm:inline">· {profile.job_title}</span>}
-      <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+      <div className="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
+        <Link to={profile?.id ? `/profile?userId=${profile.id}` : "#"} className="font-medium text-foreground hover:underline truncate">
+          {profile?.full_name || "Anonymous"}
+        </Link>
+        <RoleBadge profile={profile} compact className="shrink-0" />
+        {profile?.job_title && <span className="hidden md:inline shrink-0">· {profile.job_title}</span>}
+        <span className="shrink-0">· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+      </div>
     </div>
   );
 };
