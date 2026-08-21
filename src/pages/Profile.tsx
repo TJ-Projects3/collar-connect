@@ -118,6 +118,9 @@ const Profile = () => {
 
   const isOwnProfile = viewedUserId === user?.id;
   const { isAdmin: viewerIsAdmin } = useAdminRole();
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+
+
 
   const handleEditExperience = (exp: Experience) => {
     setEditingExperience(exp);
