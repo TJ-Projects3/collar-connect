@@ -1,5 +1,23 @@
 // Helpers for role-aware profile display and talent access
 
+/**
+ * Shared geometry for every profile metadata / tag pill so the header strip
+ * and the role cards read as one system. Semantic tokens only.
+ */
+export const PILL_BASE =
+  "inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium leading-none transition-colors";
+
+export const PILL_VARIANTS = {
+  academic: "border-secondary/40 bg-secondary/10 text-secondary hover:bg-secondary/20",
+  neutral: "border-border bg-muted/40 text-muted-foreground hover:bg-muted",
+  primary: "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20",
+  outline: "border-border text-foreground hover:bg-muted",
+} as const;
+
+export const pillClass = (variant: keyof typeof PILL_VARIANTS = "neutral") =>
+  `${PILL_BASE} ${PILL_VARIANTS[variant]}`;
+
+
 type AnyProfile = {
   profile_type?: string | null;
   job_title?: string | null;
