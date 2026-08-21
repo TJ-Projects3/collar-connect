@@ -141,11 +141,9 @@ const Notifications = () => {
           {groups.length === 0 && (pendingRequests as any[]).length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <Bell className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">No notifications yet</p>
-                <p className="text-sm text-muted-foreground">
-                  You're all caught up! Notifications will appear here.
-                </p>
+                <CheckCircle2 className="h-12 w-12 text-muted-foreground/60 mb-4" />
+                <p className="text-lg font-medium">You're all caught up!</p>
+                <p className="text-sm text-muted-foreground">No new notifications.</p>
               </CardContent>
             </Card>
           ) : groups.length > 0 ? (
