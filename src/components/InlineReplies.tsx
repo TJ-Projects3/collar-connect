@@ -9,7 +9,7 @@ import { usePostReplies, useUpdateReply, useDeleteReply } from "@/hooks/usePostR
 import { formatDistanceToNow } from "date-fns";
 import { LinkifyText } from "@/components/LinkifyText";
 import { useAuth } from "@/contexts/AuthContext";
-import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { RoleBadge } from "@/components/RoleBadge";
 import { getProfileSubline, isRecruiter } from "@/lib/profile-display";
 
 interface InlineRepliesProps {
@@ -125,9 +125,7 @@ export const InlineReplies = ({
                           <span className="font-semibold text-sm truncate">
                             {reply.profiles?.full_name || "Unknown User"}
                           </span>
-                          {isRecruiter(reply.profiles) && (
-                            <RecruiterBadge verified={reply.profiles?.is_verified_recruiter} compact />
-                          )}
+                          <RoleBadge profile={reply.profiles} compact />
                           <span className="text-xs text-muted-foreground">•</span>
                           <span className="text-xs text-muted-foreground truncate">
                             {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}

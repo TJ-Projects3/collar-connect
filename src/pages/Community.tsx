@@ -22,7 +22,7 @@ import {
 import { AskQuestionModal } from "@/components/AskQuestionModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { RecruiterBadge } from "@/components/RecruiterBadge";
+import { RoleBadge } from "@/components/RoleBadge";
 import { LinkifyText } from "@/components/LinkifyText";
 import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -33,9 +33,6 @@ import { useToast } from "@/hooks/use-toast";
 
 const initialsOf = (name?: string | null) =>
   (name || "U").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
-
-const isRecruiter = (p: Question["profiles"] | Answer["profiles"]) =>
-  !!p && (p.profile_type === "recruiter" || p.is_verified_recruiter);
 
 interface VoteBoxProps {
   score: number;
@@ -111,7 +108,7 @@ const AuthorLine = ({
       <Link to={profile?.id ? `/profile?userId=${profile.id}` : "#"} className="font-medium text-foreground hover:underline">
         {profile?.full_name || "Anonymous"}
       </Link>
-      {isRecruiter(profile) && <RecruiterBadge compact verified={!!profile?.is_verified_recruiter} />}
+      <RoleBadge profile={profile} compact />
       {profile?.job_title && <span className="hidden sm:inline">· {profile.job_title}</span>}
       <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
     </div>

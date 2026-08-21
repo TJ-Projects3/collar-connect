@@ -37,6 +37,7 @@ import { Link } from "react-router-dom";
 import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useMyConnections } from "@/hooks/useConnections";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { IndustryBadge } from "@/components/IndustryBadge";
+import { StudentBadge } from "@/components/StudentBadge";
 import { useCompany } from "@/hooks/useCompany";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { IndustryProfileCard } from "@/components/industry/IndustryProfileCard";
@@ -349,6 +350,7 @@ const Profile = () => {
 
                     {(profile?.profile_type === "recruiter" ||
                       profile?.profile_type === "industry" ||
+                      profile?.profile_type === "student" ||
                       endorsements.length > 0) && (
                       <div className="flex flex-wrap items-center gap-2 pt-0.5">
                         {profile?.profile_type === "recruiter" && (
@@ -373,7 +375,15 @@ const Profile = () => {
                             logoUrl={profileCompany?.logo_url ?? null}
                           />
                         )}
+                        {profile?.profile_type === "student" && (
+                          <StudentBadge
+                            size="lg"
+                            school={(profile as any)?.university}
+                            graduationYear={(profile as any)?.graduation_year}
+                          />
+                        )}
                         {endorsements.slice(0, 2).map((e) => (
+
                           <EndorsementPill key={e.id} title={e.badge_title} />
                         ))}
                       </div>
