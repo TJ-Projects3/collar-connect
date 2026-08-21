@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowBigUp, ArrowBigDown, MessageSquare, Plus, Search, ArrowLeft,
-  CheckCircle2, Trash2, Sparkles, Filter
+  CheckCircle2, Sparkles
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -87,30 +87,32 @@ const AuthorLine = ({
 }) => {
   if (isAnonymous) {
     return (
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Avatar className="h-6 w-6">
-          <AvatarFallback className="bg-muted text-muted-foreground text-[10px]">?</AvatarFallback>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+        <Avatar className="h-8 w-8">
+          <AvatarFallback className="bg-muted text-muted-foreground text-[11px]">?</AvatarFallback>
         </Avatar>
-        <span className="font-medium text-foreground">Anonymous</span>
-        {isSelf && <span className="text-[10px] uppercase tracking-wide text-secondary">you</span>}
-        <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+        <span className="font-medium text-foreground truncate">Anonymous</span>
+        {isSelf && <span className="text-[10px] uppercase tracking-wide text-secondary shrink-0">you</span>}
+        <span className="shrink-0">· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
       </div>
     );
   }
   return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <Avatar className="h-6 w-6">
+    <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+      <Avatar className="h-8 w-8 shrink-0">
         <AvatarImage src={profile?.avatar_url || undefined} />
-        <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">
+        <AvatarFallback className="bg-primary text-primary-foreground text-[11px]">
           {initialsOf(profile?.full_name)}
         </AvatarFallback>
       </Avatar>
-      <Link to={profile?.id ? `/profile?userId=${profile.id}` : "#"} className="font-medium text-foreground hover:underline">
-        {profile?.full_name || "Anonymous"}
-      </Link>
-      <RoleBadge profile={profile} compact />
-      {profile?.job_title && <span className="hidden sm:inline">· {profile.job_title}</span>}
-      <span>· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+      <div className="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
+        <Link to={profile?.id ? `/profile?userId=${profile.id}` : "#"} className="font-medium text-foreground hover:underline truncate">
+          {profile?.full_name || "Anonymous"}
+        </Link>
+        <RoleBadge profile={profile} compact className="shrink-0" />
+        {profile?.job_title && <span className="hidden md:inline shrink-0">· {profile.job_title}</span>}
+        <span className="shrink-0">· {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</span>
+      </div>
     </div>
   );
 };
@@ -133,17 +135,17 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Card>
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-5 space-y-4">
           <PageHeader
             title="Community Q&amp;A"
             subtitle="Ask questions, share advice, and learn from students and recruiters across the community."
             icon={Sparkles}
             className="mb-0"
           />
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button onClick={onAsk} className="gap-2">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={onAsk} className="gap-2 shrink-0">
               <Plus className="h-4 w-4" /> Ask a Question
             </Button>
             <div className="relative flex-1">
@@ -156,15 +158,14 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
               />
             </div>
           </div>
-          <div className="flex items-center gap-1 flex-wrap">
-            <Filter className="h-4 w-4 text-muted-foreground mr-1" />
+          <div className="flex items-center gap-2 flex-wrap">
             {(["new", "top", "unanswered"] as QuestionSort[]).map((s) => (
               <Button
                 key={s}
                 size="sm"
-                variant={sort === s ? "default" : "ghost"}
+                variant={sort === s ? "default" : "outline"}
                 onClick={() => setSort(s)}
-                className="capitalize h-8"
+                className="capitalize h-9 px-4 rounded-full"
               >
                 {s === "top" ? "Top" : s === "new" ? "New" : "Unanswered"}
               </Button>
@@ -186,8 +187,8 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
       {questions.map((q) => (
         <Link key={q.id} to={`/community?id=${q.id}`} className="block">
           <Card className="hover:border-primary/40 transition-colors">
-            <CardContent className="p-4 flex gap-3">
-              <div className="flex-shrink-0">
+            <CardContent className="p-5 flex gap-4">
+              <div className="flex-shrink-0 pt-0.5">
                 <VoteBox
                   score={q.upvotes}
                   myVote={myVotes?.get(q.id) ?? 0}
@@ -195,31 +196,31 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
                   size="sm"
                 />
               </div>
-              <div className="flex-1 min-w-0 space-y-2">
-                <h2 className="font-semibold text-base leading-snug line-clamp-2">{q.title}</h2>
+              <div className="flex-1 min-w-0 space-y-3">
+                <h2 className="font-semibold text-base leading-snug">{q.title}</h2>
                 {q.body && (
-                  <p className="text-sm text-muted-foreground line-clamp-2 whitespace-pre-wrap break-words">
+                  <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-wrap break-words leading-relaxed">
                     {q.body}
                   </p>
                 )}
                 {q.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {q.tags.map((t) => (
                       <Badge key={t} variant="secondary" className="text-[10px]">#{t}</Badge>
                     ))}
                   </div>
                 )}
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-3 pt-1">
                   <AuthorLine
                     profile={q.profiles}
                     timestamp={q.created_at}
                     isAnonymous={q.is_anonymous}
                     isSelf={user?.id === q.author_id}
                   />
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
+                  <Badge variant="outline" className="shrink-0 gap-1.5 px-2.5 py-1 text-xs font-medium">
                     <MessageSquare className="h-3.5 w-3.5" />
                     {q.answer_count} {q.answer_count === 1 ? "answer" : "answers"}
-                  </span>
+                  </Badge>
                 </div>
               </div>
             </CardContent>
@@ -474,12 +475,12 @@ const Community = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       <Navbar />
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-5xl">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
         <div className="lg:grid lg:grid-cols-12 lg:gap-6">
-          <div className="lg:col-span-8 min-w-0">
+          <div className="lg:col-span-9 min-w-0">
             {id ? <QuestionDetail id={id} /> : <QuestionsList onAsk={() => setAskOpen(true)} />}
           </div>
-          <aside className="hidden lg:block lg:col-span-4 lg:sticky lg:top-20 lg:self-start space-y-4">
+          <aside className="hidden lg:block lg:col-span-3 lg:sticky lg:top-20 lg:self-start space-y-4">
             <RecommendedPeersCard />
           </aside>
         </div>
