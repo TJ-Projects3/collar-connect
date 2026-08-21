@@ -2,14 +2,26 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Users, CheckCircle, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Bell, Users, CheckCircle, CheckCircle2, XCircle, Loader2, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import {
   useGroupedNotifications,
   useMarkAllNotificationsRead,
+  useClearAllNotifications,
 } from "@/hooks/useNotifications";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { usePendingConnectionRequests, useAcceptConnectionRequest, useRejectConnectionRequest } from "@/hooks/useConnections";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Notifications = () => {
   const { data: groups = [] } = useGroupedNotifications();
