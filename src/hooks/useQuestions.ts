@@ -285,37 +285,78 @@ export const useVote = () => {
       if (!user) throw new Error("Sign in to vote");
       const filterCol = questionId ? "question_id" : "answer_id";
       const targetId = questionId ?? answerId!;
+
       if (current === value) {
-        // toggle off - delete
+        // toggle off - remove this user's row
         const { error } = await supabase
           .from("question_votes")
           .delete()
           .eq("user_id", user.id)
           .eq(filterCol, targetId);
         if (error) throw error;
-      } else if (current === 0) {
-        const { error } = await supabase.from("question_votes").insert({
+        return;
+      }
+
+      // single row per user per target, enforced by partial unique indexes
+      const { error } = await supabase.from("question_votes").upsert(
+        {
           user_id: user.id,
           question_id: questionId ?? null,
           answer_id: answerId ?? null,
           value,
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("question_votes")
-          .update({ value })
-          .eq("user_id", user.id)
-          .eq(filterCol, targetId);
-        if (error) throw error;
-      }
+        },
+        { onConflict: questionId ? "user_id,question_id" : "user_id,answer_id" }
+      );
+      if (error) throw error;
     },
-    onSuccess: () => {
+    // Optimistically patch the visible score + active state
+    onMutate: async ({ questionId, answerId, value, current }) => {
+      const next = current === value ? 0 : value;
+      const delta = next - current;
+
+      const snapshots = qc.getQueriesData({ queryKey: ["questions"] })
+        .concat(qc.getQueriesData({ queryKey: ["question"] }))
+        .concat(qc.getQueriesData({ queryKey: ["question-answers"] }))
+        .concat(qc.getQueriesData({ queryKey: ["question-votes"] }));
+
+      const targetId = questionId ?? answerId!;
+
+      const bumpRow = <T extends { id: string; upvotes: number }>(row: T): T =>
+        row.id === targetId ? { ...row, upvotes: (row.upvotes ?? 0) + delta } : row;
+
+      // Lists of questions
+      qc.setQueriesData({ queryKey: ["questions"] }, (old: any) =>
+        Array.isArray(old) ? old.map(bumpRow) : old
+      );
+      // Single question detail
+      qc.setQueriesData({ queryKey: ["question"] }, (old: any) =>
+        old && !Array.isArray(old) && old.id ? bumpRow(old) : old
+      );
+      // Answer lists
+      qc.setQueriesData({ queryKey: ["question-answers"] }, (old: any) =>
+        Array.isArray(old) ? old.map(bumpRow) : old
+      );
+      // My vote maps
+      qc.setQueriesData({ queryKey: ["question-votes"] }, (old: any) => {
+        if (!(old instanceof Map)) return old;
+        const copy = new Map(old);
+        if (next === 0) copy.delete(targetId);
+        else copy.set(targetId, next);
+        return copy;
+      });
+
+      return { snapshots };
+    },
+    onError: (e: any, _vars, ctx) => {
+      ctx?.snapshots?.forEach(([key, data]: any) => qc.setQueryData(key, data));
+      toast({ title: "Vote failed", description: e.message, variant: "destructive" });
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["questions"] });
       qc.invalidateQueries({ queryKey: ["question"] });
       qc.invalidateQueries({ queryKey: ["question-answers"] });
       qc.invalidateQueries({ queryKey: ["question-votes"] });
     },
-    onError: (e: any) => toast({ title: "Vote failed", description: e.message, variant: "destructive" }),
   });
 };
+
