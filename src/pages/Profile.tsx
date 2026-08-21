@@ -512,18 +512,31 @@ const Profile = () => {
               </Card>
             )}
 
-            {/* Developer Portfolio */}
+            {/* Role-specific details */}
             {isIndustry(profile) ? (
-              <IndustryProfileCard profile={profile} isOwnProfile={isOwnProfile} />
+              <IndustryProfileCard
+                profile={profile}
+                isOwnProfile={isOwnProfile}
+                onEdit={() => setEditProfileOpen(true)}
+              />
             ) : isRecruiter(profile) ? (
               <RecruiterProfileCard
                 profile={profile}
                 isOwnProfile={isOwnProfile}
                 isAdmin={viewerIsAdmin}
+                onEdit={() => setEditProfileOpen(true)}
               />
             ) : (
-              <DeveloperPortfolioCard profile={profile} isOwnProfile={isOwnProfile} />
+              <>
+                <StudentProfileCard
+                  profile={profile}
+                  isOwnProfile={isOwnProfile}
+                  onEdit={() => setEditProfileOpen(true)}
+                />
+                <DeveloperPortfolioCard profile={profile} isOwnProfile={isOwnProfile} />
+              </>
             )}
+
 
             {/* Experience Section */}
             <Card>
