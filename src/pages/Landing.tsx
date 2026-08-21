@@ -2,13 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import {
+  ArrowRight,
   BadgeCheck,
   Compass,
   Heart,
   MessageSquare,
   Smartphone,
+  Target,
   Users,
 } from "lucide-react";
+import { StudentBadge } from "@/components/StudentBadge";
+import { IndustryBadge } from "@/components/IndustryBadge";
+import { RecruiterBadge } from "@/components/RecruiterBadge";
 
 const roleValues = [
   {
@@ -17,6 +22,8 @@ const roleValues = [
     description:
       "Get personalized 6-month career maps, showcase real GitHub and portfolio projects, and get discovered by the right people.",
     gradient: "from-primary/20 to-primary/5",
+    roleTag: <StudentBadge compact />,
+    cta: { label: "Start your roadmap", role: "student" },
   },
   {
     icon: Users,
@@ -24,6 +31,8 @@ const roleValues = [
     description:
       "Share career insights, answer questions in the Q&A forum, and guide the next generation of engineers.",
     gradient: "from-secondary/20 to-secondary/5",
+    roleTag: <IndustryBadge mentor compact />,
+    cta: { label: "Share your expertise", role: "industry" },
   },
   {
     icon: BadgeCheck,
@@ -31,6 +40,8 @@ const roleValues = [
     description:
       "Direct messaging and access to pre-vetted, high-potential diverse tech talent without the resume clutter.",
     gradient: "from-accent/20 to-accent/5",
+    roleTag: <RecruiterBadge compact />,
+    cta: { label: "Source verified talent", role: "recruiter" },
   },
 ];
 
@@ -40,20 +51,101 @@ const liveFeatures = [
     title: "Vibrant Community Feed",
     description:
       "A multi-reaction system powers an engaging feed where students, recruiters, and working industry professionals connect, celebrate wins, and share insights.",
+    preview: <CommunityFeedMock />,
   },
   {
     icon: Smartphone,
     title: "Seamless Mobile Experience",
     description:
       "Every screen is built to feel native on phones, so talent and opportunities are never out of reach.",
+    preview: <RoadmapMock />,
   },
   {
     icon: MessageSquare,
     title: "Dynamic Discussions",
     description:
       "In-line comment editing and threaded replies keep conversations clear, current, and productive.",
+    preview: <DiscussionMock />,
   },
 ];
+
+function CommunityFeedMock() {
+  return (
+    <div className="w-full rounded-xl border bg-card p-3 shadow-sm">
+      <div className="flex items-center gap-2.5">
+        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-[10px] font-bold text-primary-foreground">
+          AM
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-foreground truncate">Alex M.</p>
+          <StudentBadge compact school="Howard University" graduationYear={2026} />
+        </div>
+      </div>
+      <p className="mt-2.5 text-[11px] text-muted-foreground line-clamp-2">
+        Just landed my first SWE internship — grateful for this community!
+      </p>
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+          👍 24
+        </span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-medium text-secondary">
+          💡 8
+        </span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+          🚀 5
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function RoadmapMock() {
+  return (
+    <div className="w-full space-y-2">
+      <div className="flex items-center gap-2 rounded-xl border bg-card p-3 shadow-sm">
+        <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Target className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-foreground truncate">Target: Systems Engineer</p>
+          <p className="text-[10px] text-muted-foreground">Cloud & distributed systems focus</p>
+        </div>
+      </div>
+      <div className="flex items-center justify-between rounded-lg bg-secondary/10 px-3 py-2">
+        <span className="text-[10px] font-medium text-secondary">6-Month Plan</span>
+        <span className="text-[10px] text-secondary/80">Milestone 3 of 6</span>
+      </div>
+    </div>
+  );
+}
+
+function DiscussionMock() {
+  return (
+    <div className="w-full rounded-xl border bg-card p-3 shadow-sm">
+      <div className="flex gap-2">
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground">
+            JD
+          </div>
+          <div className="w-px flex-1 bg-border" />
+        </div>
+        <div className="min-w-0 flex-1 pb-1">
+          <div className="rounded-lg bg-muted/60 px-2.5 py-1.5">
+            <p className="text-[11px] font-medium text-foreground">How do I break into cybersecurity?</p>
+          </div>
+          <div className="mt-1.5 flex gap-2">
+            <div className="h-5 w-5 rounded-full bg-secondary/20 flex-shrink-0" />
+            <div className="rounded-lg bg-secondary/10 px-2.5 py-1">
+              <p className="text-[10px] text-secondary-foreground">
+                Start with networking fundamentals + a home lab.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -114,32 +206,58 @@ const Landing = () => {
                 </p>
 
                 <div
-                  className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2 opacity-0 animate-fade-in-up"
+                  className="space-y-4 pt-2 opacity-0 animate-fade-in-up"
                   style={{ animationDelay: "300ms" }}
                 >
-                  <Button
-                    size="lg"
-                    onClick={() => navigate("/auth?role=student&mode=signup")}
-                    className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 shadow-lg hover:shadow-[0_0_28px_-6px_hsl(var(--primary)/0.45)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 ease-premium"
-                  >
-                    Map Your Career
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => navigate("/auth?role=recruiter&mode=signup")}
-                    className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 border-2 hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-[0_0_28px_-6px_hsl(var(--accent)/0.4)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 ease-premium"
-                  >
-                    Find Top Talent
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => navigate("/auth?role=industry&mode=signup")}
-                    className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 border-2 hover:bg-secondary hover:text-secondary-foreground hover:border-secondary hover:shadow-[0_0_28px_-6px_hsl(var(--secondary)/0.4)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 ease-premium"
-                  >
-                    Join as an Industry Mentor / Professional
-                  </Button>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 sm:gap-4">
+                    <Button
+                      size="lg"
+                      onClick={() => navigate("/auth?role=student&mode=signup")}
+                      className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 shadow-lg hover:shadow-[0_0_28px_-6px_hsl(var(--primary)/0.45)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 ease-premium"
+                    >
+                      Map Your Career
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onClick={() => navigate("/auth?role=recruiter&mode=signup")}
+                      className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 border-2 hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-[0_0_28px_-6px_hsl(var(--accent)/0.4)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 ease-premium"
+                    >
+                      Find Top Talent
+                    </Button>
+                  </div>
+
+                  <div className="flex justify-center lg:justify-start">
+                    <button
+                      onClick={() => navigate("/auth?role=industry&mode=signup")}
+                      className="group inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      Are you an industry professional?
+                      <span className="text-primary underline-offset-2 group-hover:underline">
+                        Join as a Mentor
+                      </span>
+                      <ArrowRight className="h-3.5 w-3.5 text-primary transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Metric Strip */}
+                <div
+                  className="flex flex-wrap items-center justify-center lg:justify-start gap-3 opacity-0 animate-fade-in-up"
+                  style={{ animationDelay: "450ms" }}
+                >
+                  <div className="inline-flex items-center gap-2 rounded-full border bg-background/70 px-4 py-2 shadow-sm">
+                    <span className="text-lg font-bold text-primary">10k+</span>
+                    <span className="text-xs text-muted-foreground">Students</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full border bg-background/70 px-4 py-2 shadow-sm">
+                    <span className="text-lg font-bold text-secondary">250+</span>
+                    <span className="text-xs text-muted-foreground">Industry Mentors</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full border bg-background/70 px-4 py-2 shadow-sm">
+                    <span className="text-lg font-bold text-accent">500+</span>
+                    <span className="text-xs text-muted-foreground">Recruiters</span>
+                  </div>
                 </div>
               </div>
 
@@ -163,26 +281,18 @@ const Landing = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="rounded-2xl bg-muted p-4 text-center">
-                        <p className="text-2xl sm:text-3xl font-bold text-primary">10k+</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Student Members
-                        </p>
-                      </div>
-                      <div className="rounded-2xl bg-muted p-4 text-center">
-                        <p className="text-2xl sm:text-3xl font-bold text-accent">500+</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Hiring Recruiters
-                        </p>
-                      </div>
+                    <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 p-5">
+                      <p className="text-sm font-medium text-foreground leading-relaxed">
+                        "The fastest way to connect diverse student talent with
+                        top tech recruiters and mentors who actually care."
+                      </p>
                     </div>
 
-                    <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 p-4">
-                      <p className="text-sm font-medium text-foreground">
-                        "The fastest way to connect diverse student talent with
-                        top tech recruiters."
-                      </p>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted font-bold text-[10px]">
+                        M
+                      </span>
+                      <span>Trusted by students at 120+ universities</span>
                     </div>
                   </div>
                 </Card>
@@ -207,26 +317,36 @@ const Landing = () => {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
               {roleValues.map((value, idx) => (
                 <Card
                   key={idx}
-                  className="group relative overflow-hidden rounded-2xl border bg-card p-6 sm:p-8 shadow-card opacity-0 animate-fade-in-up hover:-translate-y-2 hover:shadow-[0_20px_40px_-12px_hsl(var(--primary)/0.18)] hover:ring-1 hover:ring-primary/20 transition-all duration-500 ease-premium"
+                  className="group relative overflow-hidden rounded-2xl border bg-card p-6 sm:p-8 shadow-card opacity-0 animate-fade-in-up hover:-translate-y-2 hover:shadow-[0_20px_40px_-12px_hsl(var(--primary)/0.18)] hover:ring-1 hover:ring-primary/20 transition-all duration-500 ease-premium h-full flex flex-col"
                   style={{ animationDelay: `${300 + idx * 120}ms` }}
                 >
                   <div
                     className={`absolute inset-0 bg-gradient-to-br ${value.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
                   />
-                  <div className="relative z-10">
+                  <div className="relative z-10 flex flex-col h-full">
+                    <div className="mb-4">{value.roleTag}</div>
                     <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_-4px_hsl(var(--primary)/0.35)]">
                       <value.icon className="h-6 w-6" />
                     </div>
                     <h4 className="text-xl font-semibold text-card-foreground mb-2">
                       {value.title}
                     </h4>
-                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed flex-1">
                       {value.description}
                     </p>
+                    <button
+                      onClick={() =>
+                        navigate(`/auth?role=${value.cta.role}&mode=signup`)
+                      }
+                      className="mt-5 inline-flex items-center gap-1 self-start text-sm font-semibold text-primary hover:underline underline-offset-4 transition-all group-hover:gap-1.5"
+                    >
+                      {value.cta.label}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </Card>
               ))}
@@ -250,22 +370,20 @@ const Landing = () => {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
               {liveFeatures.map((feature, idx) => (
                 <Card
                   key={idx}
-                  className="group relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-card to-muted p-6 sm:p-8 shadow-card opacity-0 animate-fade-in-up hover:-translate-y-2 hover:shadow-[0_20px_40px_-12px_hsl(var(--accent)/0.18)] hover:ring-1 hover:ring-accent/20 transition-all duration-500 ease-premium"
+                  className="group relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-card to-muted p-6 sm:p-8 shadow-card opacity-0 animate-fade-in-up hover:-translate-y-2 hover:shadow-[0_20px_40px_-12px_hsl(var(--accent)/0.18)] hover:ring-1 hover:ring-accent/20 transition-all duration-500 ease-premium h-full flex flex-col"
                   style={{ animationDelay: `${300 + idx * 120}ms` }}
                 >
                   <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl transition-all duration-500 group-hover:bg-accent/10 group-hover:scale-110" />
-                  <div className="relative z-10">
-                    <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-[0_0_24px_-4px_hsl(var(--accent)/0.45)]">
-                      <feature.icon className="h-7 w-7" />
-                    </div>
+                  <div className="relative z-10 flex flex-col h-full">
+                    <div className="mb-5">{feature.preview}</div>
                     <h4 className="text-xl font-semibold text-card-foreground mb-3">
                       {feature.title}
                     </h4>
-                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed flex-1">
                       {feature.description}
                     </p>
                   </div>
