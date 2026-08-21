@@ -474,12 +474,12 @@ const Community = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       <Navbar />
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-5xl">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
         <div className="lg:grid lg:grid-cols-12 lg:gap-6">
-          <div className="lg:col-span-8 min-w-0">
+          <div className="lg:col-span-9 min-w-0">
             {id ? <QuestionDetail id={id} /> : <QuestionsList onAsk={() => setAskOpen(true)} />}
           </div>
-          <aside className="hidden lg:block lg:col-span-4 lg:sticky lg:top-20 lg:self-start space-y-4">
+          <aside className="hidden lg:block lg:col-span-3 lg:sticky lg:top-20 lg:self-start space-y-4">
             <RecommendedPeersCard />
           </aside>
         </div>
