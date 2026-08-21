@@ -2,25 +2,44 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Users, CheckCircle, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Bell, Users, CheckCircle, CheckCircle2, XCircle, Loader2, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import {
   useGroupedNotifications,
   useMarkAllNotificationsRead,
+  useClearAllNotifications,
 } from "@/hooks/useNotifications";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { usePendingConnectionRequests, useAcceptConnectionRequest, useRejectConnectionRequest } from "@/hooks/useConnections";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Notifications = () => {
   const { data: groups = [] } = useGroupedNotifications();
   const { data: pendingRequests = [] } = usePendingConnectionRequests();
   const { mutate: markAllRead, isPending: markingAllRead } = useMarkAllNotificationsRead();
+  const { mutate: clearAll, isPending: clearingAll } = useClearAllNotifications();
   const { mutate: acceptRequest, isPending: accepting } = useAcceptConnectionRequest();
   const { mutate: rejectRequest, isPending: rejecting } = useRejectConnectionRequest();
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const unreadCount = groups.reduce((sum, g) => sum + (g.is_read ? 0 : g.ids.length), 0);
+  const hasNotifications = groups.length > 0;
 
-
+  const handleClearAll = () => {
+    clearAll(undefined, {
+      onSuccess: () => setClearDialogOpen(false),
+    });
+  };
 
   const handleAccept = (connectionId: string) => {
     acceptRequest(connectionId);
@@ -49,15 +68,28 @@ const Notifications = () => {
               </p>
             )}
           </div>
-          {unreadCount > 0 && (
-            <Button
-              variant="outline"
-              onClick={() => markAllRead()}
-              disabled={markingAllRead}
-            >
-              {markingAllRead ? <Loader2 className="h-4 w-4 animate-spin" /> : "Mark all as read"}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => markAllRead()}
+                disabled={markingAllRead}
+              >
+                {markingAllRead ? <Loader2 className="h-4 w-4 animate-spin" /> : "Mark all as read"}
+              </Button>
+            )}
+            {hasNotifications && (
+              <Button
+                variant="outline"
+                onClick={() => setClearDialogOpen(true)}
+                disabled={clearingAll}
+                className="text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+              >
+                {clearingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1" />}
+                Clear all
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -158,6 +190,27 @@ const Notifications = () => {
           ) : null}
         </div>
       </div>
+
+      <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all notifications?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all your notifications. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearAll}
+              disabled={clearingAll}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {clearingAll ? "Clearing..." : "Clear all"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
