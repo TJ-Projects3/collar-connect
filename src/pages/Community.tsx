@@ -10,8 +10,9 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowBigUp, ArrowBigDown, MessageSquare, Plus, Search, ArrowLeft,
-  CheckCircle2, Sparkles
+  CheckCircle2, Sparkles, X, Check
 } from "lucide-react";
+
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import {
