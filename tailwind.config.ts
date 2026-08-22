@@ -31,6 +31,12 @@ export default {
           DEFAULT: "hsl(var(--achievement))",
           foreground: "hsl(var(--achievement-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          muted: "hsl(var(--success-muted))",
+        },
+
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
