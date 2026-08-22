@@ -54,7 +54,10 @@ const fetchAuthors = async (ids: string[]) => {
   if (!ids.length) return new Map<string, QuestionAuthor>();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, job_title, company, avatar_url, profile_type, is_verified_recruiter")
+    .select(
+      "id, full_name, job_title, company, avatar_url, profile_type, is_verified_recruiter, industry_verified, industry_role_title, industry_company, mentorship_opt_in, mentorship_offerings, booking_url"
+    )
+
     .in("id", ids);
   if (error) throw error;
   return new Map((data ?? []).map((p) => [p.id, p as QuestionAuthor]));
