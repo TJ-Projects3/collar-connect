@@ -118,10 +118,19 @@ const AuthorLine = ({
 };
 
 // -------------- List View --------------
-const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
+const QuestionsList = ({
+  onAsk,
+  activeTag,
+  onTagSelect,
+}: {
+  onAsk: () => void;
+  activeTag: string | null;
+  onTagSelect: (tag: string | null) => void;
+}) => {
   const [sort, setSort] = useState<QuestionSort>("new");
   const [search, setSearch] = useState("");
-  const { data: questions = [], isLoading } = useQuestions(sort, search);
+  const { data: questions = [], isLoading } = useQuestions(sort, search, activeTag);
+
   const vote = useVote();
   const ids = useMemo(() => questions.map((q) => q.id), [questions]);
   const { data: myVotes } = useMyQuestionVotes(ids);
