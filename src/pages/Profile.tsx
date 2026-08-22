@@ -45,6 +45,8 @@ import { IndustryProfileCard } from "@/components/industry/IndustryProfileCard";
 import { RecruiterProfileCard } from "@/components/recruiter/RecruiterProfileCard";
 import { StudentProfileCard } from "@/components/student/StudentProfileCard";
 import { ResumeActions } from "@/components/ResumeActions";
+import { MentorshipButton } from "@/components/mentorship/MentorshipButton";
+
 import { formatGraduation } from "@/lib/profile-options";
 import {
   getProfileSubline,
