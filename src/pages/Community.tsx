@@ -374,7 +374,10 @@ const QuestionDetail = ({ id }: { id: string }) => {
           {answers.map((a) => {
             const isAnswerOwner = user?.id === a.author_id;
             return (
-              <Card key={a.id} className={cn(a.is_accepted && "border-secondary")}>
+              <Card
+                key={a.id}
+                className={cn(a.is_accepted && "border-success bg-success-muted/40 ring-1 ring-success/30")}
+              >
                 <CardContent className="p-4 flex gap-3">
                   <VoteBox
                     score={a.upvotes}
@@ -387,10 +390,11 @@ const QuestionDetail = ({ id }: { id: string }) => {
                   />
                   <div className="flex-1 min-w-0 space-y-2">
                     {a.is_accepted && (
-                      <div className="inline-flex items-center gap-1 text-xs font-semibold text-secondary">
-                        <CheckCircle2 className="h-4 w-4" /> Accepted answer
-                      </div>
+                      <Badge className="gap-1 bg-success text-success-foreground hover:bg-success">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Accepted Answer
+                      </Badge>
                     )}
+
                     <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                       <LinkifyText>{a.body}</LinkifyText>
                     </div>
