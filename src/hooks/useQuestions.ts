@@ -14,7 +14,14 @@ export interface QuestionAuthor {
   avatar_url: string | null;
   profile_type: string | null;
   is_verified_recruiter: boolean | null;
+  industry_verified?: boolean | null;
+  industry_role_title?: string | null;
+  industry_company?: string | null;
+  mentorship_opt_in?: boolean | null;
+  mentorship_offerings?: string[] | null;
+  booking_url?: string | null;
 }
+
 
 export interface Question {
   id: string;
