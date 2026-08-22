@@ -63,15 +63,19 @@ const fetchAuthors = async (ids: string[]) => {
   return new Map((data ?? []).map((p) => [p.id, p as QuestionAuthor]));
 };
 
-export const useQuestions = (sort: QuestionSort = "new", search = "") => {
+export const useQuestions = (sort: QuestionSort = "new", search = "", tag: string | null = null) => {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["questions", sort, search, user?.id],
+    queryKey: ["questions", sort, search, tag, user?.id],
     queryFn: async (): Promise<Question[]> => {
       let query = supabase.from("questions").select("*");
       if (search.trim()) {
         query = query.ilike("title", `%${search.trim()}%`);
       }
+      if (tag) {
+        query = query.contains("tags", [tag]);
+      }
+
       if (sort === "top") query = query.order("upvotes", { ascending: false }).order("created_at", { ascending: false });
       else if (sort === "unanswered") query = query.eq("answer_count", 0).order("created_at", { ascending: false });
       else query = query.order("created_at", { ascending: false });
