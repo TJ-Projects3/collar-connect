@@ -268,6 +268,8 @@ const QuestionDetail = ({ id }: { id: string }) => {
   const [answerBody, setAnswerBody] = useState("");
   const [answerAnon, setAnswerAnon] = useState(false);
   const { data: myProfile } = useProfile();
+  const { isAdmin } = useAdminRole();
+
   const recruiterBlocked =
     !!myProfile && (myProfile.profile_type === "recruiter" || myProfile.is_verified_recruiter === true);
   const createAnswer = useCreateAnswer();
