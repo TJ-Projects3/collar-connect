@@ -29,6 +29,11 @@ import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ThreadSummaryCard } from "@/components/community/ThreadSummaryCard";
 import { RecommendedPeersCard } from "@/components/community/RecommendedPeersCard";
+import { TrendingTagsCard } from "@/components/community/TrendingTagsCard";
+import { TopMentorsCard } from "@/components/community/TopMentorsCard";
+import { MentorshipButton } from "@/components/mentorship/MentorshipButton";
+import { useAdminRole } from "@/hooks/useAdminRole";
+
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
