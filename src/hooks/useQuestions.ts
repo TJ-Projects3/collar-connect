@@ -14,7 +14,14 @@ export interface QuestionAuthor {
   avatar_url: string | null;
   profile_type: string | null;
   is_verified_recruiter: boolean | null;
+  industry_verified?: boolean | null;
+  industry_role_title?: string | null;
+  industry_company?: string | null;
+  mentorship_opt_in?: boolean | null;
+  mentorship_offerings?: string[] | null;
+  booking_url?: string | null;
 }
+
 
 export interface Question {
   id: string;
@@ -47,21 +54,28 @@ const fetchAuthors = async (ids: string[]) => {
   if (!ids.length) return new Map<string, QuestionAuthor>();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, job_title, company, avatar_url, profile_type, is_verified_recruiter")
+    .select(
+      "id, full_name, job_title, company, avatar_url, profile_type, is_verified_recruiter, industry_verified, industry_role_title, industry_company, mentorship_opt_in, mentorship_offerings, booking_url"
+    )
+
     .in("id", ids);
   if (error) throw error;
   return new Map((data ?? []).map((p) => [p.id, p as QuestionAuthor]));
 };
 
-export const useQuestions = (sort: QuestionSort = "new", search = "") => {
+export const useQuestions = (sort: QuestionSort = "new", search = "", tag: string | null = null) => {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["questions", sort, search, user?.id],
+    queryKey: ["questions", sort, search, tag, user?.id],
     queryFn: async (): Promise<Question[]> => {
       let query = supabase.from("questions").select("*");
       if (search.trim()) {
         query = query.ilike("title", `%${search.trim()}%`);
       }
+      if (tag) {
+        query = query.contains("tags", [tag]);
+      }
+
       if (sort === "top") query = query.order("upvotes", { ascending: false }).order("created_at", { ascending: false });
       else if (sort === "unanswered") query = query.eq("answer_count", 0).order("created_at", { ascending: false });
       else query = query.order("created_at", { ascending: false });

@@ -10,8 +10,9 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowBigUp, ArrowBigDown, MessageSquare, Plus, Search, ArrowLeft,
-  CheckCircle2, Sparkles
+  CheckCircle2, Sparkles, X, Check
 } from "lucide-react";
+
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -28,6 +29,11 @@ import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ThreadSummaryCard } from "@/components/community/ThreadSummaryCard";
 import { RecommendedPeersCard } from "@/components/community/RecommendedPeersCard";
+import { TrendingTagsCard } from "@/components/community/TrendingTagsCard";
+import { TopMentorsCard } from "@/components/community/TopMentorsCard";
+import { MentorshipButton } from "@/components/mentorship/MentorshipButton";
+import { useAdminRole } from "@/hooks/useAdminRole";
+
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -118,10 +124,19 @@ const AuthorLine = ({
 };
 
 // -------------- List View --------------
-const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
+const QuestionsList = ({
+  onAsk,
+  activeTag,
+  onTagSelect,
+}: {
+  onAsk: () => void;
+  activeTag: string | null;
+  onTagSelect: (tag: string | null) => void;
+}) => {
   const [sort, setSort] = useState<QuestionSort>("new");
   const [search, setSearch] = useState("");
-  const { data: questions = [], isLoading } = useQuestions(sort, search);
+  const { data: questions = [], isLoading } = useQuestions(sort, search, activeTag);
+
   const vote = useVote();
   const ids = useMemo(() => questions.map((q) => q.id), [questions]);
   const { data: myVotes } = useMyQuestionVotes(ids);
@@ -170,9 +185,21 @@ const QuestionsList = ({ onAsk }: { onAsk: () => void }) => {
                 {s === "top" ? "Top" : s === "new" ? "New" : "Unanswered"}
               </Button>
             ))}
+            {activeTag && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => onTagSelect(null)}
+                className="h-9 gap-1.5 rounded-full px-4"
+              >
+                #{activeTag}
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
+
 
       {isLoading && <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>}
       {!isLoading && questions.length === 0 && (
@@ -241,6 +268,8 @@ const QuestionDetail = ({ id }: { id: string }) => {
   const [answerBody, setAnswerBody] = useState("");
   const [answerAnon, setAnswerAnon] = useState(false);
   const { data: myProfile } = useProfile();
+  const { isAdmin } = useAdminRole();
+
   const recruiterBlocked =
     !!myProfile && (myProfile.profile_type === "recruiter" || myProfile.is_verified_recruiter === true);
   const createAnswer = useCreateAnswer();
@@ -267,6 +296,8 @@ const QuestionDetail = ({ id }: { id: string }) => {
   );
 
   const isOwner = user?.id === question.author_id;
+  const canAccept = isOwner || isAdmin;
+
 
   return (
     <div className="space-y-4">
@@ -347,7 +378,10 @@ const QuestionDetail = ({ id }: { id: string }) => {
           {answers.map((a) => {
             const isAnswerOwner = user?.id === a.author_id;
             return (
-              <Card key={a.id} className={cn(a.is_accepted && "border-secondary")}>
+              <Card
+                key={a.id}
+                className={cn(a.is_accepted && "border-success bg-success-muted/40 ring-1 ring-success/30")}
+              >
                 <CardContent className="p-4 flex gap-3">
                   <VoteBox
                     score={a.upvotes}
@@ -360,10 +394,11 @@ const QuestionDetail = ({ id }: { id: string }) => {
                   />
                   <div className="flex-1 min-w-0 space-y-2">
                     {a.is_accepted && (
-                      <div className="inline-flex items-center gap-1 text-xs font-semibold text-secondary">
-                        <CheckCircle2 className="h-4 w-4" /> Accepted answer
-                      </div>
+                      <Badge className="gap-1 bg-success text-success-foreground hover:bg-success">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Accepted Answer
+                      </Badge>
                     )}
+
                     <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                       <LinkifyText>{a.body}</LinkifyText>
                     </div>
@@ -374,19 +409,35 @@ const QuestionDetail = ({ id }: { id: string }) => {
                         isAnonymous={a.is_anonymous}
                         isSelf={user?.id === a.author_id}
                       />
-                      <div className="flex gap-1">
-                        {isOwner && (
+                      <div className="flex items-center gap-1">
+                        <MentorshipButton
+                          profile={a.profiles}
+                          size="sm"
+                          variant="outline"
+                          label="Book 1-on-1"
+                          className="h-7 text-xs"
+                        />
+                        {canAccept && (
                           <Button
-                            size="sm" variant="ghost"
-                            className={cn("gap-1 h-7 text-xs", a.is_accepted && "text-secondary")}
+                            size="sm"
+                            variant={a.is_accepted ? "secondary" : "ghost"}
+                            className={cn(
+                              "h-7 gap-1 text-xs",
+                              a.is_accepted
+                                ? "bg-success text-success-foreground hover:bg-success/90"
+                                : "text-muted-foreground hover:text-success"
+                            )}
+                            title={a.is_accepted ? "Remove accepted answer" : "Mark as accepted answer"}
+                            aria-label={a.is_accepted ? "Remove accepted answer" : "Mark as accepted answer"}
                             onClick={() =>
                               acceptAnswer.mutate({ answerId: a.id, questionId: question.id, accepted: !a.is_accepted })
                             }
                           >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            {a.is_accepted ? "Unaccept" : "Accept"}
+                            <Check className="h-3.5 w-3.5" />
+                            {a.is_accepted ? "Accepted" : "Accept"}
                           </Button>
                         )}
+
                         <ContentActionsMenu
                           size="sm"
                           targetType="answer"
@@ -469,8 +520,25 @@ const QuestionDetail = ({ id }: { id: string }) => {
 const Community = () => {
   const [params, setParams] = useSearchParams();
   const id = params.get("id");
+  const activeTag = params.get("tag");
   const [askOpen, setAskOpen] = useState(false);
   const navigate = useNavigate();
+
+  const handleTagSelect = (tag: string | null) => {
+    const next = new URLSearchParams(params);
+    next.delete("id");
+    if (tag) next.set("tag", tag);
+    else next.delete("tag");
+    setParams(next);
+  };
+
+  const sidebar = (
+    <>
+      <TrendingTagsCard activeTag={activeTag} onSelect={handleTagSelect} />
+      <TopMentorsCard />
+      <RecommendedPeersCard />
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -478,13 +546,23 @@ const Community = () => {
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
         <div className="lg:grid lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-9 min-w-0">
-            {id ? <QuestionDetail id={id} /> : <QuestionsList onAsk={() => setAskOpen(true)} />}
+            {id ? (
+              <QuestionDetail id={id} />
+            ) : (
+              <QuestionsList
+                onAsk={() => setAskOpen(true)}
+                activeTag={activeTag}
+                onTagSelect={handleTagSelect}
+              />
+            )}
+            <div className="mt-6 space-y-4 lg:hidden">{sidebar}</div>
           </div>
           <aside className="hidden lg:block lg:col-span-3 lg:sticky lg:top-20 lg:self-start space-y-4">
-            <RecommendedPeersCard />
+            {sidebar}
           </aside>
         </div>
       </main>
+
       <AskQuestionModal
         open={askOpen}
         onOpenChange={setAskOpen}
