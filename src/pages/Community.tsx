@@ -491,8 +491,25 @@ const QuestionDetail = ({ id }: { id: string }) => {
 const Community = () => {
   const [params, setParams] = useSearchParams();
   const id = params.get("id");
+  const activeTag = params.get("tag");
   const [askOpen, setAskOpen] = useState(false);
   const navigate = useNavigate();
+
+  const handleTagSelect = (tag: string | null) => {
+    const next = new URLSearchParams(params);
+    next.delete("id");
+    if (tag) next.set("tag", tag);
+    else next.delete("tag");
+    setParams(next);
+  };
+
+  const sidebar = (
+    <>
+      <TrendingTagsCard activeTag={activeTag} onSelect={handleTagSelect} />
+      <TopMentorsCard />
+      <RecommendedPeersCard />
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -500,13 +517,23 @@ const Community = () => {
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
         <div className="lg:grid lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-9 min-w-0">
-            {id ? <QuestionDetail id={id} /> : <QuestionsList onAsk={() => setAskOpen(true)} />}
+            {id ? (
+              <QuestionDetail id={id} />
+            ) : (
+              <QuestionsList
+                onAsk={() => setAskOpen(true)}
+                activeTag={activeTag}
+                onTagSelect={handleTagSelect}
+              />
+            )}
+            <div className="mt-6 space-y-4 lg:hidden">{sidebar}</div>
           </div>
           <aside className="hidden lg:block lg:col-span-3 lg:sticky lg:top-20 lg:self-start space-y-4">
-            <RecommendedPeersCard />
+            {sidebar}
           </aside>
         </div>
       </main>
+
       <AskQuestionModal
         open={askOpen}
         onOpenChange={setAskOpen}
