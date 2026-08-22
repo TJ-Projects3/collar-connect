@@ -179,9 +179,21 @@ const QuestionsList = ({
                 {s === "top" ? "Top" : s === "new" ? "New" : "Unanswered"}
               </Button>
             ))}
+            {activeTag && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => onTagSelect(null)}
+                className="h-9 gap-1.5 rounded-full px-4"
+              >
+                #{activeTag}
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
+
 
       {isLoading && <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>}
       {!isLoading && questions.length === 0 && (
