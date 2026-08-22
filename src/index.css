@@ -35,6 +35,11 @@ All colors MUST be HSL.
     --achievement: 43 96% 50%;
     --achievement-foreground: 30 60% 15%;
 
+    --success: 152 62% 36%;
+    --success-foreground: 0 0% 100%;
+    --success-muted: 152 55% 94%;
+
+
 
     --border: 32 14% 77%;
     --input: 32 14% 77%;
