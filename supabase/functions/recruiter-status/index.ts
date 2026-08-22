@@ -93,18 +93,35 @@ serve(async (req) => {
     }
 
     // Apply the status change (service role bypasses the admin-only trigger guard)
-    const { error: updateError } = await admin
+    const { data: updated, error: updateError } = await admin
       .from("profiles")
       .update({
         recruiter_status: status,
         is_verified_recruiter: status === "approved",
       })
-      .eq("id", recruiterId);
+      .eq("id", recruiterId)
+      .select("recruiter_status, is_verified_recruiter")
+      .maybeSingle();
 
     if (updateError) {
       console.error("Status update failed:", updateError.message);
       return json({ error: `Could not update status: ${updateError.message}` }, 500);
     }
+
+    // Guard against a silent revert (e.g. a BEFORE UPDATE trigger rolling the value back)
+    if (!updated || updated.recruiter_status !== status) {
+      console.error(
+        `Status did not persist for ${recruiterId}: expected ${status}, got ${updated?.recruiter_status ?? "no row"}`,
+      );
+      return json(
+        {
+          error:
+            "The status change did not persist in the database. No email was sent. Please try again or contact support.",
+        },
+        500,
+      );
+    }
+
 
     // Resolve the recruiter's login email server-side
     const { data: authUser } = await admin.auth.admin.getUserById(recruiterId);

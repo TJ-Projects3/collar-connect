@@ -73,9 +73,29 @@ export const useRecruiterDecision = () => {
         emailError: data?.emailError ?? null,
       };
     },
-    onSuccess: () => {
+    onMutate: async ({ recruiterId, status }) => {
+      await queryClient.cancelQueries({ queryKey: ["recruiterReview"] });
+      const previous = queryClient.getQueryData<RecruiterReviewRow[]>(["recruiterReview"]);
+
+      queryClient.setQueryData<RecruiterReviewRow[]>(["recruiterReview"], (rows) =>
+        (rows ?? []).map((row) =>
+          row.id === recruiterId
+            ? { ...row, recruiter_status: status as RecruiterStatus }
+            : row,
+        ),
+      );
+
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["recruiterReview"], context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["recruiterReview"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
+
 };
