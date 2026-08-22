@@ -401,19 +401,35 @@ const QuestionDetail = ({ id }: { id: string }) => {
                         isAnonymous={a.is_anonymous}
                         isSelf={user?.id === a.author_id}
                       />
-                      <div className="flex gap-1">
-                        {isOwner && (
+                      <div className="flex items-center gap-1">
+                        <MentorshipButton
+                          profile={a.profiles}
+                          size="sm"
+                          variant="outline"
+                          label="Book 1-on-1"
+                          className="h-7 text-xs"
+                        />
+                        {canAccept && (
                           <Button
-                            size="sm" variant="ghost"
-                            className={cn("gap-1 h-7 text-xs", a.is_accepted && "text-secondary")}
+                            size="sm"
+                            variant={a.is_accepted ? "secondary" : "ghost"}
+                            className={cn(
+                              "h-7 gap-1 text-xs",
+                              a.is_accepted
+                                ? "bg-success text-success-foreground hover:bg-success/90"
+                                : "text-muted-foreground hover:text-success"
+                            )}
+                            title={a.is_accepted ? "Remove accepted answer" : "Mark as accepted answer"}
+                            aria-label={a.is_accepted ? "Remove accepted answer" : "Mark as accepted answer"}
                             onClick={() =>
                               acceptAnswer.mutate({ answerId: a.id, questionId: question.id, accepted: !a.is_accepted })
                             }
                           >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            {a.is_accepted ? "Unaccept" : "Accept"}
+                            <Check className="h-3.5 w-3.5" />
+                            {a.is_accepted ? "Accepted" : "Accept"}
                           </Button>
                         )}
+
                         <ContentActionsMenu
                           size="sm"
                           targetType="answer"
