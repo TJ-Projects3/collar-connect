@@ -461,6 +461,8 @@ const Profile = () => {
                           <Mail className="h-4 w-4" />
                           Message
                         </Button>
+                        <MentorshipButton profile={profile} label="Book 1-on-1 / Mentorship" />
+
                       </>
                     )}
                     {isOwnProfile && (
