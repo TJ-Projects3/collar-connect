@@ -294,6 +294,8 @@ const QuestionDetail = ({ id }: { id: string }) => {
   );
 
   const isOwner = user?.id === question.author_id;
+  const canAccept = isOwner || isAdmin;
+
 
   return (
     <div className="space-y-4">
