@@ -13,24 +13,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MapPin, Building2, ExternalLink, Loader2, Filter, X, Mail, Phone, Link as LinkIcon } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  Building2,
+  ExternalLink,
+  Loader2,
+  Filter,
+  X,
+  Mail,
+  Phone,
+  Link as LinkIcon,
+  GraduationCap,
+} from "lucide-react";
 import { differenceInDays, differenceInHours } from "date-fns";
-import { useJobs } from "@/hooks/useJobs";
+import { useJobs, type Job } from "@/hooks/useJobs";
 import { useSearchParams } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
-const careerLevelLabels: Record<string, string> = {
+/** Legacy enum fallback for rows that predate the classifier. */
+const careerLevelToExperience: Record<string, string> = {
   internship: "Internship",
   entry_level: "Entry Level",
-  associate: "Associate",
-  mid_senior: "Mid-Senior Level",
-  director: "Director",
-  executive: "Executive",
+  associate: "Mid Level",
+  mid_senior: "Senior",
+  director: "Lead/Executive",
+  executive: "Lead/Executive",
 };
+
+const EXPERIENCE_LEVELS = [
+  "Internship",
+  "Entry Level",
+  "Mid Level",
+  "Senior",
+  "Lead/Executive",
+] as const;
+
+const TRACKS = [
+  "Software Engineering",
+  "Data & AI",
+  "Cybersecurity",
+  "Cloud/DevOps",
+  "IT/Systems",
+  "Frontend",
+  "Backend",
+  "Mobile",
+] as const;
 
 const workArrangementLabels: Record<string, string> = {
   remote: "Remote",
   hybrid: "Hybrid",
   on_site: "On-site",
+};
+
+const getExperienceLevel = (job: Job): string =>
+  job.experience_level || careerLevelToExperience[job.career_level] || "Mid Level";
+
+const isEarlyCareer = (job: Job): boolean => {
+  const level = getExperienceLevel(job);
+  return job.is_internship || level === "Internship" || level === "Entry Level";
 };
 
 /** Only http(s) links may be rendered as hrefs (blocks javascript:/data: URLs). */
@@ -46,7 +87,9 @@ const isSafeUrl = (url: string | null | undefined): boolean => {
 const Jobs = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
-  const [selectedCareerLevels, setSelectedCareerLevels] = useState<string[]>([]);
+  const [earlyCareerOnly, setEarlyCareerOnly] = useState(false);
+  const [experienceLevel, setExperienceLevel] = useState<string>("all");
+  const [selectedTrack, setSelectedTrack] = useState<string>("all");
   const [selectedWorkArrangements, setSelectedWorkArrangements] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
@@ -58,7 +101,6 @@ const Jobs = () => {
     setSearchQuery(incoming);
   }, [searchParams]);
 
-  // Get unique locations from jobs
   const uniqueLocations = useMemo(() => {
     if (!jobs) return [];
     const locations = jobs
@@ -67,41 +109,53 @@ const Jobs = () => {
     return [...new Set(locations)].sort();
   }, [jobs]);
 
-  // Filter jobs based on search and filters
+  const earlyCareerCount = useMemo(
+    () => (jobs ?? []).filter(isEarlyCareer).length,
+    [jobs],
+  );
+
   const filteredJobs = useMemo(() => {
     if (!jobs) return [];
 
     return jobs.filter((job) => {
-      // Search filter
       const matchesSearch =
         searchQuery === "" ||
         job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Career level filter
-      const matchesCareerLevel =
-        selectedCareerLevels.length === 0 ||
-        selectedCareerLevels.includes(job.career_level);
+      const matchesEarlyCareer = !earlyCareerOnly || isEarlyCareer(job);
 
-      // Work arrangement filter
+      const matchesExperience =
+        experienceLevel === "all" || getExperienceLevel(job) === experienceLevel;
+
+      const matchesTrack = selectedTrack === "all" || job.track === selectedTrack;
+
       const matchesWorkArrangement =
         selectedWorkArrangements.length === 0 ||
         selectedWorkArrangements.includes(job.work_arrangement);
 
-      // Location filter
       const matchesLocation =
         selectedLocation === "all" || job.location === selectedLocation;
 
-      return matchesSearch && matchesCareerLevel && matchesWorkArrangement && matchesLocation;
+      return (
+        matchesSearch &&
+        matchesEarlyCareer &&
+        matchesExperience &&
+        matchesTrack &&
+        matchesWorkArrangement &&
+        matchesLocation
+      );
     });
-  }, [jobs, searchQuery, selectedCareerLevels, selectedWorkArrangements, selectedLocation]);
-
-  const toggleCareerLevel = (level: string) => {
-    setSelectedCareerLevels((prev) =>
-      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
-    );
-  };
+  }, [
+    jobs,
+    searchQuery,
+    earlyCareerOnly,
+    experienceLevel,
+    selectedTrack,
+    selectedWorkArrangements,
+    selectedLocation,
+  ]);
 
   const toggleWorkArrangement = (arrangement: string) => {
     setSelectedWorkArrangements((prev) =>
@@ -113,14 +167,18 @@ const Jobs = () => {
 
   const clearFilters = () => {
     setSearchQuery("");
-    setSelectedCareerLevels([]);
+    setEarlyCareerOnly(false);
+    setExperienceLevel("all");
+    setSelectedTrack("all");
     setSelectedWorkArrangements([]);
     setSelectedLocation("all");
   };
 
   const hasActiveFilters =
     searchQuery !== "" ||
-    selectedCareerLevels.length > 0 ||
+    earlyCareerOnly ||
+    experienceLevel !== "all" ||
+    selectedTrack !== "all" ||
     selectedWorkArrangements.length > 0 ||
     selectedLocation !== "all";
 
@@ -129,15 +187,15 @@ const Jobs = () => {
       <Navbar />
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground mb-2">Job Opportunities</h1>
           <p className="text-muted-foreground">
             Discover career opportunities that champion diversity and inclusion in tech
           </p>
         </div>
 
-        {/* Search and Filter Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        {/* Search + primary actions */}
+        <div className="flex flex-col md:flex-row gap-3 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -147,6 +205,22 @@ const Jobs = () => {
               className="pl-10"
             />
           </div>
+          <Button
+            type="button"
+            variant={earlyCareerOnly ? "default" : "outline"}
+            onClick={() => setEarlyCareerOnly((prev) => !prev)}
+            aria-pressed={earlyCareerOnly}
+            className="md:w-auto"
+          >
+            <GraduationCap className="h-4 w-4 mr-2" />
+            Internships &amp; Early Career
+            <Badge
+              variant={earlyCareerOnly ? "secondary" : "outline"}
+              className="ml-2"
+            >
+              {earlyCareerCount}
+            </Badge>
+          </Button>
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
@@ -168,31 +242,47 @@ const Jobs = () => {
           )}
         </div>
 
+        {/* Track / domain pills */}
+        <div className="flex flex-wrap gap-2 mb-6" role="group" aria-label="Filter by track">
+          {["all", ...TRACKS].map((track) => (
+            <button
+              key={track}
+              type="button"
+              onClick={() => setSelectedTrack(track)}
+              aria-pressed={selectedTrack === track}
+              className={cn(
+                "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
+                selectedTrack === track
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              {track === "all" ? "All tracks" : track}
+            </button>
+          ))}
+        </div>
+
         {/* Filters Panel */}
         {showFilters && (
           <Card className="mb-6">
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Career Level */}
+                {/* Experience level */}
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium">Career Level</Label>
-                  <div className="space-y-2">
-                    {Object.entries(careerLevelLabels).map(([value, label]) => (
-                      <div key={value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`career-${value}`}
-                          checked={selectedCareerLevels.includes(value)}
-                          onCheckedChange={() => toggleCareerLevel(value)}
-                        />
-                        <Label
-                          htmlFor={`career-${value}`}
-                          className="text-sm font-normal cursor-pointer"
-                        >
-                          {label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
+                  <Label className="text-sm font-medium">Experience Level</Label>
+                  <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All levels" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All levels</SelectItem>
+                      {EXPERIENCE_LEVELS.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Work Arrangement */}
@@ -254,6 +344,8 @@ const Jobs = () => {
         ) : filteredJobs.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredJobs.map((job) => {
+              const level = getExperienceLevel(job);
+              const internship = job.is_internship || level === "Internship";
               const postedLabel = job.created_at
                 ? (() => {
                     const createdAt = new Date(job.created_at);
@@ -280,10 +372,21 @@ const Jobs = () => {
                         <span className="font-medium">{job.company}</span>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Badge className="justify-center" variant="secondary">
-                        {careerLevelLabels[job.career_level]}
+                    <div className="flex flex-wrap justify-end gap-2 max-w-[55%]">
+                      <Badge
+                        className={cn(
+                          "justify-center",
+                          internship && "bg-success text-success-foreground hover:bg-success/90",
+                        )}
+                        variant={internship ? "default" : "secondary"}
+                      >
+                        {level}
                       </Badge>
+                      {job.track && (
+                        <Badge className="justify-center" variant="secondary">
+                          {job.track}
+                        </Badge>
+                      )}
                       <Badge className="justify-center" variant="outline">
                         {workArrangementLabels[job.work_arrangement]}
                       </Badge>
@@ -297,6 +400,12 @@ const Jobs = () => {
                       </span>
                     )}
                     {postedLabel && <span>{postedLabel}</span>}
+                    {internship && (
+                      <span className="flex items-center gap-1 text-success">
+                        <GraduationCap className="h-3.5 w-3.5" />
+                        Great for students
+                      </span>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -346,9 +455,13 @@ const Jobs = () => {
                     </div>
                   )}
                   
-                  {isSafeUrl(job.external_url) && (
+                  {isSafeUrl(job.external_url ?? job.source_url) && (
                     <Button asChild className="w-full sm:w-auto">
-                      <a href={job.external_url} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={job.external_url ?? job.source_url ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         Apply Now
                         <ExternalLink className="h-4 w-4 ml-2" />
                       </a>
