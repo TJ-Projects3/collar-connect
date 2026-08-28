@@ -99,9 +99,9 @@ Deno.serve(async (req) => {
             company: 'Capital One',
             description: 'Build full-stack solutions and microservices while learning modern cloud engineering at Capital One. Ideal for students pursuing software engineering or computer science.',
             location: 'McLean, VA',
-            career_level: 'entry_level',
             work_arrangement: 'hybrid',
             external_url: 'https://www.capitalonecareers.com/',
+            source_url: 'https://www.capitalonecareers.com/',
             is_published: true,
           },
           {
@@ -109,9 +109,9 @@ Deno.serve(async (req) => {
             company: 'Northrop Grumman',
             description: 'Support cybersecurity operations, threat analysis, and network defense programs in a secure on-site environment. Great for aspiring cybersecurity professionals.',
             location: 'Annapolis Junction, MD',
-            career_level: 'entry_level',
             work_arrangement: 'on_site',
             external_url: 'https://www.northropgrumman.com/careers/',
+            source_url: 'https://www.northropgrumman.com/careers/',
             is_published: true,
           },
           {
@@ -119,9 +119,9 @@ Deno.serve(async (req) => {
             company: 'T. Rowe Price',
             description: 'Analyze financial and business data, build dashboards, and support data-driven decision making across investment and corporate teams.',
             location: 'Owings Mills, MD',
-            career_level: 'entry_level',
             work_arrangement: 'hybrid',
             external_url: 'https://www.troweprice.com/corporate/us/en/careers.html',
+            source_url: 'https://www.troweprice.com/corporate/us/en/careers.html',
             is_published: true,
           },
           {
@@ -129,9 +129,9 @@ Deno.serve(async (req) => {
             company: 'Amazon Web Services (AWS)',
             description: 'Learn AWS cloud infrastructure, automation, and operational excellence while supporting customer-facing services and internal platforms.',
             location: 'Arlington, VA',
-            career_level: 'entry_level',
             work_arrangement: 'hybrid',
             external_url: 'https://www.amazon.jobs/',
+            source_url: 'https://www.amazon.jobs/',
             is_published: true,
           },
           {
@@ -139,9 +139,9 @@ Deno.serve(async (req) => {
             company: 'Booz Allen Hamilton',
             description: 'Develop modern web applications and digital solutions for government and commercial clients using agile practices and cloud technologies.',
             location: 'McLean, VA',
-            career_level: 'entry_level',
             work_arrangement: 'hybrid',
             external_url: 'https://careers.boozallen.com/',
+            source_url: 'https://careers.boozallen.com/',
             is_published: true,
           },
         ];
@@ -197,9 +197,9 @@ Deno.serve(async (req) => {
         company,
         description: j.description_text ?? j.description ?? null,
         location: firstLocation(j),
-        career_level: 'entry_level',
         work_arrangement: (j.remote_derived === true || (firstLocation(j) ?? '').toLowerCase().includes('remote')) ? 'remote' : 'on_site',
         external_url: j.url ?? j.job_url ?? j.apply_url ?? null,
+        source_url: j.url ?? j.job_url ?? j.apply_url ?? null,
         is_published: true,
       });
     }
