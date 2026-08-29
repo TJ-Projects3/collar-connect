@@ -114,8 +114,33 @@ const Jobs = () => {
   const [selectedWorkArrangements, setSelectedWorkArrangements] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [view, setView] = useState<"explore" | "tracker">("explore");
+  const [applyPrompt, setApplyPrompt] = useState<Job | null>(null);
 
   const { data: jobs, isLoading } = useJobs();
+  const { data: tracked, isLoading: trackedLoading } = useJobApplications();
+  const upsertApplication = useUpsertJobApplication();
+  const deleteApplication = useDeleteJobApplication();
+
+  const trackedByJobId = useMemo(() => {
+    const map = new Map<string, JobApplicationStatus>();
+    for (const item of tracked ?? []) {
+      map.set(item.job_id, item.status as JobApplicationStatus);
+    }
+    return map;
+  }, [tracked]);
+
+  const toggleSaved = (job: Job) => {
+    if (trackedByJobId.has(job.id)) {
+      deleteApplication.mutate(job.id);
+    } else {
+      upsertApplication.mutate({ jobId: job.id, status: "saved" });
+    }
+  };
+
+  const handleApplyClick = (job: Job) => {
+    setApplyPrompt(job);
+  };
 
   useEffect(() => {
     const incoming = searchParams.get("search") || "";
