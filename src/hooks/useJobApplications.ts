@@ -69,17 +69,17 @@ export const useUpsertJobApplication = () => {
     }) => {
       if (!user?.id) throw new Error("You must be signed in to track jobs");
 
-      const payload: Record<string, unknown> = {
+      const payload = {
         user_id: user.id,
         job_id: jobId,
         status,
+        ...(notes !== undefined ? { notes } : {}),
+        ...(status === "applied" ? { applied_at: new Date().toISOString() } : {}),
       };
-      if (notes !== undefined) payload.notes = notes;
-      if (status === "applied") payload.applied_at = new Date().toISOString();
 
       const { data, error } = await supabase
         .from("job_applications")
-        .upsert(payload as never, { onConflict: "user_id,job_id" })
+        .upsert(payload, { onConflict: "user_id,job_id" })
         .select()
         .single();
       if (error) throw error;
