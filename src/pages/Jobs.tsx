@@ -25,9 +25,18 @@ import {
   Phone,
   Link as LinkIcon,
   GraduationCap,
+  Bookmark,
 } from "lucide-react";
 import { differenceInDays, differenceInHours } from "date-fns";
 import { useJobs, type Job } from "@/hooks/useJobs";
+import {
+  useJobApplications,
+  useUpsertJobApplication,
+  useDeleteJobApplication,
+  type JobApplicationStatus,
+} from "@/hooks/useJobApplications";
+import { ApplyConfirmDialog } from "@/components/jobs/ApplyConfirmDialog";
+import { TrackerBoard } from "@/components/jobs/TrackerBoard";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -51,14 +60,26 @@ const EXPERIENCE_LEVELS = [
 
 const TRACKS = [
   "Software Engineering",
-  "Data & AI",
+  "Product & Program",
+  "Design & UX",
+  "Data & Analytics",
   "Cybersecurity",
-  "Cloud/DevOps",
-  "IT/Systems",
-  "Frontend",
-  "Backend",
-  "Mobile",
+  "Cloud & DevOps",
+  "Solutions & Sales Tech",
+  "IT & Operations",
 ] as const;
+
+/** Semantic-token based colors so each domain reads distinctly in both themes. */
+const trackBadgeStyles: Record<string, string> = {
+  "Software Engineering": "bg-primary/10 text-primary border-primary/30",
+  "Product & Program": "bg-secondary/15 text-secondary border-secondary/30",
+  "Design & UX": "bg-accent/15 text-accent border-accent/30",
+  "Data & Analytics": "bg-success-muted text-success border-success/30",
+  Cybersecurity: "bg-destructive/10 text-destructive border-destructive/30",
+  "Cloud & DevOps": "bg-primary/15 text-primary border-primary/40",
+  "Solutions & Sales Tech": "bg-secondary/10 text-secondary border-secondary/25",
+  "IT & Operations": "bg-muted text-muted-foreground border-border",
+};
 
 const workArrangementLabels: Record<string, string> = {
   remote: "Remote",
