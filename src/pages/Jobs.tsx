@@ -502,7 +502,11 @@ const Jobs = () => {
                   )}
                   
                   {isSafeUrl(job.external_url ?? job.source_url) && (
-                    <Button asChild className="w-full sm:w-auto">
+                    <Button
+                      asChild
+                      className="w-full sm:w-auto"
+                      onClick={() => handleApplyClick(job)}
+                    >
                       <a
                         href={job.external_url ?? job.source_url ?? undefined}
                         target="_blank"
@@ -527,7 +531,40 @@ const Jobs = () => {
             </p>
           </div>
         )}
+          </>
+        ) : (
+          <TrackerBoard
+            items={tracked ?? []}
+            isLoading={trackedLoading}
+            onStatusChange={(jobId, status) =>
+              upsertApplication.mutate({ jobId, status })
+            }
+            onNotesSave={(jobId, notes) => {
+              const current = (tracked ?? []).find((t) => t.job_id === jobId);
+              upsertApplication.mutate({
+                jobId,
+                status: (current?.status as JobApplicationStatus) ?? "saved",
+                notes,
+              });
+            }}
+            onRemove={(jobId) => deleteApplication.mutate(jobId)}
+          />
+        )}
       </main>
+
+      <ApplyConfirmDialog
+        open={!!applyPrompt}
+        company={applyPrompt?.company ?? null}
+        title={applyPrompt?.title ?? null}
+        isPending={upsertApplication.isPending}
+        onConfirm={() => {
+          if (applyPrompt) {
+            upsertApplication.mutate({ jobId: applyPrompt.id, status: "applied" });
+          }
+          setApplyPrompt(null);
+        }}
+        onDismiss={() => setApplyPrompt(null)}
+      />
     </div>
   );
 };
