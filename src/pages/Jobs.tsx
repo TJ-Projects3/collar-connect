@@ -25,9 +25,18 @@ import {
   Phone,
   Link as LinkIcon,
   GraduationCap,
+  Bookmark,
 } from "lucide-react";
 import { differenceInDays, differenceInHours } from "date-fns";
 import { useJobs, type Job } from "@/hooks/useJobs";
+import {
+  useJobApplications,
+  useUpsertJobApplication,
+  useDeleteJobApplication,
+  type JobApplicationStatus,
+} from "@/hooks/useJobApplications";
+import { ApplyConfirmDialog } from "@/components/jobs/ApplyConfirmDialog";
+import { TrackerBoard } from "@/components/jobs/TrackerBoard";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -51,14 +60,26 @@ const EXPERIENCE_LEVELS = [
 
 const TRACKS = [
   "Software Engineering",
-  "Data & AI",
+  "Product & Program",
+  "Design & UX",
+  "Data & Analytics",
   "Cybersecurity",
-  "Cloud/DevOps",
-  "IT/Systems",
-  "Frontend",
-  "Backend",
-  "Mobile",
+  "Cloud & DevOps",
+  "Solutions & Sales Tech",
+  "IT & Operations",
 ] as const;
+
+/** Semantic-token based colors so each domain reads distinctly in both themes. */
+const trackBadgeStyles: Record<string, string> = {
+  "Software Engineering": "bg-primary/10 text-primary border-primary/30",
+  "Product & Program": "bg-secondary/15 text-secondary border-secondary/30",
+  "Design & UX": "bg-accent/15 text-accent border-accent/30",
+  "Data & Analytics": "bg-success-muted text-success border-success/30",
+  Cybersecurity: "bg-destructive/10 text-destructive border-destructive/30",
+  "Cloud & DevOps": "bg-primary/15 text-primary border-primary/40",
+  "Solutions & Sales Tech": "bg-secondary/10 text-secondary border-secondary/25",
+  "IT & Operations": "bg-muted text-muted-foreground border-border",
+};
 
 const workArrangementLabels: Record<string, string> = {
   remote: "Remote",
@@ -93,8 +114,33 @@ const Jobs = () => {
   const [selectedWorkArrangements, setSelectedWorkArrangements] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [view, setView] = useState<"explore" | "tracker">("explore");
+  const [applyPrompt, setApplyPrompt] = useState<Job | null>(null);
 
   const { data: jobs, isLoading } = useJobs();
+  const { data: tracked, isLoading: trackedLoading } = useJobApplications();
+  const upsertApplication = useUpsertJobApplication();
+  const deleteApplication = useDeleteJobApplication();
+
+  const trackedByJobId = useMemo(() => {
+    const map = new Map<string, JobApplicationStatus>();
+    for (const item of tracked ?? []) {
+      map.set(item.job_id, item.status as JobApplicationStatus);
+    }
+    return map;
+  }, [tracked]);
+
+  const toggleSaved = (job: Job) => {
+    if (trackedByJobId.has(job.id)) {
+      deleteApplication.mutate(job.id);
+    } else {
+      upsertApplication.mutate({ jobId: job.id, status: "saved" });
+    }
+  };
+
+  const handleApplyClick = (job: Job) => {
+    setApplyPrompt(job);
+  };
 
   useEffect(() => {
     const incoming = searchParams.get("search") || "";
@@ -456,7 +502,11 @@ const Jobs = () => {
                   )}
                   
                   {isSafeUrl(job.external_url ?? job.source_url) && (
-                    <Button asChild className="w-full sm:w-auto">
+                    <Button
+                      asChild
+                      className="w-full sm:w-auto"
+                      onClick={() => handleApplyClick(job)}
+                    >
                       <a
                         href={job.external_url ?? job.source_url ?? undefined}
                         target="_blank"
@@ -481,7 +531,40 @@ const Jobs = () => {
             </p>
           </div>
         )}
+          </>
+        ) : (
+          <TrackerBoard
+            items={tracked ?? []}
+            isLoading={trackedLoading}
+            onStatusChange={(jobId, status) =>
+              upsertApplication.mutate({ jobId, status })
+            }
+            onNotesSave={(jobId, notes) => {
+              const current = (tracked ?? []).find((t) => t.job_id === jobId);
+              upsertApplication.mutate({
+                jobId,
+                status: (current?.status as JobApplicationStatus) ?? "saved",
+                notes,
+              });
+            }}
+            onRemove={(jobId) => deleteApplication.mutate(jobId)}
+          />
+        )}
       </main>
+
+      <ApplyConfirmDialog
+        open={!!applyPrompt}
+        company={applyPrompt?.company ?? null}
+        title={applyPrompt?.title ?? null}
+        isPending={upsertApplication.isPending}
+        onConfirm={() => {
+          if (applyPrompt) {
+            upsertApplication.mutate({ jobId: applyPrompt.id, status: "applied" });
+          }
+          setApplyPrompt(null);
+        }}
+        onDismiss={() => setApplyPrompt(null)}
+      />
     </div>
   );
 };
