@@ -101,28 +101,55 @@ Deno.serve(async (req) => {
       console.log('Unpublished old jobs:', unpublishedCount ?? 0);
     }
 
-    const params = new URLSearchParams({
-      title: 'Software Engineer',
-      location: 'United States',
-      time_frame: '24h',
-      limit: '100',
-      offset: '0',
-      description_format: 'text',
-    });
-    const url = `https://${API_HOST}/active-jb?${params.toString()}`;
+    // Query every track target so the board isn't software-engineering only.
+    const allItems: any[] = [];
+    let anySuccess = false;
+    let quotaHit = false;
+    let lastStatus = 0;
+    let lastBody = '';
 
-    const resp = await fetch(url, {
-      headers: {
-        'x-rapidapi-key': JOB_API_KEY,
-        'x-rapidapi-host': API_HOST,
-      },
-    });
+    for (const target of QUERY_TARGETS) {
+      const params = new URLSearchParams({
+        title: target,
+        location: 'United States',
+        time_frame: '24h',
+        limit: '25',
+        offset: '0',
+        description_format: 'text',
+      });
+      const url = `https://${API_HOST}/active-jb?${params.toString()}`;
 
-    if (!resp.ok) {
-      const body = await resp.text();
-      console.error('LinkedIn API error', resp.status, body);
+      const r = await fetch(url, {
+        headers: {
+          'x-rapidapi-key': JOB_API_KEY,
+          'x-rapidapi-host': API_HOST,
+        },
+      });
 
-      if (isQuotaExceeded(resp.status, body)) {
+      if (!r.ok) {
+        lastStatus = r.status;
+        lastBody = await r.text();
+        console.error('LinkedIn API error', target, r.status, lastBody);
+        if (isQuotaExceeded(r.status, lastBody)) {
+          quotaHit = true;
+          break;
+        }
+        continue;
+      }
+
+      anySuccess = true;
+      const payload = await r.json();
+      const chunk: any[] = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload?.jobs) ? payload.jobs : []));
+      console.log('Fetched', chunk.length, 'for target', target);
+      allItems.push(...chunk);
+    }
+
+    if (!anySuccess) {
+      const body = lastBody;
+
+      if (quotaHit) {
         const fallbackRows = [
           {
             title: 'Software Engineering Intern',
