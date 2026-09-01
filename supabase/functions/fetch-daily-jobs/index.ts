@@ -3,8 +3,38 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const API_HOST = 'linkedin-job-search-api.p.rapidapi.com';
 
-const ALLOWED = ['software','developer','engineer','cyber','security','data','analyst','intern','it','ai','tech'];
-const EXCLUDED = ['sales','marketing','account rep','real estate','nursing'];
+/** Titles queried against the provider so the board covers broader technology tracks. */
+const QUERY_TARGETS = [
+  'Software Engineer',
+  'Software Engineer Intern',
+  'Product Manager',
+  'Product Manager Intern',
+  'Program Manager',
+  'UX Designer',
+  'Product Designer',
+  'Data Analyst',
+  'Business Intelligence Analyst',
+  'Solutions Engineer',
+  'Technical Account Manager',
+  'IT Support Specialist',
+  'Cybersecurity Analyst',
+  'DevOps Engineer',
+  'Cloud Engineer',
+];
+
+const ALLOWED = [
+  'software','developer','engineer','programmer','full stack','frontend','front-end','backend','back-end',
+  'cyber','security','soc','data','analyst','analytics','business intelligence','tableau','power bi',
+  'product manager','product owner','program manager','project manager','scrum','technical product','apm','tpm',
+  'designer','ux','ui','user experience','user research',
+  'solutions','implementation consultant','technical account',
+  'it support','help desk','helpdesk','service desk','systems administrator','network','support specialist',
+  'devops','sre','site reliability','cloud','platform','infrastructure',
+  'intern','it','ai','ml','tech','qa','test',
+];
+
+/** Broad sales/marketing roles are excluded, but technical "solutions/sales engineer" roles are kept. */
+const EXCLUDED = ['marketing','account rep','real estate','nursing','retail associate','insurance agent'];
 
 function providerMessage(body: string): string {
   try {
