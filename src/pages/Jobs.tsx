@@ -240,6 +240,42 @@ const Jobs = () => {
           </p>
         </div>
 
+        {/* View toggle: Explore / My Tracker */}
+        <div
+          className="mb-4 inline-flex rounded-lg border border-border bg-muted/40 p-1"
+          role="group"
+          aria-label="Job board view"
+        >
+          <button
+            type="button"
+            onClick={() => setView("explore")}
+            aria-pressed={view === "explore"}
+            className={cn(
+              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              view === "explore"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Explore Jobs
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("tracker")}
+            aria-pressed={view === "tracker"}
+            className={cn(
+              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              view === "tracker"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            My Tracker ({tracked?.length ?? 0})
+          </button>
+        </div>
+
+        {view === "explore" ? (
+          <>
         {/* Search + primary actions */}
         <div className="flex flex-col md:flex-row gap-3 mb-4">
           <div className="relative flex-1">
