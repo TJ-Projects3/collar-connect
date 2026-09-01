@@ -240,6 +240,42 @@ const Jobs = () => {
           </p>
         </div>
 
+        {/* View toggle: Explore / My Tracker */}
+        <div
+          className="mb-4 inline-flex rounded-lg border border-border bg-muted/40 p-1"
+          role="group"
+          aria-label="Job board view"
+        >
+          <button
+            type="button"
+            onClick={() => setView("explore")}
+            aria-pressed={view === "explore"}
+            className={cn(
+              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              view === "explore"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Explore Jobs
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("tracker")}
+            aria-pressed={view === "tracker"}
+            className={cn(
+              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              view === "tracker"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            My Tracker ({tracked?.length ?? 0})
+          </button>
+        </div>
+
+        {view === "explore" ? (
+          <>
         {/* Search + primary actions */}
         <div className="flex flex-col md:flex-row gap-3 mb-4">
           <div className="relative flex-1">
@@ -411,31 +447,59 @@ const Jobs = () => {
                 >
                 <CardHeader className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
+                    <div className="min-w-0 space-y-1">
                       <CardTitle className="text-lg leading-tight">{job.title}</CardTitle>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Building2 className="h-4 w-4" />
                         <span className="font-medium">{job.company}</span>
                       </div>
                     </div>
-                    <div className="flex flex-wrap justify-end gap-2 max-w-[55%]">
-                      <Badge
-                        className={cn(
-                          "justify-center",
-                          internship && "bg-success text-success-foreground hover:bg-success/90",
-                        )}
-                        variant={internship ? "default" : "secondary"}
-                      >
-                        {level}
-                      </Badge>
-                      {job.track && (
-                        <Badge className="justify-center" variant="secondary">
-                          {job.track}
+                    <div className="flex shrink-0 items-start gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Badge
+                          className={cn(
+                            "justify-center",
+                            internship && "bg-success text-success-foreground hover:bg-success/90",
+                          )}
+                          variant={internship ? "default" : "secondary"}
+                        >
+                          {level}
                         </Badge>
-                      )}
-                      <Badge className="justify-center" variant="outline">
-                        {workArrangementLabels[job.work_arrangement]}
-                      </Badge>
+                        {job.track && (
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "justify-center",
+                              trackBadgeStyles[job.track] ?? "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {job.track}
+                          </Badge>
+                        )}
+                        <Badge className="justify-center" variant="outline">
+                          {workArrangementLabels[job.work_arrangement]}
+                        </Badge>
+                      </div>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        aria-label={
+                          trackedByJobId.has(job.id) ? "Remove from tracker" : "Save job"
+                        }
+                        aria-pressed={trackedByJobId.has(job.id)}
+                        onClick={() => toggleSaved(job)}
+                        className="h-8 w-8 shrink-0"
+                      >
+                        <Bookmark
+                          className={cn(
+                            "h-4 w-4",
+                            trackedByJobId.has(job.id)
+                              ? "fill-primary text-primary"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                      </Button>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">

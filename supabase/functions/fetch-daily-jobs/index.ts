@@ -3,8 +3,38 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const API_HOST = 'linkedin-job-search-api.p.rapidapi.com';
 
-const ALLOWED = ['software','developer','engineer','cyber','security','data','analyst','intern','it','ai','tech'];
-const EXCLUDED = ['sales','marketing','account rep','real estate','nursing'];
+/** Titles queried against the provider so the board covers broader technology tracks. */
+const QUERY_TARGETS = [
+  'Software Engineer',
+  'Software Engineer Intern',
+  'Product Manager',
+  'Product Manager Intern',
+  'Program Manager',
+  'UX Designer',
+  'Product Designer',
+  'Data Analyst',
+  'Business Intelligence Analyst',
+  'Solutions Engineer',
+  'Technical Account Manager',
+  'IT Support Specialist',
+  'Cybersecurity Analyst',
+  'DevOps Engineer',
+  'Cloud Engineer',
+];
+
+const ALLOWED = [
+  'software','developer','engineer','programmer','full stack','frontend','front-end','backend','back-end',
+  'cyber','security','soc','data','analyst','analytics','business intelligence','tableau','power bi',
+  'product manager','product owner','program manager','project manager','scrum','technical product','apm','tpm',
+  'designer','ux','ui','user experience','user research',
+  'solutions','implementation consultant','technical account',
+  'it support','help desk','helpdesk','service desk','systems administrator','network','support specialist',
+  'devops','sre','site reliability','cloud','platform','infrastructure',
+  'intern','it','ai','ml','tech','qa','test',
+];
+
+/** Broad sales/marketing roles are excluded, but technical "solutions/sales engineer" roles are kept. */
+const EXCLUDED = ['marketing','account rep','real estate','nursing','retail associate','insurance agent'];
 
 function providerMessage(body: string): string {
   try {
@@ -71,28 +101,55 @@ Deno.serve(async (req) => {
       console.log('Unpublished old jobs:', unpublishedCount ?? 0);
     }
 
-    const params = new URLSearchParams({
-      title: 'Software Engineer',
-      location: 'United States',
-      time_frame: '24h',
-      limit: '100',
-      offset: '0',
-      description_format: 'text',
-    });
-    const url = `https://${API_HOST}/active-jb?${params.toString()}`;
+    // Query every track target so the board isn't software-engineering only.
+    const allItems: any[] = [];
+    let anySuccess = false;
+    let quotaHit = false;
+    let lastStatus = 0;
+    let lastBody = '';
 
-    const resp = await fetch(url, {
-      headers: {
-        'x-rapidapi-key': JOB_API_KEY,
-        'x-rapidapi-host': API_HOST,
-      },
-    });
+    for (const target of QUERY_TARGETS) {
+      const params = new URLSearchParams({
+        title: target,
+        location: 'United States',
+        time_frame: '24h',
+        limit: '25',
+        offset: '0',
+        description_format: 'text',
+      });
+      const url = `https://${API_HOST}/active-jb?${params.toString()}`;
 
-    if (!resp.ok) {
-      const body = await resp.text();
-      console.error('LinkedIn API error', resp.status, body);
+      const r = await fetch(url, {
+        headers: {
+          'x-rapidapi-key': JOB_API_KEY,
+          'x-rapidapi-host': API_HOST,
+        },
+      });
 
-      if (isQuotaExceeded(resp.status, body)) {
+      if (!r.ok) {
+        lastStatus = r.status;
+        lastBody = await r.text();
+        console.error('LinkedIn API error', target, r.status, lastBody);
+        if (isQuotaExceeded(r.status, lastBody)) {
+          quotaHit = true;
+          break;
+        }
+        continue;
+      }
+
+      anySuccess = true;
+      const payload = await r.json();
+      const chunk: any[] = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload?.jobs) ? payload.jobs : []));
+      console.log('Fetched', chunk.length, 'for target', target);
+      allItems.push(...chunk);
+    }
+
+    if (!anySuccess) {
+      const body = lastBody;
+
+      if (quotaHit) {
         const fallbackRows = [
           {
             title: 'Software Engineering Intern',
@@ -144,6 +201,46 @@ Deno.serve(async (req) => {
             source_url: 'https://careers.boozallen.com/',
             is_published: true,
           },
+          {
+            title: 'Associate Product Manager (APM) Intern',
+            company: 'Salesforce',
+            description: 'Partner with engineering and design to define product requirements, run discovery, and ship customer-facing features. Great for students exploring technical product management.',
+            location: 'Washington, DC',
+            work_arrangement: 'hybrid',
+            external_url: 'https://careers.salesforce.com/',
+            source_url: 'https://careers.salesforce.com/',
+            is_published: true,
+          },
+          {
+            title: 'UX Design Intern',
+            company: 'Adobe',
+            description: 'Work alongside product designers and UX researchers on wireframes, prototypes, and usability studies for creative tools used by millions.',
+            location: 'Remote',
+            work_arrangement: 'remote',
+            external_url: 'https://careers.adobe.com/',
+            source_url: 'https://careers.adobe.com/',
+            is_published: true,
+          },
+          {
+            title: 'Solutions Engineer - Early Career',
+            company: 'ServiceNow',
+            description: 'Pair with account teams to demo platform capabilities, scope technical implementations, and translate customer requirements into working solutions.',
+            location: 'Vienna, VA',
+            work_arrangement: 'hybrid',
+            external_url: 'https://careers.servicenow.com/',
+            source_url: 'https://careers.servicenow.com/',
+            is_published: true,
+          },
+          {
+            title: 'IT Support Specialist',
+            company: 'Johns Hopkins University',
+            description: 'Provide help desk and desktop support, manage systems administration tasks, and support network operations for academic and research teams.',
+            location: 'Baltimore, MD',
+            work_arrangement: 'on_site',
+            external_url: 'https://jobs.jhu.edu/',
+            source_url: 'https://jobs.jhu.edu/',
+            is_published: true,
+          },
         ];
 
         const { error: fallbackErr, count: fallbackCount } = await supabase
@@ -156,7 +253,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({
           ok: true,
           reason: 'quota_exceeded_fallback',
-          providerStatus: resp.status,
+          providerStatus: lastStatus,
           message: 'Loaded verified regional tech opportunities.',
           providerMessage: providerMessage(body),
           fetched: 0,
@@ -167,16 +264,12 @@ Deno.serve(async (req) => {
         });
       }
 
-      return new Response(JSON.stringify({ error: 'Provider request failed', status: resp.status, details: body }), {
-        status: resp.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ error: 'Provider request failed', status: lastStatus || 502, details: body }), {
+        status: lastStatus || 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const json = await resp.json();
-    const items: any[] = Array.isArray(json)
-      ? json
-      : (Array.isArray(json?.data) ? json.data : (Array.isArray(json?.jobs) ? json.jobs : []));
-
+    const items: any[] = allItems;
     console.log('Raw API Response Count:', items.length);
 
     const totalFetched = items.length;
