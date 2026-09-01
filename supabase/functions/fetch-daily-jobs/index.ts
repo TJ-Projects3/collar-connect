@@ -201,6 +201,46 @@ Deno.serve(async (req) => {
             source_url: 'https://careers.boozallen.com/',
             is_published: true,
           },
+          {
+            title: 'Associate Product Manager (APM) Intern',
+            company: 'Salesforce',
+            description: 'Partner with engineering and design to define product requirements, run discovery, and ship customer-facing features. Great for students exploring technical product management.',
+            location: 'Washington, DC',
+            work_arrangement: 'hybrid',
+            external_url: 'https://careers.salesforce.com/',
+            source_url: 'https://careers.salesforce.com/',
+            is_published: true,
+          },
+          {
+            title: 'UX Design Intern',
+            company: 'Adobe',
+            description: 'Work alongside product designers and UX researchers on wireframes, prototypes, and usability studies for creative tools used by millions.',
+            location: 'Remote',
+            work_arrangement: 'remote',
+            external_url: 'https://careers.adobe.com/',
+            source_url: 'https://careers.adobe.com/',
+            is_published: true,
+          },
+          {
+            title: 'Solutions Engineer - Early Career',
+            company: 'ServiceNow',
+            description: 'Pair with account teams to demo platform capabilities, scope technical implementations, and translate customer requirements into working solutions.',
+            location: 'Vienna, VA',
+            work_arrangement: 'hybrid',
+            external_url: 'https://careers.servicenow.com/',
+            source_url: 'https://careers.servicenow.com/',
+            is_published: true,
+          },
+          {
+            title: 'IT Support Specialist',
+            company: 'Johns Hopkins University',
+            description: 'Provide help desk and desktop support, manage systems administration tasks, and support network operations for academic and research teams.',
+            location: 'Baltimore, MD',
+            work_arrangement: 'on_site',
+            external_url: 'https://jobs.jhu.edu/',
+            source_url: 'https://jobs.jhu.edu/',
+            is_published: true,
+          },
         ];
 
         const { error: fallbackErr, count: fallbackCount } = await supabase
@@ -213,7 +253,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({
           ok: true,
           reason: 'quota_exceeded_fallback',
-          providerStatus: resp.status,
+          providerStatus: lastStatus,
           message: 'Loaded verified regional tech opportunities.',
           providerMessage: providerMessage(body),
           fetched: 0,
@@ -224,16 +264,12 @@ Deno.serve(async (req) => {
         });
       }
 
-      return new Response(JSON.stringify({ error: 'Provider request failed', status: resp.status, details: body }), {
-        status: resp.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ error: 'Provider request failed', status: lastStatus || 502, details: body }), {
+        status: lastStatus || 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const json = await resp.json();
-    const items: any[] = Array.isArray(json)
-      ? json
-      : (Array.isArray(json?.data) ? json.data : (Array.isArray(json?.jobs) ? json.jobs : []));
-
+    const items: any[] = allItems;
     console.log('Raw API Response Count:', items.length);
 
     const totalFetched = items.length;
