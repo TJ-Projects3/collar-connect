@@ -70,7 +70,7 @@ const Talent = () => {
   if (profileLoading || adminLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl space-y-4">
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-64 w-full" />
         </div>
@@ -82,7 +82,7 @@ const Talent = () => {
     if (isRecruiterRestricted(profile, isAdmin === true)) {
       return (
         <div className="min-h-screen bg-background">
-          <div className="container mx-auto max-w-2xl px-4 py-10">
+          <div className="container mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-10">
             <RecruiterStatusNotice
               status={recruiterStatus(profile)}
               action="search student talent"
@@ -123,7 +123,7 @@ const Talent = () => {
   return (
     <div className="min-h-screen bg-background">
 
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
         <header className="mb-6">
           <PageHeader
             title="Candidate Discovery"

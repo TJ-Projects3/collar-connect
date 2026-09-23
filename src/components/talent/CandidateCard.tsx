@@ -93,31 +93,21 @@ export const CandidateCard = ({
           </Link>
 
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="order-last ml-auto h-7 w-7 text-muted-foreground hover:text-destructive"
-                aria-label="Block this user"
-                onClick={() => setBlockOpen(true)}
-              >
-                <UserX className="h-4 w-4" />
-              </Button>
-              <Link
-                to={`/profile?userId=${candidate.id}`}
-                className="font-semibold hover:underline break-words"
-              >
-                {candidate.full_name || "Unnamed student"}
-              </Link>
-              {candidate.isVerifiedIntern && (
-                <Badge className="gap-1 border-transparent bg-[hsl(43_96%_50%)] text-[hsl(30_60%_15%)] hover:bg-[hsl(43_96%_45%)]">
-                  <BadgeCheck className="h-3 w-3" />
-                  NextGen Verified Intern
-                </Badge>
-              )}
-            </div>
+            <Link
+              to={`/profile?userId=${candidate.id}`}
+              className="block truncate font-semibold hover:underline"
+              title={candidate.full_name || "Unnamed student"}
+            >
+              {candidate.full_name || "Unnamed student"}
+            </Link>
+            {candidate.isVerifiedIntern && (
+              <Badge className="mt-1 max-w-full gap-1 whitespace-nowrap border-transparent bg-[hsl(43_96%_50%)] text-[hsl(30_60%_15%)] hover:bg-[hsl(43_96%_45%)]">
+                <BadgeCheck className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">NextGen Verified Intern</span>
+              </Badge>
+            )}
             {meta.length > 0 && (
-              <p className="text-sm text-muted-foreground mt-1 break-words">
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2 break-words">
                 {meta.join(" · ")}
               </p>
             )}
@@ -129,23 +119,33 @@ export const CandidateCard = ({
               </div>
             )}
             {availability && (
-              <Badge variant="secondary" className="mt-2 gap-1">
-                <GraduationCap className="h-3 w-3" />
-                {availability}
+              <Badge variant="secondary" className="mt-2 max-w-full gap-1 whitespace-nowrap">
+                <GraduationCap className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">{availability}</span>
               </Badge>
             )}
           </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-destructive"
+            aria-label="Block this user"
+            onClick={() => setBlockOpen(true)}
+          >
+            <UserX className="h-4 w-4" />
+          </Button>
         </div>
 
         {topSkills.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {topSkills.map((skill) => (
-              <Badge key={skill} variant="outline" className="text-xs">
-                {skill}
+              <Badge key={skill} variant="outline" className="max-w-full text-xs">
+                <span className="truncate">{skill}</span>
               </Badge>
             ))}
             {extraSkills > 0 && (
-              <Badge variant="outline" className="text-xs text-muted-foreground">
+              <Badge variant="outline" className="whitespace-nowrap text-xs text-muted-foreground">
                 +{extraSkills} more
               </Badge>
             )}
@@ -169,11 +169,11 @@ export const CandidateCard = ({
                 {getInitials(project.title)}
               </div>
             )}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Top project</p>
-              <p className="text-sm font-medium truncate">{project.title}</p>
+              <p className="text-sm font-medium truncate" title={project.title}>{project.title}</p>
               {candidate.projectCount > 1 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground truncate">
                   +{candidate.projectCount - 1} more project{candidate.projectCount > 2 ? "s" : ""}
                 </p>
               )}
@@ -186,17 +186,25 @@ export const CandidateCard = ({
         )}
 
         <div className="mt-auto flex flex-col sm:flex-row gap-2">
-          <Button className="flex-1 gap-2" onClick={handleContact} disabled={recordAccess.isPending}>
-            {scoped ? <Handshake className="h-4 w-4" /> : <MessageSquare className="h-4 w-4" />}
-            {scoped ? "Request Intro" : "Message Candidate"}
+          <Button
+            className="min-w-0 flex-1 gap-2"
+            onClick={handleContact}
+            disabled={recordAccess.isPending}
+          >
+            {scoped ? (
+              <Handshake className="h-4 w-4 flex-shrink-0" />
+            ) : (
+              <MessageSquare className="h-4 w-4 flex-shrink-0" />
+            )}
+            <span className="truncate">{scoped ? "Request Intro" : "Message Candidate"}</span>
           </Button>
           <Button
             variant="outline"
-            className="flex-1"
+            className="min-w-0 flex-1"
             onClick={handleViewProfile}
             disabled={recordAccess.isPending}
           >
-            View profile
+            <span className="truncate">View profile</span>
           </Button>
         </div>
       </CardContent>
