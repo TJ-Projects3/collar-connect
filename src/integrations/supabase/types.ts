@@ -1517,6 +1517,17 @@ export type Database = {
         Returns: boolean
       }
       is_blocked: { Args: { _a: string; _b: string }; Returns: boolean }
+      notify_mentions: {
+        Args: {
+          _allowed?: string[]
+          _author: string
+          _content: string
+          _kind: string
+          _ref: string
+          _secondary?: string
+        }
+        Returns: undefined
+      }
       record_talent_access: {
         Args: { _kind: string; _target_id: string }
         Returns: Json
