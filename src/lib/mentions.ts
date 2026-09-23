@@ -103,7 +103,7 @@ export const mapRawIndexToDisplay = (segments: MentionSegment[], rawIndex: numbe
     if (rawIndex < s.rawStart) break;
     if (rawIndex > s.rawEnd) continue;
     if (s.isMention) return rawIndex === s.rawStart ? s.displayStart : s.displayEnd;
-    return s.displayStart + (rawIndex - s.displayStart === 0 ? rawIndex - s.rawStart : rawIndex - s.rawStart);
+    return s.displayStart + (rawIndex - s.rawStart);
   }
   return segments.length ? segments[segments.length - 1].displayEnd : rawIndex;
 };
