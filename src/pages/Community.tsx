@@ -203,10 +203,17 @@ const QuestionsList = ({
 
       {isLoading && <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>}
       {!isLoading && questions.length === 0 && (
-        <Card>
-          <CardContent className="py-10 text-center space-y-3">
-            <p className="text-muted-foreground">No questions yet. Be the first to ask!</p>
-            <Button onClick={onAsk} className="gap-2"><Plus className="h-4 w-4" /> Ask a Question</Button>
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center gap-4 px-4 py-10 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <MessageSquare className="h-6 w-6 text-primary" />
+            </div>
+            <p className="max-w-md text-base font-medium">
+              Have a question about interviews, tech stacks, or breaking into the industry?
+            </p>
+            <Button onClick={onAsk} className="gap-2">
+              <Plus className="h-4 w-4" /> Ask the Community
+            </Button>
           </CardContent>
         </Card>
       )}

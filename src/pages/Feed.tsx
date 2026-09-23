@@ -564,14 +564,40 @@ const Feed = () => {
               </Card>
             ) : filteredPosts && filteredPosts.length > 0 ? (
               filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
-            ) : (
+            ) : feedFilter === "projects" || activeHashtag ? (
               <Card>
                 <CardContent className="p-6 text-center text-muted-foreground">
                   {feedFilter === "projects"
                     ? "No project posts yet. Share a project from your profile's Projects tab."
-                    : activeHashtag
-                      ? `No posts with #${activeHashtag} yet.`
-                      : "No posts yet. Be the first to share something!"}
+                    : `No posts with #${activeHashtag} yet.`}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:p-8">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold">Welcome to NextGen Collar!</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Introduce yourself, share a project, or connect with peers.
+                    </p>
+                  </div>
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                    <Button
+                      className="gap-2"
+                      onClick={openEmptyPostModal}
+                      disabled={recruiterGate.restricted}
+                    >
+                      <MessageSquare className="h-4 w-4" /> Create Post
+                    </Button>
+                    <Button asChild variant="outline" className="gap-2">
+                      <Link to="/my-network">
+                        <Users className="h-4 w-4" /> Find People to Connect With
+                      </Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
