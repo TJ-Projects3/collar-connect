@@ -84,19 +84,40 @@ export const useConversations = () => {
       const conversationIds = myRows.map((r) => r.conversation_id);
       const myRoleById = new Map(myRows.map((r) => [r.conversation_id, (r.role ?? "member") as "admin" | "member"]));
 
-      const [{ data: convos, error: convoErr }, { data: participants, error: partErr }] =
-        await Promise.all([
-          supabase
-            .from("conversations")
-            .select("id, is_group, title, avatar_url, created_by, last_message, last_message_at, created_at")
-            .in("id", conversationIds),
-          supabase
-            .from("conversation_participants")
-            .select("conversation_id, user_id, role, joined_at")
-            .in("conversation_id", conversationIds),
-        ]);
+      const [
+        { data: convos, error: convoErr },
+        { data: participants, error: partErr },
+        { data: recentMessages, error: msgErr },
+      ] = await Promise.all([
+        supabase
+          .from("conversations")
+          .select("id, is_group, title, avatar_url, created_by, created_at")
+          .in("id", conversationIds),
+        supabase
+          .from("conversation_participants")
+          .select("conversation_id, user_id, role, joined_at")
+          .in("conversation_id", conversationIds),
+        supabase
+          .from("messages")
+          .select("conversation_id, sender_id, content, created_at, sender_deleted, recipient_deleted")
+          .in("conversation_id", conversationIds)
+          .order("created_at", { ascending: false }),
+      ]);
       if (convoErr) throw convoErr;
       if (partErr) throw partErr;
+      if (msgErr) throw msgErr;
+
+      // Newest non-deleted (for the current user) message per conversation
+      const latestByConversation = new Map<string, { content: string; created_at: string }>();
+      for (const m of recentMessages ?? []) {
+        if (latestByConversation.has(m.conversation_id)) continue;
+        const hiddenForMe = m.sender_id === user!.id ? m.sender_deleted : m.recipient_deleted;
+        if (hiddenForMe) continue;
+        latestByConversation.set(m.conversation_id, {
+          content: m.content,
+          created_at: m.created_at,
+        });
+      }
 
       const profiles = await fetchProfiles((participants ?? []).map((p) => p.user_id));
 
