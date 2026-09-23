@@ -34,7 +34,9 @@ import { useSendMessage } from "@/hooks/useMessaging";
 import { useToast } from "@/hooks/use-toast";
 
 import { Link } from "react-router-dom";
-import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useMyConnections } from "@/hooks/useConnections";
+import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useUserConnections } from "@/hooks/useConnections";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { ConnectionsModal } from "@/components/profile/ConnectionsModal";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { IndustryBadge } from "@/components/IndustryBadge";
 import { StudentBadge } from "@/components/StudentBadge";
