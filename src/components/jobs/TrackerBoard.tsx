@@ -105,29 +105,29 @@ export const TrackerBoard = ({
             return (
               <Card key={item.id} className="rounded-xl border-border/50">
                 <CardHeader className="space-y-2 pb-3">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                     <div className="min-w-0 space-y-1">
-                      <CardTitle className="text-base leading-tight">
+                      <CardTitle className="text-base leading-tight break-words">
                         {item.job?.title ?? "Listing no longer available"}
                       </CardTitle>
                       {item.job?.company && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Building2 className="h-3.5 w-3.5" />
-                          <span className="font-medium">{item.job.company}</span>
+                        <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <Building2 className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                          <span className="font-medium break-words">{item.job.company}</span>
                         </div>
                       )}
                     </div>
                     {item.job?.track && (
-                      <Badge variant="secondary" className="shrink-0">
+                      <Badge variant="secondary" className="w-fit sm:shrink-0">
                         {item.job.track}
                       </Badge>
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
                     {item.job?.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {item.job.location}
+                      <span className="flex min-w-0 max-w-full items-start gap-1">
+                        <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
+                        <span className="break-words">{item.job.location}</span>
                       </span>
                     )}
                     {item.status !== "saved" && item.applied_at && (

@@ -240,7 +240,7 @@ const Jobs = () => {
 
         {/* View toggle: Explore / My Tracker */}
         <div
-          className="mb-4 inline-flex rounded-lg border border-border bg-muted/40 p-1"
+          className="mb-4 flex w-full rounded-lg border border-border bg-muted/40 p-1 sm:inline-flex sm:w-auto"
           role="group"
           aria-label="Job board view"
         >
