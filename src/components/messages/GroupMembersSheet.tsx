@@ -54,16 +54,17 @@ export const GroupMembersSheet = ({
     [conversation.participants]
   );
 
-  const addable = useMemo(() => {
-    const list: Array<{ id: string; full_name: string | null; avatar_url: string | null }> = [];
-    for (const c of connections as Array<Record<string, any>>) {
-      const other = c.requester_id === user?.id ? c.receiver : c.requester;
-      if (other?.id && !memberIds.has(other.id)) {
-        list.push({ id: other.id, full_name: other.full_name ?? null, avatar_url: other.avatar_url ?? null });
-      }
-    }
-    return list;
-  }, [connections, user?.id, memberIds]);
+  const addable = useMemo(
+    () =>
+      connections
+        .filter((c) => c.id !== user?.id && !memberIds.has(c.id))
+        .map((c) => ({
+          id: c.id,
+          full_name: c.full_name ?? null,
+          avatar_url: c.avatar_url ?? null,
+        })),
+    [connections, user?.id, memberIds]
+  );
 
   const handleRename = async () => {
     if (!title.trim()) return;
