@@ -205,34 +205,16 @@ const Profile = () => {
 
   // Connections sidebar component
   const ConnectionsSidebar = ({ currentUserId }: { currentUserId: string | null }) => {
-    const { data: myConnections, isLoading } = useMyConnections();
-    
-    const connections = useMemo(() => {
-      if (!myConnections) return [];
-      return myConnections.slice(0, 5).map((conn: any) => {
-        const isRequester = conn.requester_id === user?.id;
-        const otherProfile = isRequester ? conn.receiver : conn.requester;
-        const otherId = isRequester ? conn.receiver_id : conn.requester_id;
-        return { ...otherProfile, id: otherId };
-      });
-    }, [myConnections, user?.id]);
-
-    const getInitials = (name: string | null) => {
-      if (!name) return "??";
-      const names = name.trim().split(" ");
-      if (names.length >= 2) {
-        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
-      }
-      return name.substring(0, 2).toUpperCase();
-    };
+    const { data: allConnections = [], isLoading } = useUserConnections(currentUserId);
+    const connections = allConnections.slice(0, 5);
 
     return (
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Connections ({myConnections?.length ?? 0})</h3>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/my-network">View all</Link>
+            <h3 className="font-semibold">Connections ({allConnections.length})</h3>
+            <Button variant="ghost" size="sm" onClick={() => setConnectionsOpen(true)}>
+              View all
             </Button>
           </div>
         </CardHeader>
@@ -242,18 +224,18 @@ const Profile = () => {
           ) : connections.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center">No connections yet</p>
           ) : (
-            connections.map((connection: any) => (
+            connections.map((connection) => (
               <Link
                 key={connection.id}
                 to={`/profile?userId=${connection.id}`}
                 className="flex items-center gap-3 hover:bg-muted/50 rounded-lg p-1 -mx-1 transition-colors"
               >
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={connection.avatar_url || undefined} />
-                  <AvatarFallback className="bg-secondary text-secondary-foreground">
-                    {getInitials(connection.full_name)}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  src={connection.avatar_url}
+                  name={connection.full_name}
+                  className="h-10 w-10 flex-shrink-0"
+                  fallbackClassName="bg-secondary text-secondary-foreground"
+                />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{connection.full_name || "Unknown"}</p>
                   <p className="text-xs text-muted-foreground truncate">
