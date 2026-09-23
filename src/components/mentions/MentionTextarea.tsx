@@ -173,7 +173,7 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
             s.isMention ? (
               <span
                 key={`${s.rawStart}-${i}`}
-                className="rounded bg-primary/10 px-0.5 font-medium text-primary"
+                className="rounded bg-primary/10 text-primary"
               >
                 {s.text}
               </span>
