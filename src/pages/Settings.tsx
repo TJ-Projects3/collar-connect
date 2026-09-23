@@ -474,6 +474,20 @@ const Settings = () => {
                 </div>
                 <Switch />
               </div>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <Label>Only allow my connections to @mention me</Label>
+                  <p className="text-sm text-muted-foreground">
+                    People you aren't connected with won't be able to tag you
+                  </p>
+                </div>
+                <Switch
+                  checked={(profile as any)?.mentions_connections_only ?? false}
+                  onCheckedChange={handleMentionPrivacy}
+                  disabled={!profile || updateProfile.isPending}
+                />
+              </div>
             </CardContent>
           </Card>
 

@@ -45,10 +45,10 @@ export const useMentionSearch = (term: string | null) => {
     queryFn: async (): Promise<MentionCandidate[]> => {
       let query = supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, job_title")
+        .select("id, full_name, avatar_url, job_title, mentions_connections_only")
         .neq("id", user!.id)
         .not("full_name", "is", null)
-        .limit(20);
+        .limit(30);
 
       if (debouncedTerm.trim().length > 0) {
         query = query.ilike("full_name", `%${debouncedTerm.trim()}%`);
