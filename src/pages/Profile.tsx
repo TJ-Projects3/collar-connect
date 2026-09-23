@@ -37,6 +37,7 @@ import { Link } from "react-router-dom";
 import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useUserConnections } from "@/hooks/useConnections";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { ConnectionsModal } from "@/components/profile/ConnectionsModal";
+import { ConnectionsSidebar } from "@/components/profile/ConnectionsSidebar";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { IndustryBadge } from "@/components/IndustryBadge";
 import { StudentBadge } from "@/components/StudentBadge";
