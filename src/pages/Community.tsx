@@ -24,6 +24,7 @@ import { AskQuestionModal } from "@/components/AskQuestionModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { RoleBadge } from "@/components/RoleBadge";
+import { QuestionStatusBadge } from "@/components/community/QuestionStatusBadge";
 import { LinkifyText } from "@/components/LinkifyText";
 import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -244,10 +245,10 @@ const QuestionsList = ({
                     isAnonymous={q.is_anonymous}
                     isSelf={user?.id === q.author_id}
                   />
-                  <Badge variant="outline" className="shrink-0 gap-1.5 px-2.5 py-1 text-xs font-medium">
-                    <MessageSquare className="h-3.5 w-3.5" />
-                    {q.answer_count} {q.answer_count === 1 ? "answer" : "answers"}
-                  </Badge>
+                  <QuestionStatusBadge
+                    answerCount={q.answerCount}
+                    hasAcceptedAnswer={q.hasAcceptedAnswer}
+                  />
                 </div>
               </div>
             </CardContent>
