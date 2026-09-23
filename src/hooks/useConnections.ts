@@ -202,55 +202,82 @@ export const useConnectionStatus = (otherUserId: string | null) => {
   });
 };
 
-// Get connection count for a user
-export const useConnectionCount = (userId: string | null) => {
-  return useQuery({
-    queryKey: ["connection-count", userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      if (!userId) return 0;
+export interface ConnectionProfile {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  job_title: string | null;
+  connected_at: string | null;
+}
 
-      const { count, error } = await supabase
+// Get the accepted connections (as counterpart profiles) for any user id.
+// Single source of truth for both the connection count and connection lists,
+// so the two can never disagree.
+export const useUserConnections = (userId: string | null) => {
+  return useQuery({
+    queryKey: ["connections", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<ConnectionProfile[]> => {
+      if (!userId) return [];
+
+      const { data: rows, error } = await supabase
         .from("user_connections")
-        .select("*", { count: "exact", head: true })
+        .select("id, requester_id, receiver_id, created_at")
+        .eq("status", "accepted")
         .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`)
-        .eq("status", "accepted");
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return count || 0;
+      if (!rows || rows.length === 0) return [];
+
+      // Unique counterpart ids, keeping the most recent connection date.
+      const connectedAt = new Map<string, string | null>();
+      for (const row of rows) {
+        const counterpartId =
+          row.requester_id === userId ? row.receiver_id : row.requester_id;
+        if (!counterpartId || counterpartId === userId) continue;
+        if (!connectedAt.has(counterpartId)) {
+          connectedAt.set(counterpartId, row.created_at ?? null);
+        }
+      }
+
+      const ids = Array.from(connectedAt.keys());
+      if (ids.length === 0) return [];
+
+      // Client-side join (project convention) to avoid PostgREST join issues.
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url, job_title")
+        .in("id", ids);
+
+      if (profileError) throw profileError;
+
+      const byId = new Map((profiles || []).map((p) => [p.id, p]));
+
+      return ids.map((id) => {
+        const profile = byId.get(id);
+        return {
+          id,
+          full_name: profile?.full_name ?? null,
+          avatar_url: profile?.avatar_url ?? null,
+          job_title: profile?.job_title ?? null,
+          connected_at: connectedAt.get(id) ?? null,
+        };
+      });
     },
   });
+};
+
+// Get connection count for a user (derived from the same data as the list)
+export const useConnectionCount = (userId: string | null) => {
+  const { data, ...rest } = useUserConnections(userId);
+  return { ...rest, data: data?.length ?? 0 } as typeof rest & { data: number };
 };
 
 // Get all connections for the current user
 export const useMyConnections = () => {
   const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ["connections", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      if (!user?.id) return [];
-
-      const { data, error } = await supabase
-        .from("user_connections")
-        .select(`
-          id,
-          requester_id,
-          receiver_id,
-          status,
-          created_at,
-          requester:profiles!user_connections_requester_id_fkey(id, full_name, avatar_url, job_title),
-          receiver:profiles!user_connections_receiver_id_fkey(id, full_name, avatar_url, job_title)
-        `)
-        .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .eq("status", "accepted")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  return useUserConnections(user?.id ?? null);
 };
 
 // Get pending connection requests (received)
