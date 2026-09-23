@@ -45,10 +45,10 @@ export const useMentionSearch = (term: string | null) => {
     queryFn: async (): Promise<MentionCandidate[]> => {
       let query = supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, job_title")
+        .select("id, full_name, avatar_url, job_title, mentions_connections_only")
         .neq("id", user!.id)
         .not("full_name", "is", null)
-        .limit(20);
+        .limit(30);
 
       if (debouncedTerm.trim().length > 0) {
         query = query.ilike("full_name", `%${debouncedTerm.trim()}%`);
@@ -57,10 +57,14 @@ export const useMentionSearch = (term: string | null) => {
       const { data, error } = await query;
       if (error) throw error;
 
-      const rows = (data ?? []).map((p) => ({
-        ...p,
-        isConnection: connectionIds.has(p.id),
-      })) as MentionCandidate[];
+      const rows = (data ?? [])
+        .map((p) => ({
+          ...p,
+          isConnection: connectionIds.has(p.id),
+        }))
+        // Respect "only my connections can @mention me".
+        .filter((p: any) => p.isConnection || !p.mentions_connections_only)
+        .map(({ mentions_connections_only: _ignored, ...p }: any) => p) as MentionCandidate[];
 
       return rows
         .sort((a, b) => {

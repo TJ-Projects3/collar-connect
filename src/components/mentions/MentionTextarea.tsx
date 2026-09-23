@@ -167,14 +167,13 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
             TEXTAREA_BASE,
             className,
             "pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap border-transparent bg-transparent text-foreground",
-            "leading-normal [overflow-wrap:break-word] [word-break:normal]",
           )}
         >
           {segments.map((s, i) =>
             s.isMention ? (
               <span
                 key={`${s.rawStart}-${i}`}
-                className="inline-block whitespace-nowrap rounded bg-primary/10 align-baseline leading-[inherit] text-primary"
+                className="bg-primary/10 font-semibold text-primary"
               >
                 {s.text}
               </span>
@@ -204,10 +203,7 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
             const el = e.currentTarget;
             syncQuery(el.value, el.selectionStart ?? el.value.length);
           }}
-          className={cn(
-            className,
-            "relative bg-transparent leading-normal text-transparent caret-foreground [overflow-wrap:break-word] [word-break:normal]",
-          )}
+          className={cn(className, "relative bg-transparent text-transparent caret-foreground")}
         />
 
         {open && (

@@ -84,6 +84,17 @@ const Settings = () => {
     }
   };
 
+  const handleMentionPrivacy = async (checked: boolean) => {
+    try {
+      await updateProfile.mutateAsync({ mentions_connections_only: checked } as any);
+      toast.success(
+        checked ? "Only your connections can @mention you" : "Anyone can @mention you"
+      );
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to update mention setting");
+    }
+  };
+
   const handleTextField = async (field: string, value: string) => {
     try {
       await updateProfile.mutateAsync({ [field]: value.trim() || null } as any);
@@ -462,6 +473,20 @@ const Settings = () => {
                   </p>
                 </div>
                 <Switch />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <Label>Only allow my connections to @mention me</Label>
+                  <p className="text-sm text-muted-foreground">
+                    People you aren't connected with won't be able to tag you
+                  </p>
+                </div>
+                <Switch
+                  checked={(profile as any)?.mentions_connections_only ?? false}
+                  onCheckedChange={handleMentionPrivacy}
+                  disabled={!profile || updateProfile.isPending}
+                />
               </div>
             </CardContent>
           </Card>

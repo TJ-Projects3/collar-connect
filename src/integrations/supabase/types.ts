@@ -922,6 +922,7 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           major: string | null
+          mentions_connections_only: boolean
           mentorship_offerings: string[]
           mentorship_opt_in: boolean
           portfolio_url: string | null
@@ -973,6 +974,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
+          mentions_connections_only?: boolean
           mentorship_offerings?: string[]
           mentorship_opt_in?: boolean
           portfolio_url?: string | null
@@ -1024,6 +1026,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
+          mentions_connections_only?: boolean
           mentorship_offerings?: string[]
           mentorship_opt_in?: boolean
           portfolio_url?: string | null
