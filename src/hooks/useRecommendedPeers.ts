@@ -43,10 +43,7 @@ export const useRecommendedPeers = (limit = 5) => {
     const myUni = norm(me.university || "");
     const myMajor = norm(me.major || "");
 
-    const connectedIds = new Set<string>();
-    for (const c of connections as Array<{ requester_id: string; receiver_id: string }>) {
-      connectedIds.add(c.requester_id === user.id ? c.receiver_id : c.requester_id);
-    }
+    const connectedIds = new Set<string>(connections.map((c) => c.id));
 
     const matches: PeerMatch[] = [];
 
