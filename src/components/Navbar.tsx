@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
   Bell,
@@ -41,7 +41,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { MobileMenuSheet } from "@/components/layout/MobileMenuSheet";
-import { useNavDestinations, getInitials, isPathActive } from "@/components/layout/nav-items";
+import { useNavDestinations, isPathActive } from "@/components/layout/nav-items";
 
 interface NavItemProps {
   to: string;
@@ -256,12 +256,12 @@ export const Navbar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex flex-col items-center justify-center px-3 py-1 min-w-[80px] border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                      {getInitials(profile?.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    className="h-6 w-6"
+                    fallbackClassName="text-[10px]"
+                    src={profile?.avatar_url}
+                    name={profile?.full_name}
+                  />
                   <span className="text-xs mt-1 flex items-center gap-0.5">
                     Me
                     <ChevronDown className="h-3 w-3" />
@@ -270,12 +270,12 @@ export const Navbar = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="flex items-center gap-3 p-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {getInitials(profile?.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    className="h-12 w-12"
+                    fallbackClassName="text-sm"
+                    src={profile?.avatar_url}
+                    name={profile?.full_name}
+                  />
                   <div>
                     <p className="font-semibold text-sm">{profile?.full_name || "My Profile"}</p>
                     <p className="text-xs text-muted-foreground">View profile</p>

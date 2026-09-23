@@ -1,12 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUnreadNotificationCount } from "@/hooks/useNotifications";
-import { useNavDestinations, getInitials, isPathActive } from "./nav-items";
+import { useNavDestinations, isPathActive } from "./nav-items";
 
 /**
  * Tablet-only vertical sidebar (768px - 1024px). Icons plus text labels.
@@ -81,12 +81,7 @@ export const SideNav = () => {
           to="/profile"
           className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
         >
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-              {getInitials(profile?.full_name)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar className="h-9 w-9" src={profile?.avatar_url} name={profile?.full_name} />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{profile?.full_name || "My Profile"}</p>
             <p className="text-xs text-muted-foreground">View profile</p>
