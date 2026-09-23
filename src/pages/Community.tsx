@@ -214,7 +214,7 @@ const QuestionsList = ({
       {questions.map((q) => (
         <Link key={q.id} to={`/community?id=${q.id}`} className="block">
           <Card className="hover:border-primary/40 transition-colors">
-            <CardContent className="p-5 flex gap-4">
+            <CardContent className="p-4 sm:p-5 flex gap-3 sm:gap-4">
               <div className="flex-shrink-0 pt-0.5">
                 <VoteBox
                   score={q.upvotes}
@@ -224,7 +224,7 @@ const QuestionsList = ({
                 />
               </div>
               <div className="flex-1 min-w-0 space-y-3">
-                <h2 className="font-semibold text-base leading-snug">{q.title}</h2>
+                <h2 className="font-semibold text-base leading-snug break-words">{q.title}</h2>
                 {q.body && (
                   <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-wrap break-words leading-relaxed">
                     {q.body}
@@ -237,7 +237,7 @@ const QuestionsList = ({
                     ))}
                   </div>
                 )}
-                <div className="flex items-center justify-between gap-3 pt-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                   <AuthorLine
                     profile={q.profiles}
                     timestamp={q.created_at}
@@ -315,22 +315,26 @@ const QuestionDetail = ({ id }: { id: string }) => {
 
 
       <Card>
-        <CardContent className="p-5 flex gap-4">
-          <VoteBox
-            score={question.upvotes}
-            myVote={myQVotes?.get(question.id) ?? 0}
-            onVote={(v) => {
-              if (!requireAuth()) return;
-              vote.mutate({ questionId: question.id, value: v, current: myQVotes?.get(question.id) ?? 0 });
-            }}
-          />
+        <CardContent className="p-4 sm:p-5 flex gap-3 sm:gap-4">
+          <div className="flex-shrink-0">
+            <VoteBox
+              score={question.upvotes}
+              myVote={myQVotes?.get(question.id) ?? 0}
+              onVote={(v) => {
+                if (!requireAuth()) return;
+                vote.mutate({ questionId: question.id, value: v, current: myQVotes?.get(question.id) ?? 0 });
+              }}
+            />
+          </div>
           <div className="flex-1 min-w-0 space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <h1 className="text-2xl font-bold leading-tight">{question.title}</h1>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+              <h1 className="min-w-0 flex-1 text-xl sm:text-2xl font-bold leading-tight break-words">
+                {question.title}
+              </h1>
               <QuestionStatusBadge
                 answerCount={answers.length}
                 hasAcceptedAnswer={answers.some((a) => a.is_accepted)}
-                className="mt-1"
+                className="self-start sm:mt-1"
               />
             </div>
             {question.body && (
@@ -390,15 +394,17 @@ const QuestionDetail = ({ id }: { id: string }) => {
                 className={cn(a.is_accepted && "border-success bg-success-muted/40 ring-1 ring-success/30")}
               >
                 <CardContent className="p-4 flex gap-3">
-                  <VoteBox
-                    score={a.upvotes}
-                    myVote={myAVotes?.get(a.id) ?? 0}
-                    onVote={(v) => {
-                      if (!requireAuth()) return;
-                      vote.mutate({ answerId: a.id, value: v, current: myAVotes?.get(a.id) ?? 0 });
-                    }}
-                    size="sm"
-                  />
+                  <div className="flex-shrink-0">
+                    <VoteBox
+                      score={a.upvotes}
+                      myVote={myAVotes?.get(a.id) ?? 0}
+                      onVote={(v) => {
+                        if (!requireAuth()) return;
+                        vote.mutate({ answerId: a.id, value: v, current: myAVotes?.get(a.id) ?? 0 });
+                      }}
+                      size="sm"
+                    />
+                  </div>
                   <div className="flex-1 min-w-0 space-y-2">
                     {a.is_accepted && (
                       <Badge className="gap-1 bg-success text-success-foreground hover:bg-success">
@@ -416,7 +422,7 @@ const QuestionDetail = ({ id }: { id: string }) => {
                         isAnonymous={a.is_anonymous}
                         isSelf={user?.id === a.author_id}
                       />
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-1">
                         <MentorshipButton
                           profile={a.profiles}
                           size="sm"

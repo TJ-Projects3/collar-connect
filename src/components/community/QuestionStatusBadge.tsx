@@ -17,7 +17,7 @@ export const QuestionStatusBadge = ({
     return (
       <Badge
         className={cn(
-          "shrink-0 gap-1.5 px-2.5 py-1 text-xs font-medium bg-success text-success-foreground hover:bg-success",
+          "shrink-0 max-w-full whitespace-nowrap gap-1.5 px-2.5 py-1 text-xs font-medium bg-success text-success-foreground hover:bg-success",
           className
         )}
       >
@@ -36,7 +36,7 @@ export const QuestionStatusBadge = ({
     return (
       <Badge
         variant="secondary"
-        className={cn("shrink-0 gap-1.5 px-2.5 py-1 text-xs font-medium", className)}
+        className={cn("shrink-0 max-w-full whitespace-nowrap gap-1.5 px-2.5 py-1 text-xs font-medium", className)}
       >
         <MessageSquare className="h-3.5 w-3.5" />
         Active Discussion ({answerCount} {answerCount === 1 ? "answer" : "answers"})
@@ -48,7 +48,7 @@ export const QuestionStatusBadge = ({
     <Badge
       variant="outline"
       className={cn(
-        "shrink-0 gap-1.5 px-2.5 py-1 text-xs font-medium text-muted-foreground",
+        "shrink-0 max-w-full whitespace-nowrap gap-1.5 px-2.5 py-1 text-xs font-medium text-muted-foreground",
         className
       )}
     >
