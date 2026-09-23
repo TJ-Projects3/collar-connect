@@ -31,6 +31,10 @@ export interface Question {
   tags: string[];
   upvotes: number;
   answer_count: number;
+  /** Live count derived from question_answers */
+  answerCount: number;
+  /** True when one of the answers is marked accepted */
+  hasAcceptedAnswer: boolean;
   is_anonymous: boolean;
   created_at: string;
   updated_at: string;
@@ -63,6 +67,30 @@ const fetchAuthors = async (ids: string[]) => {
   return new Map((data ?? []).map((p) => [p.id, p as QuestionAuthor]));
 };
 
+interface AnswerStats {
+  answerCount: number;
+  hasAcceptedAnswer: boolean;
+}
+
+/** Derive live answer counts + accepted state straight from question_answers */
+const fetchAnswerStats = async (questionIds: string[]) => {
+  const stats = new Map<string, AnswerStats>();
+  if (!questionIds.length) return stats;
+  const { data, error } = await supabase
+    .from("question_answers")
+    .select("question_id, is_accepted")
+    .in("question_id", questionIds);
+  if (error) throw error;
+  (data ?? []).forEach((a: any) => {
+    const prev = stats.get(a.question_id) ?? { answerCount: 0, hasAcceptedAnswer: false };
+    stats.set(a.question_id, {
+      answerCount: prev.answerCount + 1,
+      hasAcceptedAnswer: prev.hasAcceptedAnswer || a.is_accepted === true,
+    });
+  });
+  return stats;
+};
+
 export const useQuestions = (sort: QuestionSort = "new", search = "", tag: string | null = null) => {
   const { user } = useAuth();
   return useQuery({
@@ -77,13 +105,23 @@ export const useQuestions = (sort: QuestionSort = "new", search = "", tag: strin
       }
 
       if (sort === "top") query = query.order("upvotes", { ascending: false }).order("created_at", { ascending: false });
-      else if (sort === "unanswered") query = query.eq("answer_count", 0).order("created_at", { ascending: false });
       else query = query.order("created_at", { ascending: false });
 
       const { data, error } = await query.limit(100);
       if (error) throw error;
       const blockedIds = await fetchBlockedIds();
-      const rows = ((data ?? []) as any[]).filter((r) => !blockedIds.has(r.author_id));
+      let rows = ((data ?? []) as any[]).filter((r) => !blockedIds.has(r.author_id));
+
+      const stats = await fetchAnswerStats(rows.map((r) => r.id));
+      rows = rows.map((r) => ({
+        ...r,
+        answerCount: stats.get(r.id)?.answerCount ?? 0,
+        hasAcceptedAnswer: stats.get(r.id)?.hasAcceptedAnswer ?? false,
+      }));
+
+      // Filter on the derived count so the tab can't drift from reality
+      if (sort === "unanswered") rows = rows.filter((r) => r.answerCount === 0);
+
       // Only fetch author profiles for non-anonymous rows OR when viewer is the author
       const visibleIds = rows
         .filter((r) => !r.is_anonymous || r.author_id === user?.id)
@@ -108,7 +146,13 @@ export const useQuestion = (id: string | undefined) => {
       if (!data) return null;
       const anonHide = (data as any).is_anonymous && data.author_id !== user?.id;
       const authors = anonHide ? new Map() : await fetchAuthors([data.author_id]);
-      return { ...(data as any), profiles: anonHide ? null : authors.get(data.author_id) ?? null };
+      const stats = await fetchAnswerStats([data.id]);
+      return {
+        ...(data as any),
+        answerCount: stats.get(data.id)?.answerCount ?? 0,
+        hasAcceptedAnswer: stats.get(data.id)?.hasAcceptedAnswer ?? false,
+        profiles: anonHide ? null : authors.get(data.author_id) ?? null,
+      };
     },
   });
 };
@@ -217,6 +261,7 @@ export const useDeleteAnswer = () => {
       toast({ title: "Answer deleted" });
       qc.invalidateQueries({ queryKey: ["question-answers", questionId] });
       qc.invalidateQueries({ queryKey: ["question", questionId] });
+      qc.invalidateQueries({ queryKey: ["questions"] });
     },
   });
 };
@@ -236,6 +281,8 @@ export const useAcceptAnswer = () => {
     },
     onSuccess: ({ questionId }) => {
       qc.invalidateQueries({ queryKey: ["question-answers", questionId] });
+      qc.invalidateQueries({ queryKey: ["question", questionId] });
+      qc.invalidateQueries({ queryKey: ["questions"] });
     },
     onError: (e: any) => toast({ title: "Could not update answer", description: e.message, variant: "destructive" }),
   });

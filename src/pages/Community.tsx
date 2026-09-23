@@ -24,6 +24,7 @@ import { AskQuestionModal } from "@/components/AskQuestionModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { RoleBadge } from "@/components/RoleBadge";
+import { QuestionStatusBadge } from "@/components/community/QuestionStatusBadge";
 import { LinkifyText } from "@/components/LinkifyText";
 import { ContentActionsMenu } from "@/components/moderation/ContentActionsMenu";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -244,10 +245,10 @@ const QuestionsList = ({
                     isAnonymous={q.is_anonymous}
                     isSelf={user?.id === q.author_id}
                   />
-                  <Badge variant="outline" className="shrink-0 gap-1.5 px-2.5 py-1 text-xs font-medium">
-                    <MessageSquare className="h-3.5 w-3.5" />
-                    {q.answer_count} {q.answer_count === 1 ? "answer" : "answers"}
-                  </Badge>
+                  <QuestionStatusBadge
+                    answerCount={q.answerCount}
+                    hasAcceptedAnswer={q.hasAcceptedAnswer}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -325,7 +326,14 @@ const QuestionDetail = ({ id }: { id: string }) => {
             }}
           />
           <div className="flex-1 min-w-0 space-y-3">
-            <h1 className="text-2xl font-bold leading-tight">{question.title}</h1>
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-2xl font-bold leading-tight">{question.title}</h1>
+              <QuestionStatusBadge
+                answerCount={answers.length}
+                hasAcceptedAnswer={answers.some((a) => a.is_accepted)}
+                className="mt-1"
+              />
+            </div>
             {question.body && (
               <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                 <LinkifyText>{question.body}</LinkifyText>
