@@ -349,7 +349,7 @@ const Profile = () => {
                     <button
                       type="button"
                       onClick={() => setConnectionsOpen(true)}
-                      className="text-sm text-primary hover:underline font-medium inline-block text-left"
+                      className="inline-block text-left text-sm font-medium text-primary underline decoration-transparent underline-offset-2 hover:decoration-current transition-all duration-200"
                     >
                       {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
                     </button>
