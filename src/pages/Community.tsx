@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -550,7 +549,6 @@ const Community = () => {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <Navbar />
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
         <div className="lg:grid lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-9 min-w-0">

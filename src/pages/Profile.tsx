@@ -20,7 +20,6 @@ import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
 import { InlineReplies } from "@/components/InlineReplies";
 import { ExperienceFormModal } from "@/components/ExperienceFormModal";
-import { Navbar } from "@/components/Navbar";
 import { LinkifyText } from "@/components/LinkifyText";
 import { DeveloperPortfolioCard } from "@/components/DeveloperPortfolioCard";
 import { useQuery } from "@tanstack/react-query";
@@ -325,7 +324,6 @@ const Profile = () => {
   return (
 
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <div className="container mx-auto px-4 py-6">
         {profileLoading ? (

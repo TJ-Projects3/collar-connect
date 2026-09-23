@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { FileText, Video, Download, ExternalLink, Eye, Loader2, Globe, Star, Search } from "lucide-react";
-import { Navbar } from "@/components/Navbar";
 import { useResources, type Resource } from "@/hooks/useResources";
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
@@ -266,7 +265,6 @@ const ContentHub = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">

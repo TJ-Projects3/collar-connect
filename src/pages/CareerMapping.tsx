@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Navbar } from "@/components/Navbar";
 import { Compass, Cloud, Shield, Database, Server, ArrowLeft, ArrowRight, RotateCcw, Loader2, Sparkles, CheckCircle2, Award, FolderGit2, Target, RefreshCw, Briefcase, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { useGenerateRoadmap, type CareerRoadmap } from "@/hooks/useCareerRoadmap";
@@ -108,7 +107,6 @@ const CareerMapping = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <div className="container mx-auto px-4 py-6 max-w-2xl flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -118,7 +116,6 @@ const CareerMapping = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <div className="container mx-auto px-4 py-6 max-w-5xl">
         {(view === "intro" || view === "quiz") && (
           <div className="max-w-2xl mx-auto">

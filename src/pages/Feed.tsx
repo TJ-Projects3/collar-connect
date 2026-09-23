@@ -30,7 +30,6 @@ import { CreatePostModal } from "@/components/CreatePostModal";
 import { ReplyModal } from "@/components/ReplyModal";
 import { ShareDialog } from "@/components/ShareDialog";
 import { InlineReplies } from "@/components/InlineReplies";
-import { Navbar } from "@/components/Navbar";
 import { usePosts, useDeletePost } from "@/hooks/usePosts";
 import { LinkifyText } from "@/components/LinkifyText";
 import { usePostLikes, useToggleLike } from "@/hooks/usePostLikes";
@@ -443,7 +442,6 @@ const Feed = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:items-start">

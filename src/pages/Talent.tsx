@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,7 +70,6 @@ const Talent = () => {
   if (profileLoading || adminLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <div className="container mx-auto px-4 py-6 max-w-7xl space-y-4">
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-64 w-full" />
@@ -84,7 +82,6 @@ const Talent = () => {
     if (isRecruiterRestricted(profile, isAdmin === true)) {
       return (
         <div className="min-h-screen bg-background">
-          <Navbar />
           <div className="container mx-auto max-w-2xl px-4 py-10">
             <RecruiterStatusNotice
               status={recruiterStatus(profile)}
@@ -125,7 +122,6 @@ const Talent = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <header className="mb-6">
