@@ -663,7 +663,10 @@ const Profile = () => {
           {/* Right Sidebar */}
           <aside className="lg:col-span-4 space-y-4">
             {/* Connections */}
-            <ConnectionsSidebar currentUserId={viewedUserId} />
+            <ConnectionsSidebar
+              currentUserId={viewedUserId}
+              onViewAll={() => setConnectionsOpen(true)}
+            />
           </aside>
         </div>
         )}
