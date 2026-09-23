@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   Sheet,
   SheetContent,
@@ -69,12 +69,12 @@ export const MobileMenuSheet = () => {
       <SheetContent side="right" className="w-[280px] p-0">
         <SheetHeader className="border-b p-4">
           <Link to="/profile" onClick={close} className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                {getInitials(profile?.full_name)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              className="h-12 w-12"
+              fallbackClassName="text-sm"
+              src={profile?.avatar_url}
+              name={profile?.full_name}
+            />
             <div className="min-w-0">
               <SheetTitle className="truncate text-left">{profile?.full_name || "My Profile"}</SheetTitle>
               <p className="text-xs text-muted-foreground">View profile</p>
