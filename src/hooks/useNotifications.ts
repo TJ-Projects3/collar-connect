@@ -370,6 +370,7 @@ export const notificationLink = (group: NotificationGroup): string => {
     case "mention":
       // Message mentions point at a conversation, post/comment mentions at the feed
       if (group.body?.includes("in a message")) {
+        if (group.reference_id) return `/messages?conversationId=${group.reference_id}`;
         return group.senders[0]?.id ? `/messages?recipientId=${group.senders[0].id}` : "/messages";
       }
       if (!group.reference_id) return "/feed";
@@ -377,6 +378,7 @@ export const notificationLink = (group: NotificationGroup): string => {
         ? `/feed?post=${group.reference_id}&reply=${group.secondary_reference_id}`
         : `/feed?post=${group.reference_id}`;
     case "message":
+      if (group.reference_id) return `/messages?conversationId=${group.reference_id}`;
       return group.senders[0]?.id ? `/messages?recipientId=${group.senders[0].id}` : "/messages";
     case "connection_request":
     case "connection_accepted":
