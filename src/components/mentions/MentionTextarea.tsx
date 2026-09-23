@@ -56,7 +56,10 @@ const initialsOf = (name: string | null) =>
  * styled `@Name` so the UUID never reaches the user.
  */
 export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(
-  ({ value, onValueChange, onKeyDown, menuPlacement = "top", className, ...rest }, forwardedRef) => {
+  (
+    { value, onValueChange, onKeyDown, menuPlacement = "top", insertRef, className, ...rest },
+    forwardedRef,
+  ) => {
     const innerRef = useRef<HTMLTextAreaElement | null>(null);
     const overlayRef = useRef<HTMLDivElement | null>(null);
     const [query, setQuery] = useState<string | null>(null);
@@ -181,7 +184,7 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
             s.isMention ? (
               <span
                 key={`${s.rawStart}-${i}`}
-                className="bg-primary/10 font-semibold text-primary"
+                className="inline-flex flex-row items-center whitespace-nowrap rounded-[3px] bg-primary/10 align-baseline font-semibold leading-[inherit] text-primary [font-size:inherit]"
               >
                 {s.text}
               </span>
