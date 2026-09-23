@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, MessageSquare, CalendarDays, Shield, Briefcase, Award, Medal, ShieldCheck, UserCheck, Flag } from "lucide-react";
-import { Navbar } from "@/components/Navbar";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,7 +52,6 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       {/* Main Content */}
       <main className="container px-3 sm:px-4 py-6">

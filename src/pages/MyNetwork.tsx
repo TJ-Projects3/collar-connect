@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from "react";
-import { Navbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -179,7 +178,6 @@ const MyNetwork = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">

@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from "react";
-import { Navbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -230,7 +229,6 @@ const Jobs = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
