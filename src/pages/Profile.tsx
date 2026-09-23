@@ -37,6 +37,7 @@ import { Link } from "react-router-dom";
 import { useSendConnectionRequest, useConnectionStatus, useConnectionCount, useAcceptConnectionRequest, useRejectConnectionRequest, useUserConnections } from "@/hooks/useConnections";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { ConnectionsModal } from "@/components/profile/ConnectionsModal";
+import { ConnectionsSidebar } from "@/components/profile/ConnectionsSidebar";
 import { RecruiterBadge } from "@/components/RecruiterBadge";
 import { IndustryBadge } from "@/components/IndustryBadge";
 import { StudentBadge } from "@/components/StudentBadge";
@@ -206,52 +207,6 @@ const Profile = () => {
     );
   };
 
-  // Connections sidebar component
-  const ConnectionsSidebar = ({ currentUserId }: { currentUserId: string | null }) => {
-    const { data: allConnections = [], isLoading } = useUserConnections(currentUserId);
-    const connections = allConnections.slice(0, 5);
-
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Connections ({allConnections.length})</h3>
-            <Button variant="ghost" size="sm" onClick={() => setConnectionsOpen(true)}>
-              View all
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground text-center">Loading...</p>
-          ) : connections.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center">No connections yet</p>
-          ) : (
-            connections.map((connection) => (
-              <Link
-                key={connection.id}
-                to={`/profile?userId=${connection.id}`}
-                className="flex items-center gap-3 hover:bg-muted/50 rounded-lg p-1 -mx-1 transition-colors"
-              >
-                <UserAvatar
-                  src={connection.avatar_url}
-                  name={connection.full_name}
-                  className="h-10 w-10 flex-shrink-0"
-                  fallbackClassName="bg-secondary text-secondary-foreground"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{connection.full_name || "Unknown"}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {connection.job_title || "Tech Professional"}
-                  </p>
-                </div>
-              </Link>
-            ))
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
 
   const PostActions = ({ post }: { post: any }) => {
     const toggleLike = useToggleLike();
@@ -395,7 +350,7 @@ const Profile = () => {
                     <button
                       type="button"
                       onClick={() => setConnectionsOpen(true)}
-                      className="text-sm text-primary hover:underline font-medium inline-block text-left"
+                      className="inline-block text-left text-sm font-medium text-primary underline decoration-transparent underline-offset-2 hover:decoration-current transition-all duration-200"
                     >
                       {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
                     </button>
@@ -709,7 +664,10 @@ const Profile = () => {
           {/* Right Sidebar */}
           <aside className="lg:col-span-4 space-y-4">
             {/* Connections */}
-            <ConnectionsSidebar currentUserId={viewedUserId} />
+            <ConnectionsSidebar
+              currentUserId={viewedUserId}
+              onViewAll={() => setConnectionsOpen(true)}
+            />
           </aside>
         </div>
         )}
