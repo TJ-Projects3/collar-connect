@@ -172,16 +172,22 @@ export type Database = {
         Row: {
           conversation_id: string
           created_at: string
+          joined_at: string
+          role: string
           user_id: string
         }
         Insert: {
           conversation_id: string
           created_at?: string
+          joined_at?: string
+          role?: string
           user_id: string
         }
         Update: {
           conversation_id?: string
           created_at?: string
+          joined_at?: string
+          role?: string
           user_id?: string
         }
         Relationships: [
@@ -196,25 +202,37 @@ export type Database = {
       }
       conversations: {
         Row: {
+          avatar_url: string | null
           conversation_key: string | null
           created_at: string | null
+          created_by: string | null
           id: string
+          is_group: boolean
           last_message: string | null
           last_message_at: string | null
+          title: string | null
         }
         Insert: {
+          avatar_url?: string | null
           conversation_key?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
+          is_group?: boolean
           last_message?: string | null
           last_message_at?: string | null
+          title?: string | null
         }
         Update: {
+          avatar_url?: string | null
           conversation_key?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
+          is_group?: boolean
           last_message?: string | null
           last_message_at?: string | null
+          title?: string | null
         }
         Relationships: []
       }
@@ -667,7 +685,7 @@ export type Database = {
           id: string
           is_read: boolean
           recipient_deleted: boolean
-          recipient_id: string
+          recipient_id: string | null
           sender_deleted: boolean
           sender_id: string
           updated_at: string
@@ -679,7 +697,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           recipient_deleted?: boolean
-          recipient_id: string
+          recipient_id?: string | null
           sender_deleted?: boolean
           sender_id: string
           updated_at?: string
@@ -691,7 +709,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           recipient_deleted?: boolean
-          recipient_id?: string
+          recipient_id?: string | null
           sender_deleted?: boolean
           sender_id?: string
           updated_at?: string
@@ -1502,6 +1520,18 @@ export type Database = {
       }
     }
     Functions: {
+      add_group_participants: {
+        Args: { _conversation_id: string; _participant_ids: string[] }
+        Returns: undefined
+      }
+      create_group_conversation: {
+        Args: {
+          _avatar_url?: string
+          _participant_ids: string[]
+          _title: string
+        }
+        Returns: string
+      }
       get_trending_hashtags: {
         Args: { limit_count?: number }
         Returns: {
@@ -1517,6 +1547,15 @@ export type Database = {
         Returns: boolean
       }
       is_blocked: { Args: { _a: string; _b: string }; Returns: boolean }
+      is_conversation_admin: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_conversation_member: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
+      leave_group: { Args: { _conversation_id: string }; Returns: undefined }
       notify_mentions: {
         Args: {
           _allowed?: string[]
@@ -1533,6 +1572,14 @@ export type Database = {
         Returns: Json
       }
       recruiter_blocked: { Args: { _user_id: string }; Returns: boolean }
+      remove_group_participant: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: undefined
+      }
+      rename_group: {
+        Args: { _avatar_url?: string; _conversation_id: string; _title: string }
+        Returns: undefined
+      }
       send_dm: {
         Args: { message_text: string; recipient: string; sender: string }
         Returns: {
@@ -1542,7 +1589,7 @@ export type Database = {
           id: string
           is_read: boolean
           recipient_deleted: boolean
-          recipient_id: string
+          recipient_id: string | null
           sender_deleted: boolean
           sender_id: string
           updated_at: string
@@ -1553,6 +1600,31 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      send_group_message: {
+        Args: { _content: string; _conversation_id: string }
+        Returns: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          recipient_deleted: boolean
+          recipient_id: string | null
+          sender_deleted: boolean
+          sender_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      set_participant_role: {
+        Args: { _conversation_id: string; _role: string; _user_id: string }
+        Returns: undefined
       }
       talent_access_quota: { Args: never; Returns: Json }
     }
