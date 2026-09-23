@@ -116,6 +116,7 @@ const Profile = () => {
   const rejectConnection = useRejectConnectionRequest();
   const { data: connectionStatus } = useConnectionStatus(viewedUserId);
   const { data: connectionCount } = useConnectionCount(viewedUserId);
+  const [connectionsOpen, setConnectionsOpen] = useState(false);
 
   // Experience state
   const [experienceModalOpen, setExperienceModalOpen] = useState(false);
