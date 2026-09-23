@@ -146,10 +146,7 @@ export const useConversations = () => {
           participants: members,
           counterpart_id: counterpart?.user_id ?? null,
           counterpart_profile: counterpart?.profile ?? null,
-          last_message:
-            c.last_message && c.last_message_at
-              ? { content: c.last_message, created_at: c.last_message_at }
-              : null,
+          last_message: latestByConversation.get(c.id) ?? null,
         };
       });
 
