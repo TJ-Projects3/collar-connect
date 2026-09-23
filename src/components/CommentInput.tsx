@@ -178,11 +178,25 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
               trigger={
                 <Button
                   type="button"
-                  size="icon"
+                  size="sm"
                   variant="ghost"
                   disabled={!!media}
-                  className="h-7 w-7 text-muted-foreground hover:text-primary"
+                  className="h-7 px-1.5 text-[11px] font-semibold text-muted-foreground hover:text-primary"
                   aria-label="Add GIF"
+                >
+                  GIF
+                </Button>
+              }
+            />
+            <EmojiPicker
+              onSelect={(emoji) => insertRef.current?.(emoji)}
+              trigger={
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-muted-foreground hover:text-primary"
+                  aria-label="Add emoji"
                 >
                   <Smile className="h-4 w-4" />
                 </Button>
