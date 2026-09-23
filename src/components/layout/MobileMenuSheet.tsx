@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useNavDestinations, getInitials, isPathActive } from "./nav-items";
+import { useNavDestinations, isPathActive } from "./nav-items";
 
 /**
  * Phone-only slide-out menu holding every destination that is not one of the

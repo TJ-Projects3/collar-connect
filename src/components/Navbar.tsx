@@ -41,7 +41,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { MobileMenuSheet } from "@/components/layout/MobileMenuSheet";
-import { useNavDestinations, getInitials, isPathActive } from "@/components/layout/nav-items";
+import { useNavDestinations, isPathActive } from "@/components/layout/nav-items";
 
 interface NavItemProps {
   to: string;

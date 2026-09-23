@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUnreadNotificationCount } from "@/hooks/useNotifications";
-import { useNavDestinations, getInitials, isPathActive } from "./nav-items";
+import { useNavDestinations, isPathActive } from "./nav-items";
 
 /**
  * Tablet-only vertical sidebar (768px - 1024px). Icons plus text labels.
