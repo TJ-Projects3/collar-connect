@@ -28,11 +28,19 @@ interface MentionTextareaProps extends TextareaProps {
   onValueChange: (value: string) => void;
   /** Where the suggestion list opens relative to the field. */
   menuPlacement?: "top" | "bottom";
+  /**
+   * Receives a callback that inserts text at the current caret position
+   * (used by the emoji picker).
+   */
+  insertRef?: React.MutableRefObject<((text: string) => void) | null>;
 }
 
-/** Base shadcn textarea classes, mirrored by the highlight overlay. */
+/**
+ * Base shadcn textarea classes, mirrored by the highlight overlay.
+ * Must stay block-level (never `flex`) so mention spans flow inline with text.
+ */
 const TEXTAREA_BASE =
-  "flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm";
+  "block min-h-[80px] w-full rounded-md border px-3 py-2 text-sm";
 
 const initialsOf = (name: string | null) =>
   (name || "U")
