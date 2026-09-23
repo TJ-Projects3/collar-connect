@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { GifPicker } from "@/components/GifPicker";
+import { EmojiPicker } from "@/components/EmojiPicker";
 import { MentionTextarea } from "@/components/mentions/MentionTextarea";
 
 interface CommentInputProps {
@@ -25,6 +26,7 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const fileInputId = useId();
   const createReply = useCreateReply();
+  const insertRef = useRef<((text: string) => void) | null>(null);
 
   const initials = (profile?.full_name || "U")
     .split(" ")
@@ -141,7 +143,8 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
             onKeyDown={handleKeyDown}
             placeholder="Write a comment..."
             rows={1}
-            className="min-h-[36px] max-h-[200px] rounded-2xl bg-muted/40 border-muted-foreground/20 pr-24 pl-4 py-2 text-sm resize-none overflow-y-auto"
+            insertRef={insertRef}
+            className="min-h-[36px] max-h-[200px] rounded-2xl bg-muted/40 border-muted-foreground/20 pr-[7.5rem] pl-4 py-2 text-sm resize-none overflow-y-auto"
             disabled={createReply.isPending}
           />
           <div className="absolute right-1 bottom-1 flex items-center gap-0.5">
