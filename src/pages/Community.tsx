@@ -326,7 +326,14 @@ const QuestionDetail = ({ id }: { id: string }) => {
             }}
           />
           <div className="flex-1 min-w-0 space-y-3">
-            <h1 className="text-2xl font-bold leading-tight">{question.title}</h1>
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-2xl font-bold leading-tight">{question.title}</h1>
+              <QuestionStatusBadge
+                answerCount={answers.length}
+                hasAcceptedAnswer={answers.some((a) => a.is_accepted)}
+                className="mt-1"
+              />
+            </div>
             {question.body && (
               <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                 <LinkifyText>{question.body}</LinkifyText>
