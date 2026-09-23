@@ -444,16 +444,39 @@ const Jobs = () => {
                   className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50"
                 >
                 <CardHeader className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 space-y-1">
-                      <CardTitle className="text-lg leading-tight">{job.title}</CardTitle>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Building2 className="h-4 w-4" />
-                        <span className="font-medium">{job.company}</span>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 items-start justify-between gap-2 sm:block sm:space-y-1">
+                      <div className="min-w-0 space-y-1">
+                        <CardTitle className="text-lg leading-tight break-words">{job.title}</CardTitle>
+                        <div className="flex items-start gap-2 text-muted-foreground">
+                          <Building2 className="h-4 w-4 shrink-0 mt-0.5" />
+                          <span className="font-medium break-words">{job.company}</span>
+                        </div>
                       </div>
+                      {/* Bookmark stays top-right of the title row on phones */}
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        aria-label={
+                          trackedByJobId.has(job.id) ? "Remove from tracker" : "Save job"
+                        }
+                        aria-pressed={trackedByJobId.has(job.id)}
+                        onClick={() => toggleSaved(job)}
+                        className="h-8 w-8 shrink-0 sm:hidden"
+                      >
+                        <Bookmark
+                          className={cn(
+                            "h-4 w-4",
+                            trackedByJobId.has(job.id)
+                              ? "fill-primary text-primary"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                      </Button>
                     </div>
-                    <div className="flex shrink-0 items-start gap-2">
-                      <div className="flex flex-wrap justify-end gap-2">
+                    <div className="flex items-start gap-2 sm:shrink-0">
+                      <div className="flex flex-wrap gap-2 sm:justify-end">
                         <Badge
                           className={cn(
                             "justify-center",
