@@ -78,6 +78,5 @@ export const useUploadAvatar = () => {
 };
 
 export const isProfileComplete = (profile: Profile | null | undefined): boolean => {
-  return true;
-  // !!profile.full_name && profile.full_name.trim().length > 0;
+  return !!profile?.full_name && profile.full_name.trim().length > 0;
 };
