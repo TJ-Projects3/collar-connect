@@ -140,12 +140,12 @@ export const CandidateCard = ({
         {topSkills.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {topSkills.map((skill) => (
-              <Badge key={skill} variant="outline" className="text-xs">
-                {skill}
+              <Badge key={skill} variant="outline" className="max-w-full text-xs">
+                <span className="truncate">{skill}</span>
               </Badge>
             ))}
             {extraSkills > 0 && (
-              <Badge variant="outline" className="text-xs text-muted-foreground">
+              <Badge variant="outline" className="whitespace-nowrap text-xs text-muted-foreground">
                 +{extraSkills} more
               </Badge>
             )}
@@ -169,11 +169,11 @@ export const CandidateCard = ({
                 {getInitials(project.title)}
               </div>
             )}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Top project</p>
-              <p className="text-sm font-medium truncate">{project.title}</p>
+              <p className="text-sm font-medium truncate" title={project.title}>{project.title}</p>
               {candidate.projectCount > 1 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground truncate">
                   +{candidate.projectCount - 1} more project{candidate.projectCount > 2 ? "s" : ""}
                 </p>
               )}
@@ -186,17 +186,25 @@ export const CandidateCard = ({
         )}
 
         <div className="mt-auto flex flex-col sm:flex-row gap-2">
-          <Button className="flex-1 gap-2" onClick={handleContact} disabled={recordAccess.isPending}>
-            {scoped ? <Handshake className="h-4 w-4" /> : <MessageSquare className="h-4 w-4" />}
-            {scoped ? "Request Intro" : "Message Candidate"}
+          <Button
+            className="min-w-0 flex-1 gap-2"
+            onClick={handleContact}
+            disabled={recordAccess.isPending}
+          >
+            {scoped ? (
+              <Handshake className="h-4 w-4 flex-shrink-0" />
+            ) : (
+              <MessageSquare className="h-4 w-4 flex-shrink-0" />
+            )}
+            <span className="truncate">{scoped ? "Request Intro" : "Message Candidate"}</span>
           </Button>
           <Button
             variant="outline"
-            className="flex-1"
+            className="min-w-0 flex-1"
             onClick={handleViewProfile}
             disabled={recordAccess.isPending}
           >
-            View profile
+            <span className="truncate">View profile</span>
           </Button>
         </div>
       </CardContent>
