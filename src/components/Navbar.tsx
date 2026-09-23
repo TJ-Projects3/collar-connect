@@ -1,23 +1,14 @@
-import { canViewTalent } from "@/lib/profile-display";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Home,
-  Users,
-  Briefcase,
-  MessageSquare,
   Bell,
   Search,
   BookOpen,
   Calendar,
   ChevronDown,
-  Shield,
-  Menu,
-  HelpCircle,
-  Compass,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -26,17 +17,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { useProfile } from "@/hooks/useProfile";
-import { useAdminRole } from "@/hooks/useAdminRole";
-import { useUnreadNotificationCount, useGroupedNotifications, useMarkAllNotificationsRead, useClearAllNotifications } from "@/hooks/useNotifications";
+import {
+  useUnreadNotificationCount,
+  useGroupedNotifications,
+  useMarkAllNotificationsRead,
+  useClearAllNotifications,
+} from "@/hooks/useNotifications";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +40,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { MobileMenuSheet } from "@/components/layout/MobileMenuSheet";
+import { useNavDestinations, getInitials, isPathActive } from "@/components/layout/nav-items";
 
 interface NavItemProps {
   to: string;
@@ -61,6 +50,7 @@ interface NavItemProps {
   isActive?: boolean;
 }
 
+/** Desktop-only notification popover. */
 const NotificationBell = ({ currentPath }: { currentPath: string }) => {
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
   const { data: groups = [] } = useGroupedNotifications();
@@ -84,13 +74,15 @@ const NotificationBell = ({ currentPath }: { currentPath: string }) => {
           <button
             type="button"
             className={cn(
-              "flex flex-col items-center justify-center px-2 md:px-3 py-1 min-w-[60px] md:min-w-[80px] border-b-2 transition-colors hover:text-foreground relative",
-              currentPath === "/notifications" ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"
+              "flex flex-col items-center justify-center px-3 py-1 min-w-[80px] border-b-2 transition-colors hover:text-foreground relative",
+              currentPath === "/notifications"
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground"
             )}
             aria-label="Notifications"
           >
             <div className="relative">
-              <Bell className="h-5 w-5 md:h-6 md:w-6" />
+              <Bell className="h-6 w-6" />
               {unreadCount > 0 && (
                 <Badge
                   variant="destructive"
@@ -100,7 +92,7 @@ const NotificationBell = ({ currentPath }: { currentPath: string }) => {
                 </Badge>
               )}
             </div>
-            <span className="text-[10px] md:text-xs mt-1 hidden md:block">Notifications</span>
+            <span className="text-xs mt-1">Notifications</span>
           </button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-[22rem] p-0">
@@ -131,17 +123,9 @@ const NotificationBell = ({ currentPath }: { currentPath: string }) => {
               )}
             </div>
           </div>
-          <NotificationList
-            groups={groups.slice(0, 12)}
-            compact
-            onNavigate={() => setOpen(false)}
-          />
+          <NotificationList groups={groups.slice(0, 12)} compact onNavigate={() => setOpen(false)} />
           <div className="border-t px-3 py-2 text-center">
-            <Link
-              to="/notifications"
-              onClick={() => setOpen(false)}
-              className="text-sm text-primary hover:underline"
-            >
+            <Link to="/notifications" onClick={() => setOpen(false)} className="text-sm text-primary hover:underline">
               See all notifications
             </Link>
           </div>
@@ -172,104 +156,47 @@ const NotificationBell = ({ currentPath }: { currentPath: string }) => {
   );
 };
 
-
 const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
   <Link
     to={to}
     className={cn(
-      "flex flex-col items-center justify-center px-2 md:px-3 py-1 min-w-[60px] md:min-w-[80px] border-b-2 transition-colors hover:text-foreground",
-      isActive
-        ? "border-foreground text-foreground"
-        : "border-transparent text-muted-foreground"
+      "flex flex-col items-center justify-center px-3 py-1 min-w-[80px] border-b-2 transition-colors hover:text-foreground",
+      isActive ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"
     )}
   >
-    <Icon className="h-5 w-5 md:h-6 md:w-6" />
-    <span className="text-[10px] md:text-xs mt-1 hidden md:block">{label}</span>
+    <Icon className="h-6 w-6" />
+    <span className="text-xs mt-1">{label}</span>
   </Link>
 );
 
-interface MobileNavItemProps {
-  to: string;
-  icon: React.ElementType;
-  label: string;
-  isActive?: boolean;
-  onClick?: () => void;
-}
-
-const MobileNavItem = ({ to, icon: Icon, label, isActive, onClick }: MobileNavItemProps) => (
-  <Link
-    to={to}
-    onClick={onClick}
-    className={cn(
-      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-      isActive
-        ? "bg-primary/10 text-foreground font-medium"
-        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-    )}
-  >
-    <Icon className="h-5 w-5" />
-    <span className="text-sm">{label}</span>
-  </Link>
-);
-
+/**
+ * Top bar. Full navigation row on desktop (lg+); on phones and tablets it is a
+ * slim strip (logo + search, plus the hamburger on phones) because navigation
+ * lives in the bottom tab bar / left sidebar at those sizes.
+ */
 export const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const currentPath = location.pathname;
-  const { data: profile } = useProfile();
-  const { isAdmin } = useAdminRole();
+  const { profile, primary, adminItems } = useNavDestinations();
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error signing out", description: error.message, variant: "destructive" });
     } else {
       navigate("/auth");
     }
   };
 
-  const showTalent = canViewTalent(profile, isAdmin);
-
-  const navItems = [
-    { to: "/feed", icon: Home, label: "Home" },
-    { to: "/my-network", icon: Users, label: "My Network" },
-    { to: "/jobs", icon: Briefcase, label: "Jobs" },
-    ...(showTalent ? [{ to: "/talent", icon: Search, label: "Talent" }] : []),
-    { to: "/messages", icon: MessageSquare, label: "Messaging" },
-    { to: "/community", icon: HelpCircle, label: "Q&A" },
-  ];
-
-  // Destinations not present in the mobile bottom nav
-  const bottomNavPaths = ["/feed", "/my-network", "/community", "/messages", "/profile"];
-  const secondaryNavItems = navItems.filter((item) => !bottomNavPaths.includes(item.to));
-
-
-
-
-  const getInitials = (name: string | null | undefined) => {
-    if (!name) return "ME";
-    const names = name.trim().split(" ");
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
-
-  const closeMobileMenu = () => setMobileMenuOpen(false);
-
   return (
     <header className="sticky top-0 z-50 bg-card border-b">
       <div className="container mx-auto px-2 sm:px-4">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between h-14 gap-2">
           {/* Left: Logo + Search */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Link to="/feed" className="flex-shrink-0">
               <img
                 src="/ngc-transparent-logo.png"
@@ -277,54 +204,55 @@ export const Navbar = () => {
                 className="h-8 w-8 sm:h-9 sm:w-9 object-contain"
               />
             </Link>
-            <div className="hidden sm:block">
+            <div className="hidden sm:block min-w-0">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search"
-                  className="pl-9 w-[160px] lg:w-[280px] h-9 bg-muted/50 border-0 focus-visible:bg-background"
+                  className="pl-9 w-full max-w-[280px] md:w-[240px] lg:w-[280px] h-9 bg-muted/50 border-0 focus-visible:bg-background"
                   onClick={() => setSearchOpen(true)}
                   readOnly
                 />
               </div>
             </div>
-            {/* Mobile Search Button */}
+            {/* Mobile search button */}
             <Button
               variant="ghost"
               size="icon"
               className="sm:hidden h-9 w-9"
               onClick={() => setSearchOpen(true)}
+              aria-label="Search"
             >
               <Search className="h-5 w-5 text-muted-foreground" />
             </Button>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center h-full">
-            {navItems.map((item) => (
+          {/* Desktop navigation (lg and up) */}
+          <nav className="hidden lg:flex items-center h-full">
+            {primary.map((item) => (
               <NavItem
                 key={item.label}
                 to={item.to}
                 icon={item.icon}
                 label={item.label}
-                isActive={currentPath === item.to}
+                isActive={isPathActive(currentPath, item.to)}
               />
             ))}
 
             <NotificationBell currentPath={currentPath} />
 
-            {isAdmin && (
+            {adminItems.map((item) => (
               <NavItem
-                to="/admin"
-                icon={Shield}
-                label="Admin"
-                isActive={currentPath === "/admin"}
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                label={item.label}
+                isActive={isPathActive(currentPath, item.to)}
               />
-            )}
+            ))}
 
-            <div className="h-10 w-px bg-border mx-1 hidden lg:block" />
+            <div className="h-10 w-px bg-border mx-1" />
 
-            {/* Profile Dropdown - Desktop */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex flex-col items-center justify-center px-3 py-1 min-w-[80px] border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors">
@@ -334,7 +262,7 @@ export const Navbar = () => {
                       {getInitials(profile?.full_name)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-xs mt-1 hidden md:flex items-center gap-0.5">
+                  <span className="text-xs mt-1 flex items-center gap-0.5">
                     Me
                     <ChevronDown className="h-3 w-3" />
                   </span>
@@ -384,99 +312,8 @@ export const Navbar = () => {
             </DropdownMenu>
           </nav>
 
-          {/* Mobile Navigation — primary destinations live in the bottom nav */}
-          <div className="flex md:hidden items-center gap-1">
-            <NotificationBell currentPath={currentPath} />
-
-
-            {/* Mobile Menu */}
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] p-0">
-                <SheetHeader className="p-4 border-b">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {getInitials(profile?.full_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <SheetTitle className="text-left">{profile?.full_name || "My Profile"}</SheetTitle>
-                      <p className="text-xs text-muted-foreground">View profile</p>
-                    </div>
-                  </div>
-                </SheetHeader>
-                <div className="p-4 space-y-1">
-                  {/* Primary destinations live in the bottom nav; only secondary ones here */}
-                  {secondaryNavItems.map((item) => (
-                    <MobileNavItem
-                      key={item.label}
-                      to={item.to}
-                      icon={item.icon}
-                      label={item.label}
-                      isActive={currentPath === item.to}
-                      onClick={closeMobileMenu}
-                    />
-                  ))}
-                  {isAdmin && (
-                    <MobileNavItem
-                      to="/admin"
-                      icon={Shield}
-                      label="Admin"
-                      isActive={currentPath === "/admin"}
-                      onClick={closeMobileMenu}
-                    />
-                  )}
-                  <div className="my-2 border-t" />
-
-                  <MobileNavItem
-                    to="/calendar"
-                    icon={Calendar}
-                    label="Calendar"
-                    isActive={currentPath === "/calendar"}
-                    onClick={closeMobileMenu}
-                  />
-                  <MobileNavItem
-                    to="/career-mapping"
-                    icon={Compass}
-                    label="Career Mapping"
-                    isActive={currentPath === "/career-mapping"}
-                    onClick={closeMobileMenu}
-                  />
-
-                  <MobileNavItem
-                    to="/content-hub"
-                    icon={BookOpen}
-                    label="Content Hub"
-                    isActive={currentPath === "/content-hub"}
-                    onClick={closeMobileMenu}
-                  />
-                  <MobileNavItem
-                    to="/settings"
-                    icon={Shield}
-                    label="Settings & Privacy"
-                    isActive={currentPath === "/settings"}
-                    onClick={closeMobileMenu}
-                  />
-                  <div className="my-2 border-t" />
-                  <button
-                    onClick={() => {
-                      closeMobileMenu();
-                      handleSignOut();
-                    }}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  >
-                    <span className="text-sm">Sign Out</span>
-                  </button>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+          {/* Phone: hamburger menu for everything outside the bottom tab bar */}
+          <MobileMenuSheet />
         </div>
         <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
       </div>
