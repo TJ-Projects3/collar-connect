@@ -57,10 +57,14 @@ export const useMentionSearch = (term: string | null) => {
       const { data, error } = await query;
       if (error) throw error;
 
-      const rows = (data ?? []).map((p) => ({
-        ...p,
-        isConnection: connectionIds.has(p.id),
-      })) as MentionCandidate[];
+      const rows = (data ?? [])
+        .map((p) => ({
+          ...p,
+          isConnection: connectionIds.has(p.id),
+        }))
+        // Respect "only my connections can @mention me".
+        .filter((p: any) => p.isConnection || !p.mentions_connections_only)
+        .map(({ mentions_connections_only: _ignored, ...p }: any) => p) as MentionCandidate[];
 
       return rows
         .sort((a, b) => {
