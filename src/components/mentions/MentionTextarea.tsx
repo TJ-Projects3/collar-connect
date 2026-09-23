@@ -204,7 +204,10 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
             const el = e.currentTarget;
             syncQuery(el.value, el.selectionStart ?? el.value.length);
           }}
-          className={cn(className, "relative bg-transparent text-transparent caret-foreground")}
+          className={cn(
+            className,
+            "relative bg-transparent leading-normal text-transparent caret-foreground [overflow-wrap:break-word] [word-break:normal]",
+          )}
         />
 
         {open && (
