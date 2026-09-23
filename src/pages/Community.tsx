@@ -315,15 +315,17 @@ const QuestionDetail = ({ id }: { id: string }) => {
 
 
       <Card>
-        <CardContent className="p-5 flex gap-4">
-          <VoteBox
-            score={question.upvotes}
-            myVote={myQVotes?.get(question.id) ?? 0}
-            onVote={(v) => {
-              if (!requireAuth()) return;
-              vote.mutate({ questionId: question.id, value: v, current: myQVotes?.get(question.id) ?? 0 });
-            }}
-          />
+        <CardContent className="p-4 sm:p-5 flex gap-3 sm:gap-4">
+          <div className="flex-shrink-0">
+            <VoteBox
+              score={question.upvotes}
+              myVote={myQVotes?.get(question.id) ?? 0}
+              onVote={(v) => {
+                if (!requireAuth()) return;
+                vote.mutate({ questionId: question.id, value: v, current: myQVotes?.get(question.id) ?? 0 });
+              }}
+            />
+          </div>
           <div className="flex-1 min-w-0 space-y-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
               <h1 className="min-w-0 flex-1 text-xl sm:text-2xl font-bold leading-tight break-words">
