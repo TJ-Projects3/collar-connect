@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, ExternalLink, Loader2, MapPin, Trash2 } from "lucide-react";
+import { Briefcase, Building2, ExternalLink, Loader2, MapPin, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import {
   TRACKER_STATUSES,
@@ -26,6 +26,7 @@ interface TrackerBoardProps {
   onStatusChange: (jobId: string, status: JobApplicationStatus) => void;
   onNotesSave: (jobId: string, notes: string) => void;
   onRemove: (jobId: string) => void;
+  onBrowseJobs?: () => void;
 }
 
 const isSafeUrl = (url: string | null | undefined): boolean => {
@@ -43,6 +44,7 @@ export const TrackerBoard = ({
   onStatusChange,
   onNotesSave,
   onRemove,
+  onBrowseJobs,
 }: TrackerBoardProps) => {
   const [activeStatus, setActiveStatus] = useState<string>("all");
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
@@ -70,12 +72,26 @@ export const TrackerBoard = ({
 
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border py-12 text-center">
-        <p className="font-medium text-foreground">Your tracker is empty</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Save a job with the bookmark icon, or mark a role as applied after you apply.
-        </p>
-      </div>
+      <Card className="border-dashed">
+        <CardContent className="flex flex-col items-center gap-4 px-4 py-12 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <Briefcase className="h-6 w-6 text-primary" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-foreground">
+              Track your tech opportunities from application to offer
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Save a job with the bookmark icon, or mark a role as applied after you apply.
+            </p>
+          </div>
+          {onBrowseJobs && (
+            <Button className="gap-2" onClick={onBrowseJobs}>
+              <Briefcase className="h-4 w-4" /> Browse Tech Jobs
+            </Button>
+          )}
+        </CardContent>
+      </Card>
     );
   }
 

@@ -633,6 +633,7 @@ const Jobs = () => {
               });
             }}
             onRemove={(jobId) => deleteApplication.mutate(jobId)}
+            onBrowseJobs={() => setView("explore")}
           />
         )}
       </main>

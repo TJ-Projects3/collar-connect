@@ -15,7 +15,7 @@ import {
 import { formatDistanceToNow, format, isToday } from "date-fns";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Send, ArrowLeft, Users, Plus } from "lucide-react";
+import { Send, ArrowLeft, Users, Plus, MessageCircle } from "lucide-react";
 import { LinkifyText } from "@/components/LinkifyText";
 import { useRecruiterGate } from "@/hooks/useRecruiterGate";
 import { RecruiterStatusNotice } from "@/components/RecruiterStatusNotice";
@@ -397,12 +397,20 @@ const Messages = () => {
                 {composer}
               </>
             ) : (
-              <div className="flex flex-1 items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <p className="text-lg font-medium">Select a conversation</p>
-                  <p className="text-sm">
-                    Choose a recent chat, or tap New to message people and start groups.
-                  </p>
+              <div className="flex flex-1 items-center justify-center p-6">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                    <MessageCircle className="h-7 w-7 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-lg font-medium">No conversations open</p>
+                    <p className="text-sm text-muted-foreground">
+                      Message a connection one-on-one, or start a group chat.
+                    </p>
+                  </div>
+                  <Button className="gap-2" onClick={() => setNewChatOpen(true)}>
+                    <Plus className="h-4 w-4" /> Start a Chat
+                  </Button>
                 </div>
               </div>
             )}
