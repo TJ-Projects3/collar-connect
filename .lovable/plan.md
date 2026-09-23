@@ -5,7 +5,7 @@ Turn messaging from strictly one-to-one into conversation-based chats that can h
 ## What you'll be able to do
 
 - Start a new chat and pick more than one person (from your connections), give the group a name, and optionally a group picture.
-- See groups in the Recent Chats list with the group name and a stacked/初 group avatar, alongside your one-to-one chats.
+- See groups in the Recent Chats list with the group name and a group avatar, alongside your one-to-one chats.
 - Open a group, see who said what (each message shows the sender's name and avatar), and send messages with the same composer, mentions, and GIF support.
 - Open a group's member list to add connections, remove members, rename the group, leave the group, or promote another member to admin.
 - Group creators and promoted admins can rename, add, remove, and promote; regular members can only send messages and leave.
