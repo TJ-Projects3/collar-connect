@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GifPicker } from "@/components/GifPicker";
+import { MentionTextarea } from "@/components/mentions/MentionTextarea";
 
 const postSchema = z.object({
   content: z
@@ -153,10 +154,15 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Textarea
-                      placeholder="What's on your mind?"
+                    <MentionTextarea
+                      placeholder="What's on your mind? Use @ to tag someone"
                       className="min-h-[120px] resize-none border-none focus-visible:ring-0 text-base"
-                      {...field}
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value ?? ""}
+                      onValueChange={field.onChange}
+                      onBlur={field.onBlur}
+                      menuPlacement="bottom"
                       onKeyDownCapture={stopSpaceKeyPropagation}
                       onKeyDown={stopSpaceKeyPropagation}
                     />

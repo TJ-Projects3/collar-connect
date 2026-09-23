@@ -30,6 +30,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GifPicker } from "@/components/GifPicker";
 import { formatDistanceToNow } from "date-fns";
+import { MentionTextarea } from "@/components/mentions/MentionTextarea";
+import { LinkifyText } from "@/components/LinkifyText";
+import { stripMentionMarkup } from "@/lib/mentions";
 
 const replySchema = z.object({
   content: z
@@ -147,7 +150,7 @@ export const ReplyModal = ({
               <div className="flex-1">
                 <p className="font-semibold text-sm">{postAuthor}</p>
                 <p className="text-sm text-muted-foreground line-clamp-3 mt-1">
-                  {postContent}
+                  {stripMentionMarkup(postContent)}
                 </p>
               </div>
             </div>
@@ -181,7 +184,11 @@ export const ReplyModal = ({
                           {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
                         </span>
                       </div>
-                      {reply.content && <p className="text-sm mt-1">{reply.content}</p>}
+                      {reply.content && (
+                        <p className="text-sm mt-1 whitespace-pre-wrap">
+                          <LinkifyText>{reply.content}</LinkifyText>
+                        </p>
+                      )}
                       {reply.media_url && (
                         <img
                           src={reply.media_url}
@@ -220,10 +227,14 @@ export const ReplyModal = ({
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
-                        <Textarea
-                          placeholder="Write your reply..."
+                        <MentionTextarea
+                          placeholder="Write your reply... Use @ to tag someone"
                           className="min-h-[80px] resize-none"
-                          {...field}
+                          name={field.name}
+                          ref={field.ref}
+                          value={field.value ?? ""}
+                          onValueChange={field.onChange}
+                          onBlur={field.onBlur}
                           onKeyDownCapture={stopSpaceKeyPropagation}
                           onKeyDown={stopSpaceKeyPropagation}
                         />

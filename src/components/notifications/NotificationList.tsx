@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ThumbsUp,
   MessageSquare,
+  AtSign,
   X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -35,6 +36,8 @@ const icon = (type: string) => {
       return <ThumbsUp className="h-4 w-4 text-primary" />;
     case "post_reply":
       return <MessageSquare className="h-4 w-4 text-secondary" />;
+    case "mention":
+      return <AtSign className="h-4 w-4 text-primary" />;
     default:
       return <Bell className="h-4 w-4 text-primary" />;
   }
@@ -47,6 +50,7 @@ const typeLabel = (type: string) =>
     connection_request: "connection request",
     connection_accepted: "connection",
     message: "message",
+    mention: "mention",
   } as Record<string, string>)[type] || type;
 
 const getInitials = (name?: string | null) =>

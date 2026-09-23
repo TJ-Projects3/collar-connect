@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { GifPicker } from "@/components/GifPicker";
+import { MentionTextarea } from "@/components/mentions/MentionTextarea";
 
 interface CommentInputProps {
   postId: string;
@@ -132,10 +133,10 @@ export const CommentInput = ({ postId }: CommentInputProps) => {
           </div>
         )}
         <div className="relative">
-          <Textarea
+          <MentionTextarea
             ref={textareaRef}
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onValueChange={setValue}
             onKeyDownCapture={stopSpaceKeyPropagation}
             onKeyDown={handleKeyDown}
             placeholder="Write a comment..."
