@@ -261,6 +261,7 @@ export const useDeleteAnswer = () => {
       toast({ title: "Answer deleted" });
       qc.invalidateQueries({ queryKey: ["question-answers", questionId] });
       qc.invalidateQueries({ queryKey: ["question", questionId] });
+      qc.invalidateQueries({ queryKey: ["questions"] });
     },
   });
 };
@@ -280,6 +281,8 @@ export const useAcceptAnswer = () => {
     },
     onSuccess: ({ questionId }) => {
       qc.invalidateQueries({ queryKey: ["question-answers", questionId] });
+      qc.invalidateQueries({ queryKey: ["question", questionId] });
+      qc.invalidateQueries({ queryKey: ["questions"] });
     },
     onError: (e: any) => toast({ title: "Could not update answer", description: e.message, variant: "destructive" }),
   });
