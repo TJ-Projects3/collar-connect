@@ -166,14 +166,15 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
           className={cn(
             TEXTAREA_BASE,
             className,
-            "pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words border-transparent bg-transparent text-foreground",
+            "pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap border-transparent bg-transparent text-foreground",
+            "leading-normal [overflow-wrap:break-word] [word-break:normal]",
           )}
         >
           {segments.map((s, i) =>
             s.isMention ? (
               <span
                 key={`${s.rawStart}-${i}`}
-                className="rounded bg-primary/10 text-primary"
+                className="inline-block whitespace-nowrap rounded bg-primary/10 align-baseline leading-[inherit] text-primary"
               >
                 {s.text}
               </span>
