@@ -394,15 +394,17 @@ const QuestionDetail = ({ id }: { id: string }) => {
                 className={cn(a.is_accepted && "border-success bg-success-muted/40 ring-1 ring-success/30")}
               >
                 <CardContent className="p-4 flex gap-3">
-                  <VoteBox
-                    score={a.upvotes}
-                    myVote={myAVotes?.get(a.id) ?? 0}
-                    onVote={(v) => {
-                      if (!requireAuth()) return;
-                      vote.mutate({ answerId: a.id, value: v, current: myAVotes?.get(a.id) ?? 0 });
-                    }}
-                    size="sm"
-                  />
+                  <div className="flex-shrink-0">
+                    <VoteBox
+                      score={a.upvotes}
+                      myVote={myAVotes?.get(a.id) ?? 0}
+                      onVote={(v) => {
+                        if (!requireAuth()) return;
+                        vote.mutate({ answerId: a.id, value: v, current: myAVotes?.get(a.id) ?? 0 });
+                      }}
+                      size="sm"
+                    />
+                  </div>
                   <div className="flex-1 min-w-0 space-y-2">
                     {a.is_accepted && (
                       <Badge className="gap-1 bg-success text-success-foreground hover:bg-success">
@@ -420,7 +422,7 @@ const QuestionDetail = ({ id }: { id: string }) => {
                         isAnonymous={a.is_anonymous}
                         isSelf={user?.id === a.author_id}
                       />
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-1">
                         <MentorshipButton
                           profile={a.profiles}
                           size="sm"
