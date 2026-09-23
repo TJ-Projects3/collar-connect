@@ -15,6 +15,8 @@ import { Send, ArrowLeft } from "lucide-react";
 import { LinkifyText } from "@/components/LinkifyText";
 import { useRecruiterGate } from "@/hooks/useRecruiterGate";
 import { RecruiterStatusNotice } from "@/components/RecruiterStatusNotice";
+import { MentionTextarea } from "@/components/mentions/MentionTextarea";
+import { stripMentionMarkup } from "@/lib/mentions";
 
 
 const formatMessageTime = (dateStr: string) => {
@@ -234,14 +236,16 @@ const Messages = () => {
                     />
                   ) : (
                     <div className="flex gap-2">
-                      <Textarea
-                        placeholder="Type a message..."
-                        value={messageText}
-                        onChange={(e) => setMessageText(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="min-h-[44px] max-h-32 resize-none"
-                        rows={1}
-                      />
+                      <div className="flex-1">
+                        <MentionTextarea
+                          placeholder="Type a message... Use @ to tag someone"
+                          value={messageText}
+                          onValueChange={setMessageText}
+                          onKeyDown={handleKeyDown}
+                          className="min-h-[44px] max-h-32 resize-none"
+                          rows={1}
+                        />
+                      </div>
                       <Button
                         onClick={handleSend}
                         disabled={sendMessage.isPending || !messageText.trim()}
@@ -386,14 +390,16 @@ const NewConversationView = ({
           />
         ) : (
           <div className="flex gap-2">
-            <Textarea
-              placeholder="Type a message..."
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="min-h-[44px] max-h-32 resize-none"
-              rows={1}
-            />
+            <div className="flex-1">
+              <MentionTextarea
+                placeholder="Type a message... Use @ to tag someone"
+                value={messageText}
+                onValueChange={setMessageText}
+                onKeyDown={handleKeyDown}
+                className="min-h-[44px] max-h-32 resize-none"
+                rows={1}
+              />
+            </div>
             <Button
               onClick={handleSend}
               disabled={sendMessage.isPending || !messageText.trim()}
