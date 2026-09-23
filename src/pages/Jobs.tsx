@@ -240,7 +240,7 @@ const Jobs = () => {
 
         {/* View toggle: Explore / My Tracker */}
         <div
-          className="mb-4 inline-flex rounded-lg border border-border bg-muted/40 p-1"
+          className="mb-4 flex w-full rounded-lg border border-border bg-muted/40 p-1 sm:inline-flex sm:w-auto"
           role="group"
           aria-label="Job board view"
         >
@@ -249,7 +249,7 @@ const Jobs = () => {
             onClick={() => setView("explore")}
             aria-pressed={view === "explore"}
             className={cn(
-              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              "flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
               view === "explore"
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -262,7 +262,7 @@ const Jobs = () => {
             onClick={() => setView("tracker")}
             aria-pressed={view === "tracker"}
             className={cn(
-              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              "flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
               view === "tracker"
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -290,13 +290,13 @@ const Jobs = () => {
             variant={earlyCareerOnly ? "default" : "outline"}
             onClick={() => setEarlyCareerOnly((prev) => !prev)}
             aria-pressed={earlyCareerOnly}
-            className="md:w-auto"
+            className="h-auto w-full whitespace-normal py-2 text-left md:w-auto"
           >
-            <GraduationCap className="h-4 w-4 mr-2" />
+            <GraduationCap className="h-4 w-4 mr-2 shrink-0" />
             Internships &amp; Early Career
             <Badge
               variant={earlyCareerOnly ? "secondary" : "outline"}
-              className="ml-2"
+              className="ml-2 shrink-0"
             >
               {earlyCareerCount}
             </Badge>
@@ -304,19 +304,19 @@ const Jobs = () => {
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="md:w-auto"
+            className="w-full md:w-auto"
           >
-            <Filter className="h-4 w-4 mr-2" />
+            <Filter className="h-4 w-4 mr-2 shrink-0" />
             Filters
             {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="secondary" className="ml-2 shrink-0">
                 Active
               </Badge>
             )}
           </Button>
           {hasActiveFilters && (
-            <Button variant="ghost" onClick={clearFilters}>
-              <X className="h-4 w-4 mr-2" />
+            <Button variant="ghost" onClick={clearFilters} className="w-full md:w-auto">
+              <X className="h-4 w-4 mr-2 shrink-0" />
               Clear
             </Button>
           )}
@@ -331,7 +331,7 @@ const Jobs = () => {
               onClick={() => setSelectedTrack(track)}
               aria-pressed={selectedTrack === track}
               className={cn(
-                "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
+                "rounded-full border px-3 py-1.5 text-xs transition-colors sm:px-3.5 sm:text-sm",
                 selectedTrack === track
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -444,16 +444,39 @@ const Jobs = () => {
                   className="hover:shadow-lg transition-all duration-300 rounded-xl border-border/50"
                 >
                 <CardHeader className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 space-y-1">
-                      <CardTitle className="text-lg leading-tight">{job.title}</CardTitle>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Building2 className="h-4 w-4" />
-                        <span className="font-medium">{job.company}</span>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 items-start justify-between gap-2 sm:block sm:space-y-1">
+                      <div className="min-w-0 space-y-1">
+                        <CardTitle className="text-lg leading-tight break-words">{job.title}</CardTitle>
+                        <div className="flex items-start gap-2 text-muted-foreground">
+                          <Building2 className="h-4 w-4 shrink-0 mt-0.5" />
+                          <span className="font-medium break-words">{job.company}</span>
+                        </div>
                       </div>
+                      {/* Bookmark stays top-right of the title row on phones */}
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        aria-label={
+                          trackedByJobId.has(job.id) ? "Remove from tracker" : "Save job"
+                        }
+                        aria-pressed={trackedByJobId.has(job.id)}
+                        onClick={() => toggleSaved(job)}
+                        className="h-8 w-8 shrink-0 sm:hidden"
+                      >
+                        <Bookmark
+                          className={cn(
+                            "h-4 w-4",
+                            trackedByJobId.has(job.id)
+                              ? "fill-primary text-primary"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                      </Button>
                     </div>
-                    <div className="flex shrink-0 items-start gap-2">
-                      <div className="flex flex-wrap justify-end gap-2">
+                    <div className="flex items-start gap-2 sm:shrink-0">
+                      <div className="flex flex-wrap gap-2 sm:justify-end">
                         <Badge
                           className={cn(
                             "justify-center",
@@ -487,7 +510,7 @@ const Jobs = () => {
                         }
                         aria-pressed={trackedByJobId.has(job.id)}
                         onClick={() => toggleSaved(job)}
-                        className="h-8 w-8 shrink-0"
+                        className="hidden h-8 w-8 shrink-0 sm:inline-flex"
                       >
                         <Bookmark
                           className={cn(
@@ -500,17 +523,17 @@ const Jobs = () => {
                       </Button>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
                     {job.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {job.location}
+                      <span className="flex min-w-0 max-w-full items-start gap-1">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                        <span className="break-words">{job.location}</span>
                       </span>
                     )}
-                    {postedLabel && <span>{postedLabel}</span>}
+                    {postedLabel && <span className="whitespace-nowrap">{postedLabel}</span>}
                     {internship && (
                       <span className="flex items-center gap-1 text-success">
-                        <GraduationCap className="h-3.5 w-3.5" />
+                        <GraduationCap className="h-3.5 w-3.5 shrink-0" />
                         Great for students
                       </span>
                     )}

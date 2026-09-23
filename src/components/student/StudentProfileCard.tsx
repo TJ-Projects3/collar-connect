@@ -22,7 +22,7 @@ export const StudentProfileCard = ({ profile, isOwnProfile, onEdit }: Props) => 
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+      <CardHeader className="flex flex-col gap-2 space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="flex items-center gap-2 text-xl font-bold">
           <GraduationCap className="h-5 w-5 text-secondary" />
           Student profile

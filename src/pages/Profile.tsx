@@ -411,7 +411,7 @@ const Profile = () => {
                       {connectionCount ?? 0} connection{connectionCount !== 1 ? "s" : ""}
                     </Link>
                   </div>
-                  <div className="flex flex-wrap gap-2 sm:gap-3 sm:flex-shrink-0">
+                  <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:gap-3 sm:flex-shrink-0 [&>*]:w-full sm:[&>*]:w-auto">
 
                     {!isOwnProfile && (
                       <>
@@ -586,7 +586,7 @@ const Profile = () => {
 
             {/* Experience Section */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-xl font-bold">Experience</h2>
                 {isOwnProfile && (
                   <Button
