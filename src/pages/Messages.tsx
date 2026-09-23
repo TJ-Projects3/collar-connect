@@ -1,30 +1,39 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useConversations, useConversationMessages, useSendMessage } from "@/hooks/useMessaging";
+import {
+  useConversations,
+  useConversationMessages,
+  useSendMessage,
+  conversationDisplayName,
+  type ConversationSummary,
+} from "@/hooks/useMessaging";
 import { formatDistanceToNow, format, isToday } from "date-fns";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Send, ArrowLeft } from "lucide-react";
+import { Send, ArrowLeft, Users, Plus } from "lucide-react";
 import { LinkifyText } from "@/components/LinkifyText";
 import { useRecruiterGate } from "@/hooks/useRecruiterGate";
 import { RecruiterStatusNotice } from "@/components/RecruiterStatusNotice";
 import { MentionTextarea } from "@/components/mentions/MentionTextarea";
 import { stripMentionMarkup } from "@/lib/mentions";
-
+import { NewChatModal } from "@/components/messages/NewChatModal";
+import { GroupMembersSheet } from "@/components/messages/GroupMembersSheet";
 
 const formatMessageTime = (dateStr: string) => {
   const date = new Date(dateStr);
-  if (isToday(date)) {
-    return format(date, "h:mm a");
-  }
+  if (isToday(date)) return format(date, "h:mm a");
   return format(date, "M/d/yyyy, h:mm a");
+};
+
+const getInitials = (name: string | null | undefined) => {
+  if (!name) return "U";
+  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 };
 
 const Messages = () => {
@@ -34,102 +43,223 @@ const Messages = () => {
   const gate = useRecruiterGate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-
-
-  const [activeRecipient, setActiveRecipient] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [pendingRecipientId, setPendingRecipientId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
+  const [newChatOpen, setNewChatOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Get active recipient's profile from conversations
-  const activeConversation = conversations.find((c) => c.counterpart_id === activeRecipient);
+  const activeConversation = useMemo<ConversationSummary | null>(
+    () => conversations.find((c) => c.id === activeConversationId) ?? null,
+    [conversations, activeConversationId]
+  );
 
-  // Fetch messages for active conversation
-  const { data: messages = [], isLoading: messagesLoading } = useConversationMessages(activeRecipient);
+  const { data: messages = [], isLoading: messagesLoading } =
+    useConversationMessages(activeConversationId);
 
+  // Profile for a brand-new direct chat that has no conversation yet
+  const { data: pendingProfile } = useQuery({
+    queryKey: ["profile", pendingRecipientId],
+    enabled: !!pendingRecipientId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .eq("id", pendingRecipientId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
-  // Initialize from URL recipientId
+  // Sync from URL params
   useEffect(() => {
-    const rid = searchParams.get("recipientId");
-    if (rid) setActiveRecipient(rid);
-  }, [searchParams]);
+    const cid = searchParams.get("conversationId");
+    if (cid) {
+      setActiveConversationId(cid);
+      setPendingRecipientId(null);
+      return;
+    }
 
-  // Scroll to bottom when messages change
+    const rid = searchParams.get("recipientId");
+    if (!rid) return;
+
+    const existing = conversations.find((c) => !c.is_group && c.counterpart_id === rid);
+    if (existing) {
+      setActiveConversationId(existing.id);
+      setPendingRecipientId(null);
+    } else {
+      setActiveConversationId(null);
+      setPendingRecipientId(rid);
+    }
+  }, [searchParams, conversations]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, pendingRecipientId]);
 
-  const getInitials = (name: string | null | undefined) => {
-    if (!name) return "U";
-    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-  };
-
-  const startChat = (recipientId: string) => {
-    setActiveRecipient(recipientId);
+  const openConversation = (conversationId: string) => {
+    setActiveConversationId(conversationId);
+    setPendingRecipientId(null);
     setSearchParams((prev) => {
       const params = new URLSearchParams(prev);
+      params.delete("recipientId");
+      params.set("conversationId", conversationId);
+      return params;
+    });
+  };
+
+  const openDirect = (recipientId: string) => {
+    const existing = conversations.find((c) => !c.is_group && c.counterpart_id === recipientId);
+    if (existing) {
+      openConversation(existing.id);
+      return;
+    }
+    setActiveConversationId(null);
+    setPendingRecipientId(recipientId);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.delete("conversationId");
       params.set("recipientId", recipientId);
       return params;
     });
   };
 
-  const handleSend = () => {
-    if (!activeRecipient || !messageText.trim()) return;
-    sendMessage.mutate({ recipientId: activeRecipient, content: messageText.trim() });
+  const closeThread = () => {
+    setActiveConversationId(null);
+    setPendingRecipientId(null);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.delete("conversationId");
+      params.delete("recipientId");
+      return params;
+    });
+  };
+
+  const handleSend = async () => {
+    const content = messageText.trim();
+    if (!content) return;
+
+    if (activeConversation?.is_group) {
+      await sendMessage.mutateAsync({
+        conversationId: activeConversation.id,
+        content,
+        isGroup: true,
+      });
+      setMessageText("");
+      return;
+    }
+
+    const recipientId = activeConversation?.counterpart_id ?? pendingRecipientId;
+    if (!recipientId) return;
+
+    const result = await sendMessage.mutateAsync({ recipientId, content });
     setMessageText("");
+    const conversationId = result?.[0]?.conversation_id;
+    if (conversationId && !activeConversationId) openConversation(conversationId);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   };
+
+  const threadOpen = !!activeConversationId || !!pendingRecipientId;
+
+  const composer = (
+    <div className="border-t p-4">
+      {gate.restricted ? (
+        <RecruiterStatusNotice
+          status={gate.status}
+          action="message members"
+          className="border-0 shadow-none"
+        />
+      ) : (
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <MentionTextarea
+              placeholder="Type a message... Use @ to tag someone"
+              value={messageText}
+              onValueChange={setMessageText}
+              onKeyDown={handleKeyDown}
+              className="min-h-[44px] max-h-32 resize-none"
+              rows={1}
+            />
+          </div>
+          <Button
+            onClick={() => void handleSend()}
+            disabled={sendMessage.isPending || !messageText.trim()}
+            size="icon"
+            className="shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="container mx-auto grid grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-12">
         {/* Left: Recent Chats */}
-        <aside className={`lg:col-span-4 ${activeRecipient ? "hidden lg:block" : "block"}`}>
+        <aside className={`lg:col-span-4 ${threadOpen ? "hidden lg:block" : "block"}`}>
           <Card className="h-[calc(100vh-12rem)] md:h-[calc(100vh-8rem)]">
-            <CardHeader className="border-b">
+            <CardHeader className="flex flex-row items-center justify-between border-b py-4">
               <h3 className="font-semibold">Recent Chats</h3>
+              <Button size="sm" variant="outline" onClick={() => setNewChatOpen(true)}>
+                <Plus className="mr-1 h-4 w-4" />
+                New
+              </Button>
             </CardHeader>
-            <ScrollArea className="h-[calc(100%-4rem)]">
+            <ScrollArea className="h-[calc(100%-4.5rem)]">
               <CardContent className="p-2">
                 {conversations.length === 0 ? (
-                  <p className="text-sm text-muted-foreground p-4 text-center">
-                    No recent messages. Visit a profile to start a conversation.
+                  <p className="p-4 text-center text-sm text-muted-foreground">
+                    No chats yet. Tap New to message a connection or start a group.
                   </p>
                 ) : (
                   conversations.map((c) => (
                     <button
-                      key={c.counterpart_id}
-                      className={`w-full text-left rounded-lg transition-colors ${
-                        activeRecipient === c.counterpart_id
-                          ? "bg-primary/10"
-                          : "hover:bg-muted/50"
+                      key={c.id}
+                      className={`w-full rounded-lg text-left transition-colors ${
+                        activeConversationId === c.id ? "bg-primary/10" : "hover:bg-muted/50"
                       }`}
-                      onClick={() => startChat(c.counterpart_id)}
+                      onClick={() => openConversation(c.id)}
                     >
                       <div className="flex items-center gap-3 p-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={c.counterpart_profile?.avatar_url || undefined} />
-                          <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                            {getInitials(c.counterpart_profile?.full_name)}
+                          <AvatarImage
+                            src={
+                              (c.is_group ? c.avatar_url : c.counterpart_profile?.avatar_url) ||
+                              undefined
+                            }
+                          />
+                          <AvatarFallback className="bg-primary text-xs text-primary-foreground">
+                            {c.is_group ? (
+                              <Users className="h-4 w-4" />
+                            ) : (
+                              getInitials(c.counterpart_profile?.full_name)
+                            )}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {c.counterpart_profile?.full_name || "Unknown"}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">
+                            {conversationDisplayName(c)}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate">
+                          <p className="truncate text-xs text-muted-foreground">
                             {c.last_message?.content
                               ? stripMentionMarkup(c.last_message.content)
-                              : ""}
+                              : c.is_group
+                                ? `${c.participants.length} members`
+                                : ""}
                           </p>
                         </div>
-                        <div className="text-xs text-muted-foreground shrink-0">
+                        <div className="shrink-0 text-xs text-muted-foreground">
                           {c.last_message?.created_at &&
                             formatDistanceToNow(new Date(c.last_message.created_at), {
                               addSuffix: false,
@@ -145,65 +275,96 @@ const Messages = () => {
         </aside>
 
         {/* Right: Chat Area */}
-        <main className={`lg:col-span-8 ${activeRecipient ? "block" : "hidden lg:block"}`}>
-          <Card className="h-[calc(100vh-12rem)] md:h-[calc(100vh-8rem)] flex flex-col">
-            {activeRecipient && activeConversation ? (
+        <main className={`lg:col-span-8 ${threadOpen ? "block" : "hidden lg:block"}`}>
+          <Card className="flex h-[calc(100vh-12rem)] flex-col md:h-[calc(100vh-8rem)]">
+            {threadOpen ? (
               <>
-                {/* Chat Header */}
-                <CardHeader className="border-b flex flex-row items-center gap-2 py-3">
+                <CardHeader className="flex flex-row items-center gap-2 border-b py-3">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="lg:hidden h-9 w-9 -ml-2"
-                    onClick={() => {
-                      setActiveRecipient(null);
-                      setSearchParams((prev) => {
-                        const params = new URLSearchParams(prev);
-                        params.delete("recipientId");
-                        return params;
-                      });
-                    }}
+                    className="-ml-2 h-9 w-9 lg:hidden"
+                    onClick={closeThread}
                     aria-label="Back to conversations"
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
-                  <Link to={`/profile?userId=${activeRecipient}`}>
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={activeConversation.counterpart_profile?.avatar_url || undefined}
-                      />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                        {getInitials(activeConversation.counterpart_profile?.full_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Link>
-                  <div>
-                    <Link
-                      to={`/profile?userId=${activeRecipient}`}
-                      className="font-semibold hover:underline"
-                    >
-                      {activeConversation.counterpart_profile?.full_name || "Unknown"}
-                    </Link>
-                  </div>
+
+                  {activeConversation?.is_group ? (
+                    <>
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={activeConversation.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          <Users className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold">
+                          {activeConversation.title || "Group chat"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {activeConversation.participants.length} members
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)}>
+                        Members
+                      </Button>
+                    </>
+                  ) : (
+                    (() => {
+                      const otherId =
+                        activeConversation?.counterpart_id ?? pendingRecipientId ?? "";
+                      const profile =
+                        activeConversation?.counterpart_profile ?? pendingProfile ?? null;
+                      return (
+                        <>
+                          <Link to={`/profile?userId=${otherId}`}>
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={profile?.avatar_url || undefined} />
+                              <AvatarFallback className="bg-primary text-sm text-primary-foreground">
+                                {getInitials(profile?.full_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                          </Link>
+                          <Link
+                            to={`/profile?userId=${otherId}`}
+                            className="truncate font-semibold hover:underline"
+                          >
+                            {profile?.full_name || "Loading..."}
+                          </Link>
+                        </>
+                      );
+                    })()
+                  )}
                 </CardHeader>
 
-                {/* Messages Container */}
                 <ScrollArea className="flex-1 p-4">
-                  {messagesLoading ? (
-                    <p className="text-center text-muted-foreground py-8">Loading messages...</p>
+                  {messagesLoading && activeConversationId ? (
+                    <p className="py-8 text-center text-muted-foreground">Loading messages...</p>
                   ) : messages.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
+                    <p className="py-8 text-center text-muted-foreground">
                       No messages yet. Send a message to start the conversation!
                     </p>
                   ) : (
                     <div className="space-y-4">
                       {messages.map((msg) => {
                         const isOwn = msg.sender_id === user?.id;
+                        const showSender = !!activeConversation?.is_group && !isOwn;
                         return (
                           <div
                             key={msg.id}
-                            className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                            className={`flex items-end gap-2 ${isOwn ? "justify-end" : "justify-start"}`}
                           >
+                            {showSender && (
+                              <Link to={`/profile?userId=${msg.sender_id}`} className="shrink-0">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={msg.sender_profile?.avatar_url || undefined} />
+                                  <AvatarFallback className="bg-primary text-[10px] text-primary-foreground">
+                                    {getInitials(msg.sender_profile?.full_name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                              </Link>
+                            )}
                             <div
                               className={`max-w-[70%] rounded-lg px-4 py-2 ${
                                 isOwn
@@ -211,13 +372,20 @@ const Messages = () => {
                                   : "bg-muted text-foreground"
                               }`}
                             >
-                              <p className="text-sm whitespace-pre-wrap break-words"><LinkifyText>{msg.content}</LinkifyText></p>
+                              {showSender && (
+                                <p className="mb-0.5 text-xs font-medium text-muted-foreground">
+                                  {msg.sender_profile?.full_name || "Unknown"}
+                                </p>
+                              )}
+                              <p className="whitespace-pre-wrap break-words text-sm">
+                                <LinkifyText>{msg.content}</LinkifyText>
+                              </p>
                               <p
-                                className={`text-xs mt-1 ${
+                                className={`mt-1 text-xs ${
                                   isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
                                 }`}
                               >
-{formatMessageTime(msg.created_at)}
+                                {formatMessageTime(msg.created_at)}
                               </p>
                             </div>
                           </div>
@@ -228,193 +396,38 @@ const Messages = () => {
                   )}
                 </ScrollArea>
 
-                {/* Input Area */}
-                <div className="border-t p-4">
-                  {gate.restricted ? (
-                    <RecruiterStatusNotice
-                      status={gate.status}
-                      action="message members"
-                      className="border-0 shadow-none"
-                    />
-                  ) : (
-                    <div className="flex gap-2">
-                      <div className="flex-1">
-                        <MentionTextarea
-                          placeholder="Type a message... Use @ to tag someone"
-                          value={messageText}
-                          onValueChange={setMessageText}
-                          onKeyDown={handleKeyDown}
-                          className="min-h-[44px] max-h-32 resize-none"
-                          rows={1}
-                        />
-                      </div>
-                      <Button
-                        onClick={handleSend}
-                        disabled={sendMessage.isPending || !messageText.trim()}
-                        size="icon"
-                        className="shrink-0"
-                      >
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
+                {composer}
               </>
-            ) : activeRecipient && !activeConversation ? (
-              // New conversation - need to fetch recipient profile
-              <NewConversationView
-                recipientId={activeRecipient}
-                messageText={messageText}
-                setMessageText={setMessageText}
-                handleSend={handleSend}
-                handleKeyDown={handleKeyDown}
-                sendMessage={sendMessage}
-                getInitials={getInitials}
-              />
             ) : (
-              <div className="flex-1 flex items-center justify-center">
+              <div className="flex flex-1 items-center justify-center">
                 <div className="text-center text-muted-foreground">
                   <p className="text-lg font-medium">Select a conversation</p>
-                  <p className="text-sm">Choose from your recent chats or visit a profile to message someone.</p>
+                  <p className="text-sm">
+                    Choose a recent chat, or tap New to message people and start groups.
+                  </p>
                 </div>
               </div>
             )}
           </Card>
         </main>
       </div>
+
+      <NewChatModal
+        open={newChatOpen}
+        onOpenChange={setNewChatOpen}
+        onStartDirect={openDirect}
+        onGroupCreated={openConversation}
+      />
+
+      {activeConversation?.is_group && (
+        <GroupMembersSheet
+          open={membersOpen}
+          onOpenChange={setMembersOpen}
+          conversation={activeConversation}
+          onLeft={closeThread}
+        />
+      )}
     </div>
-  );
-};
-
-// Component for starting a new conversation (when recipient isn't in conversations yet)
-const NewConversationView = ({
-  recipientId,
-  messageText,
-  setMessageText,
-  handleSend,
-  handleKeyDown,
-  sendMessage,
-  getInitials,
-}: {
-  recipientId: string;
-  messageText: string;
-  setMessageText: (text: string) => void;
-  handleSend: () => void;
-  handleKeyDown: (e: React.KeyboardEvent) => void;
-  sendMessage: ReturnType<typeof useSendMessage>;
-  getInitials: (name: string | null | undefined) => string;
-}) => {
-  const { data: messages = [], isLoading: messagesLoading } = useConversationMessages(recipientId);
-  const { user } = useAuth();
-  const gate = useRecruiterGate();
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Fetch recipient profile
-  const { data: recipientProfile } = useQuery({
-    queryKey: ["profile", recipientId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("full_name, avatar_url")
-        .eq("id", recipientId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!recipientId,
-  });
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  return (
-    <>
-      <CardHeader className="border-b flex flex-row items-center gap-3 py-3">
-        <Link to={`/profile?userId=${recipientId}`}>
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={recipientProfile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-              {getInitials(recipientProfile?.full_name)}
-            </AvatarFallback>
-          </Avatar>
-        </Link>
-        <div>
-          <Link to={`/profile?userId=${recipientId}`} className="font-semibold hover:underline">
-            {recipientProfile?.full_name || "Loading..."}
-          </Link>
-        </div>
-      </CardHeader>
-
-      <ScrollArea className="flex-1 p-4">
-        {messagesLoading ? (
-          <p className="text-center text-muted-foreground py-8">Loading messages...</p>
-        ) : messages.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">
-            Send a message to start the conversation!
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {messages.map((msg) => {
-              const isOwn = msg.sender_id === user?.id;
-              return (
-                <div key={msg.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                      isOwn ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap break-words"><LinkifyText>{msg.content}</LinkifyText></p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
-                      }`}
-                    >
-{formatMessageTime(msg.created_at)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </ScrollArea>
-
-      <div className="border-t p-4">
-        {gate.restricted ? (
-          <RecruiterStatusNotice
-            status={gate.status}
-            action="message members"
-            className="border-0 shadow-none"
-          />
-        ) : (
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <MentionTextarea
-                placeholder="Type a message... Use @ to tag someone"
-                value={messageText}
-                onValueChange={setMessageText}
-                onKeyDown={handleKeyDown}
-                className="min-h-[44px] max-h-32 resize-none"
-                rows={1}
-              />
-            </div>
-            <Button
-              onClick={handleSend}
-              disabled={sendMessage.isPending || !messageText.trim()}
-              size="icon"
-              className="shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-    </>
   );
 };
 
