@@ -4,39 +4,64 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-interface MessageProfile {
+export interface MessageProfile {
+  id: string;
   full_name: string | null;
   avatar_url: string | null;
 }
 
-interface Conversation {
-  counterpart_id: string;
-  counterpart_profile: MessageProfile | null;
-  last_message: {
-    content: string;
-    created_at: string;
-  } | null;
+export interface ConversationParticipant {
+  user_id: string;
+  role: "admin" | "member";
+  joined_at: string;
+  profile: MessageProfile | null;
 }
 
-interface Message {
+export interface ConversationSummary {
   id: string;
+  is_group: boolean;
+  title: string | null;
+  avatar_url: string | null;
+  created_by: string | null;
+  my_role: "admin" | "member";
+  participants: ConversationParticipant[];
+  /** Only set for 1:1 conversations */
+  counterpart_id: string | null;
+  counterpart_profile: MessageProfile | null;
+  last_message: { content: string; created_at: string } | null;
+}
+
+export interface Message {
+  id: string;
+  conversation_id: string;
   sender_id: string;
-  recipient_id: string;
+  recipient_id: string | null;
   content: string;
   created_at: string;
 }
 
-// Fetch profile by ID
-const fetchProfile = async (userId: string): Promise<MessageProfile | null> => {
+const fetchProfiles = async (ids: string[]): Promise<Map<string, MessageProfile>> => {
+  const map = new Map<string, MessageProfile>();
+  const unique = Array.from(new Set(ids.filter(Boolean)));
+  if (unique.length === 0) return map;
+
   const { data } = await supabase
     .from("profiles")
-    .select("full_name, avatar_url")
-    .eq("id", userId)
-    .maybeSingle();
-  return data;
+    .select("id, full_name, avatar_url")
+    .in("id", unique);
+
+  for (const p of data ?? []) map.set(p.id, p as MessageProfile);
+  return map;
 };
 
-// List conversations with last message per counterpart
+export const conversationDisplayName = (
+  c: Pick<ConversationSummary, "is_group" | "title" | "counterpart_profile">
+) => {
+  if (c.is_group) return c.title || "Group chat";
+  return c.counterpart_profile?.full_name || "Unknown";
+};
+
+// List conversations (direct + group) ordered by most recent activity
 export const useConversations = () => {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -48,257 +73,179 @@ export const useConversations = () => {
     gcTime: 1000 * 60 * 5,
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
-    queryFn: async () => {
-      console.log("[useConversations] Fetching messages for user:", user!.id);
-      
-      // Fetch messages without profile joins (no FK required)
-      const { data: messages, error } = await supabase
-        .from("messages")
-        .select("id, sender_id, recipient_id, content, created_at")
-        .or(`sender_id.eq.${user!.id},recipient_id.eq.${user!.id}`)
-        .order("created_at", { ascending: false });
+    queryFn: async (): Promise<ConversationSummary[]> => {
+      const { data: myRows, error: myErr } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id, role")
+        .eq("user_id", user!.id);
+      if (myErr) throw myErr;
+      if (!myRows || myRows.length === 0) return [];
 
-      if (error) {
-        console.error("[useConversations] Error fetching messages:", error);
-        throw error;
+      const conversationIds = myRows.map((r) => r.conversation_id);
+      const myRoleById = new Map(myRows.map((r) => [r.conversation_id, (r.role ?? "member") as "admin" | "member"]));
+
+      const [{ data: convos, error: convoErr }, { data: participants, error: partErr }] =
+        await Promise.all([
+          supabase
+            .from("conversations")
+            .select("id, is_group, title, avatar_url, created_by, last_message, last_message_at, created_at")
+            .in("id", conversationIds),
+          supabase
+            .from("conversation_participants")
+            .select("conversation_id, user_id, role, joined_at")
+            .in("conversation_id", conversationIds),
+        ]);
+      if (convoErr) throw convoErr;
+      if (partErr) throw partErr;
+
+      const profiles = await fetchProfiles((participants ?? []).map((p) => p.user_id));
+
+      const byConversation = new Map<string, ConversationParticipant[]>();
+      for (const p of participants ?? []) {
+        const list = byConversation.get(p.conversation_id) ?? [];
+        list.push({
+          user_id: p.user_id,
+          role: (p.role ?? "member") as "admin" | "member",
+          joined_at: p.joined_at,
+          profile: profiles.get(p.user_id) ?? null,
+        });
+        byConversation.set(p.conversation_id, list);
       }
 
-      console.log("[useConversations] Got messages:", messages?.length || 0);
-
-      if (!messages || messages.length === 0) {
-        return [];
-      }
-
-      // Group by counterpart and get unique counterpart IDs
-      const counterpartMap = new Map<string, Message>();
-      for (const m of messages) {
-        const counterpartId = m.sender_id === user!.id ? m.recipient_id : m.sender_id;
-        if (!counterpartMap.has(counterpartId)) {
-          counterpartMap.set(counterpartId, m);
-        }
-      }
-
-      // Fetch all counterpart profiles in parallel
-      const counterpartIds = Array.from(counterpartMap.keys());
-      const profilePromises = counterpartIds.map(id => fetchProfile(id));
-      const profiles = await Promise.all(profilePromises);
-
-      // Build conversations array
-      const conversations: Conversation[] = counterpartIds.map((id, index) => {
-        const lastMsg = counterpartMap.get(id)!;
+      const summaries: ConversationSummary[] = (convos ?? []).map((c) => {
+        const members = byConversation.get(c.id) ?? [];
+        const counterpart = c.is_group ? null : members.find((m) => m.user_id !== user!.id) ?? null;
         return {
-          counterpart_id: id,
-          counterpart_profile: profiles[index],
-          last_message: { content: lastMsg.content, created_at: lastMsg.created_at },
+          id: c.id,
+          is_group: !!c.is_group,
+          title: c.title,
+          avatar_url: c.avatar_url,
+          created_by: c.created_by,
+          my_role: myRoleById.get(c.id) ?? "member",
+          participants: members,
+          counterpart_id: counterpart?.user_id ?? null,
+          counterpart_profile: counterpart?.profile ?? null,
+          last_message:
+            c.last_message && c.last_message_at
+              ? { content: c.last_message, created_at: c.last_message_at }
+              : null,
         };
       });
 
-      console.log("[useConversations] Built conversations:", conversations.length);
-      return conversations;
+      return summaries.sort((a, b) => {
+        const at = a.last_message?.created_at ?? "";
+        const bt = b.last_message?.created_at ?? "";
+        return bt.localeCompare(at);
+      });
     },
   });
 
-  // Set up real-time subscription for incoming messages
+  // Real-time: refresh lists and open threads on new messages
   useEffect(() => {
     if (!user?.id) return;
 
-    const subscription = supabase
+    const channel = supabase
       .channel("messages-realtime")
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `recipient_id=eq.${user.id}`,
-        },
-        async (payload) => {
-          const newMessage = payload.new as Message;
-          const senderId = newMessage.sender_id;
-
-          console.log("[useConversations] Real-time message from:", senderId);
-
-          // Fetch sender profile
-          const senderProfile = await fetchProfile(senderId);
-
-          // Update cache
-          qc.setQueryData(["conversations", user.id], (old: Conversation[] | undefined) => {
-            const newConversation: Conversation = {
-              counterpart_id: senderId,
-              counterpart_profile: senderProfile,
-              last_message: { content: newMessage.content, created_at: newMessage.created_at },
-            };
-
-            if (!old || old.length === 0) {
-              return [newConversation];
-            }
-
-            const idx = old.findIndex((c) => c.counterpart_id === senderId);
-            if (idx >= 0) {
-              const updated = [...old];
-              const [conversation] = updated.splice(idx, 1);
-              conversation.last_message = { content: newMessage.content, created_at: newMessage.created_at };
-              return [conversation, ...updated];
-            }
-
-            return [newConversation, ...old];
-          });
-
-          // Invalidate conversation messages if viewing this chat
-          qc.invalidateQueries({ queryKey: ["conversation-messages", senderId] });
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const msg = payload.new as Message;
+          qc.invalidateQueries({ queryKey: ["conversations", user.id] });
+          qc.invalidateQueries({ queryKey: ["conversation-messages", msg.conversation_id] });
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(subscription);
+      supabase.removeChannel(channel);
     };
   }, [user?.id, qc]);
 
   return query;
 };
 
-// Fetch all messages between current user and a specific recipient
-export const useConversationMessages = (recipientId: string | null) => {
-  const { user } = useAuth();
-  const qc = useQueryClient();
-
-  const query = useQuery({
-    queryKey: ["conversation-messages", recipientId],
-    enabled: !!user?.id && !!recipientId,
-    staleTime: 0,
-    queryFn: async () => {
-      console.log("[useConversationMessages] Fetching for user:", user!.id, "recipient:", recipientId);
-      
-      // Query without profile joins - just get messages
-      const { data, error } = await supabase
-        .from("messages")
-        .select("id, sender_id, recipient_id, content, created_at")
-        .or(
-          `and(sender_id.eq.${user!.id},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${user!.id})`
-        )
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        console.error("[useConversationMessages] Error:", error);
-        throw error;
-      }
-
-      console.log("[useConversationMessages] Got messages:", data?.length || 0);
-      return data as Message[];
-    },
-  });
-
-  // Real-time subscription for new messages in this conversation
-  useEffect(() => {
-    if (!user?.id || !recipientId) return;
-
-    const subscription = supabase
-      .channel(`chat-${recipientId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-        },
-        (payload) => {
-          const newMessage = payload.new as Message;
-          // Only update if message is part of this conversation
-          const isRelevant =
-            (newMessage.sender_id === user.id && newMessage.recipient_id === recipientId) ||
-            (newMessage.sender_id === recipientId && newMessage.recipient_id === user.id);
-
-          if (isRelevant) {
-            console.log("[useConversationMessages] Real-time update for conversation");
-            qc.invalidateQueries({ queryKey: ["conversation-messages", recipientId] });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, [user?.id, recipientId, qc]);
-
-  return query;
+// Resolve the direct conversation with a given user, if one already exists
+export const useDirectConversationId = (recipientId: string | null) => {
+  const { data: conversations = [] } = useConversations();
+  if (!recipientId) return null;
+  return conversations.find((c) => !c.is_group && c.counterpart_id === recipientId)?.id ?? null;
 };
 
-// Send a message
+// Messages for a conversation, with sender profiles resolved
+export const useConversationMessages = (conversationId: string | null) => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["conversation-messages", conversationId],
+    enabled: !!user?.id && !!conversationId,
+    staleTime: 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id, conversation_id, sender_id, recipient_id, content, created_at")
+        .eq("conversation_id", conversationId!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+
+      const profiles = await fetchProfiles((data ?? []).map((m) => m.sender_id));
+      return (data ?? []).map((m) => ({
+        ...(m as Message),
+        sender_profile: profiles.get(m.sender_id) ?? null,
+      }));
+    },
+  });
+};
+
+export type MessageWithSender = Message & { sender_profile: MessageProfile | null };
+
+// Send a message to a group conversation or a direct recipient
 export const useSendMessage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ recipientId, content }: { recipientId: string; content: string }) => {
+    mutationFn: async ({
+      conversationId,
+      recipientId,
+      content,
+      isGroup,
+    }: {
+      conversationId?: string | null;
+      recipientId?: string | null;
+      content: string;
+      isGroup?: boolean;
+    }) => {
       if (!user?.id) throw new Error("Not authenticated");
-      console.log("[useSendMessage] Sending to:", recipientId);
-      
+
+      if (isGroup) {
+        if (!conversationId) throw new Error("Missing conversation");
+        const { data, error } = await supabase.rpc("send_group_message", {
+          _conversation_id: conversationId,
+          _content: content,
+        });
+        if (error) throw error;
+        return data as Message[];
+      }
+
+      if (!recipientId) throw new Error("Missing recipient");
       const { data, error } = await supabase.rpc("send_dm", {
         sender: user.id,
         recipient: recipientId,
         message_text: content,
       });
-      if (error) {
-        console.error("[useSendMessage] Error:", error);
-        throw error;
+      if (error) throw error;
+      return data as Message[];
+    },
+    onSuccess: (data) => {
+      const inserted = data?.[0];
+      qc.invalidateQueries({ queryKey: ["conversations", user?.id] });
+      if (inserted?.conversation_id) {
+        qc.invalidateQueries({ queryKey: ["conversation-messages", inserted.conversation_id] });
       }
-      console.log("[useSendMessage] Success:", data);
-      return data;
     },
-    onSuccess: async (data, { recipientId }) => {
-      // Fetch recipient profile
-      const counterpartProfile = await fetchProfile(recipientId);
-
-      const inserted = (data as Message[])?.[0];
-
-      // DB trigger (trigger_notify_on_message) handles notification creation automatically
-      // Notification with title/body will be inserted into notifications table
-      // Email sending would be handled separately by backend service or Edge Function
-      // checking email_preferences table
-
-      // Instant UI update: inject or update the counterpart in Recent Chats
-      qc.setQueryData(["conversations", user?.id], (old: Conversation[] | undefined) => {
-        const lastMessage = inserted
-          ? { content: inserted.content, created_at: inserted.created_at }
-          : null;
-
-        if (!old || old.length === 0) {
-          return [
-            {
-              counterpart_id: recipientId,
-              counterpart_profile: counterpartProfile,
-              last_message: lastMessage,
-            },
-          ];
-        }
-
-        const idx = old.findIndex((c) => c.counterpart_id === recipientId);
-        if (idx >= 0) {
-          const updated = [...old];
-          const [conversation] = updated.splice(idx, 1);
-          conversation.last_message = lastMessage;
-          conversation.counterpart_profile = conversation.counterpart_profile ?? counterpartProfile;
-          return [conversation, ...updated];
-        }
-
-        return [
-          {
-            counterpart_id: recipientId,
-            counterpart_profile: counterpartProfile,
-            last_message: lastMessage,
-          },
-          ...old,
-        ];
-      });
-
-      // Invalidate messages for this conversation
-      qc.invalidateQueries({ queryKey: ["conversation-messages", recipientId] });
-
-      toast({ title: "Message sent" });
-    },
-    onError: (e: Error) => toast({ title: "Failed to send", description: e.message, variant: "destructive" }),
+    onError: (e: Error) =>
+      toast({ title: "Failed to send", description: e.message, variant: "destructive" }),
   });
 };
