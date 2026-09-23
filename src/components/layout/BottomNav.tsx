@@ -1,27 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, HelpCircle, MessageSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useUnreadNotificationCount } from "@/hooks/useNotifications";
-
-interface BottomNavEntry {
-  to: string;
-  label: string;
-  icon: React.ElementType;
-}
-
-const ENTRIES: BottomNavEntry[] = [
-  { to: "/feed", label: "Home", icon: Home },
-  { to: "/my-network", label: "Network", icon: Users },
-  { to: "/community", label: "Q&A", icon: HelpCircle },
-  { to: "/messages", label: "Messages", icon: MessageSquare },
-  { to: "/profile", label: "Profile", icon: User },
-];
+import { BOTTOM_NAV, isPathActive } from "./nav-items";
 
 /**
- * Fixed mobile-only bottom navigation.
- * Rendered once for authenticated routes; pages get bottom padding via the
- * shared layout wrapper so content never sits underneath it.
+ * Fixed mobile-only bottom tab bar (under 768px).
+ * Content spacing is handled by AppShell so nothing sits underneath it.
  */
 export const BottomNav = () => {
   const { pathname } = useLocation();
@@ -33,9 +18,9 @@ export const BottomNav = () => {
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="grid grid-cols-5">
-        {ENTRIES.map(({ to, label, icon: Icon }) => {
-          const isActive = pathname === to || pathname.startsWith(`${to}/`);
-          const showBadge = to === "/messages" && unreadCount > 0;
+        {BOTTOM_NAV.map(({ to, label, icon: Icon }) => {
+          const isActive = isPathActive(pathname, to);
+          const showBadge = to === "/notifications" && unreadCount > 0;
 
           return (
             <li key={to} className="min-w-0">
@@ -55,7 +40,7 @@ export const BottomNav = () => {
                   )}
                 />
                 <span className="relative">
-                  <Icon className={cn("h-5 w-5", isActive && "fill-current/0")} strokeWidth={isActive ? 2.5 : 2} />
+                  <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
                   {showBadge && (
                     <Badge
                       variant="destructive"
