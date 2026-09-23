@@ -69,6 +69,18 @@ export const HIRING_FOCUS_SUGGESTIONS = [
 
 export const WORK_TYPE_OPTIONS = ["Remote", "Hybrid", "On-Site"];
 
+/** Broad tech domains an industry professional/mentor works in. */
+export const TECH_DOMAIN_OPTIONS = [
+  "Software Engineering",
+  "Cloud / DevOps",
+  "Cybersecurity",
+  "Data / AI",
+  "Product Management",
+  "IT Support / Networking",
+  "Mobile Development",
+  "UX / Design",
+];
+
 export const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",

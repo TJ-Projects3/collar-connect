@@ -1,8 +1,5 @@
-import { useState, useRef } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Camera, Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Camera, GraduationCap, Briefcase, Users, ArrowLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,108 +7,166 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChipsInput } from "@/components/ChipsInput";
+import { ModalActions } from "@/components/layout/ModalActions";
 import { useToast } from "@/hooks/use-toast";
 import { useUpdateProfile, useUploadAvatar } from "@/hooks/useProfile";
+import {
+  MONTHS,
+  HIRING_FOCUS_SUGGESTIONS,
+  TECH_DOMAIN_OPTIONS,
+} from "@/lib/profile-options";
+import { cn } from "@/lib/utils";
 
-const onboardingSchema = z.object({
-  full_name: z.string().min(1, "Full name is required").max(100, "Name must be less than 100 characters"),
-  job_title: z.string().max(100, "Job title must be less than 100 characters").optional().or(z.literal("")),
-  location: z.string().max(100, "Location must be less than 100 characters").optional().or(z.literal("")),
-  company: z.string().max(100, "Company must be less than 100 characters").optional().or(z.literal("")),
-  bio: z.string().max(500, "Bio must be less than 500 characters").optional().or(z.literal("")),
-  website: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
-});
+type Role = "student" | "industry" | "recruiter";
 
-type OnboardingFormData = z.infer<typeof onboardingSchema>;
+const ROLE_CARDS: {
+  role: Role;
+  title: string;
+  description: string;
+  icon: typeof GraduationCap;
+}[] = [
+  {
+    role: "student",
+    title: "Student / Early Career",
+    description: "Build your profile, find internships and mentors.",
+    icon: GraduationCap,
+  },
+  {
+    role: "industry",
+    title: "Industry Professional / Mentor",
+    description: "Share expertise, mentor students, grow your network.",
+    icon: Users,
+  },
+  {
+    role: "recruiter",
+    title: "Recruiter / Talent Lead",
+    description: "Discover student talent and post roles.",
+    icon: Briefcase,
+  },
+];
 
 interface OnboardingModalProps {
   open: boolean;
   onComplete: () => void;
 }
 
+const currentYear = new Date().getFullYear();
+const GRAD_YEARS = Array.from({ length: 12 }, (_, i) => currentYear - 4 + i);
+
 export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
+  const [step, setStep] = useState<1 | 2>(1);
+  const [role, setRole] = useState<Role | null>(null);
+
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Shared
+  const [fullName, setFullName] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [location, setLocation] = useState("");
+  const [bio, setBio] = useState("");
+
+  // Student
+  const [university, setUniversity] = useState("");
+  const [major, setMajor] = useState("");
+  const [gradMonth, setGradMonth] = useState<string>("");
+  const [gradYear, setGradYear] = useState<string>("");
+
+  // Mentor
+  const [currentCompany, setCurrentCompany] = useState("");
+  const [techDomains, setTechDomains] = useState<string[]>([]);
+  const [mentorshipOptIn, setMentorshipOptIn] = useState(true);
+
+  // Recruiter
+  const [companyName, setCompanyName] = useState("");
+  const [hiringRoles, setHiringRoles] = useState<string[]>([]);
+
   const { toast } = useToast();
-  
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
 
-  const form = useForm<OnboardingFormData>({
-    resolver: zodResolver(onboardingSchema),
-    defaultValues: {
-      full_name: "",
-      job_title: "",
-      location: "",
-      company: "",
-      bio: "",
-      website: "",
-    },
-  });
-
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please select an image under 5MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      setAvatarFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setAvatarPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image under 5MB",
+        variant: "destructive",
+      });
+      return;
     }
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setAvatarPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
   };
 
-  const onSubmit = async (data: OnboardingFormData) => {
+  const pickRole = (next: Role) => {
+    setRole(next);
+    setStep(2);
+  };
+
+  const onSubmit = async () => {
+    if (!role) return;
+    if (!fullName.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter your full name to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       let avatarUrl: string | undefined;
+      if (avatarFile) avatarUrl = await uploadAvatar.mutateAsync(avatarFile);
 
-      // Upload avatar if selected
-      if (avatarFile) {
-        avatarUrl = await uploadAvatar.mutateAsync(avatarFile);
+      const updates: Record<string, unknown> = {
+        profile_type: role,
+        full_name: fullName.trim(),
+        job_title: headline.trim() || null,
+        location: location.trim() || null,
+        bio: bio.trim() || null,
+        ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
+      };
+
+      if (role === "student") {
+        updates.university = university.trim() || null;
+        updates.major = major.trim() || null;
+        updates.graduation_year = gradYear ? Number(gradYear) : null;
+        updates.graduation_month = gradMonth ? Number(gradMonth) : null;
+      } else if (role === "industry") {
+        updates.current_company = currentCompany.trim() || null;
+        updates.industry_company = currentCompany.trim() || null;
+        updates.areas_of_expertise = techDomains;
+        updates.mentorship_opt_in = mentorshipOptIn;
+      } else {
+        updates.company_name = companyName.trim() || null;
+        updates.hiring_roles = hiringRoles;
       }
 
-      // Update profile
-      await updateProfile.mutateAsync({
-        full_name: data.full_name,
-        job_title: data.job_title || null,
-        location: data.location || null,
-        company: data.company || null,
-        bio: data.bio || null,
-        website: data.website || null,
-        ...(avatarUrl && { avatar_url: avatarUrl }),
-      });
+      await updateProfile.mutateAsync(updates as never);
 
       toast({
         title: "Welcome to NextGen Collar!",
-        description: "Your profile has been set up successfully.",
+        description: "Your profile is set up.",
       });
-
       onComplete();
     } catch (error) {
       console.error("Failed to complete onboarding:", error);
@@ -127,37 +182,63 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent 
-        className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto"
+      <DialogContent
+        className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
-            Welcome to NextGen Collar!
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Step {step} of 2
+          </p>
+          <DialogTitle className="text-2xl font-bold">
+            {step === 1 ? "Welcome to NextGen Collar!" : "Tell us about you"}
           </DialogTitle>
-          <DialogDescription className="text-center">
-            Let's set up your profile to get started. Tell us a bit about yourself.
+          <DialogDescription>
+            {step === 1
+              ? "First, which best describes you? We'll tailor your profile to match."
+              : "A few details so people know who they're connecting with."}
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-            {/* Avatar Upload */}
-            <div className="flex flex-col items-center gap-2">
+        {step === 1 ? (
+          <div className="mt-2 grid gap-3">
+            {ROLE_CARDS.map(({ role: r, title, description, icon: Icon }) => (
               <button
+                key={r}
                 type="button"
-                onClick={handleAvatarClick}
-                className="relative group"
+                onClick={() => pickRole(r)}
+                className={cn(
+                  "flex items-start gap-3 rounded-xl border p-4 text-left transition-colors hover:border-primary hover:bg-accent/10",
+                  role === r ? "border-primary bg-accent/10" : "border-border"
+                )}
               >
+                <span className="rounded-lg bg-primary/10 p-2 text-primary">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold">{title}</span>
+                  <span className="block text-sm text-muted-foreground">{description}</span>
+                </span>
+              </button>
+            ))}
+            <p className="text-xs text-muted-foreground">
+              Recruiter accounts are reviewed by our team before talent search unlocks.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-2 space-y-5">
+            {/* Avatar */}
+            <div className="flex flex-col items-center gap-2">
+              <button type="button" onClick={() => fileInputRef.current?.click()} className="relative group">
                 <Avatar className="h-24 w-24 border-4 border-secondary">
                   <AvatarImage src={avatarPreview || undefined} />
-                  <AvatarFallback className="bg-muted text-muted-foreground text-2xl">
-                    {form.watch("full_name")?.[0]?.toUpperCase() || "?"}
+                  <AvatarFallback className="bg-muted text-2xl text-muted-foreground">
+                    {fullName?.[0]?.toUpperCase() || "?"}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera className="h-6 w-6 text-white" />
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 opacity-0 transition-opacity group-hover:opacity-100">
+                  <Camera className="h-6 w-6 text-primary-foreground" />
                 </div>
               </button>
               <input
@@ -167,124 +248,190 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
                 onChange={handleFileChange}
                 className="hidden"
               />
-              <span className="text-sm text-muted-foreground">
-                Click to upload profile picture
-              </span>
+              <span className="text-sm text-muted-foreground">Click to upload a profile photo</span>
             </div>
 
-            {/* Full Name - Required */}
-            <FormField
-              control={form.control}
-              name="full_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Full Name <span className="text-destructive">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your full name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="ob-name">
+                Full Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="ob-name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter your full name"
+              />
+            </div>
 
-            {/* Job Title */}
-            <FormField
-              control={form.control}
-              name="job_title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Job Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Software Engineer" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="ob-headline">Headline</Label>
+              <Input
+                id="ob-headline"
+                value={headline}
+                onChange={(e) => setHeadline(e.target.value)}
+                placeholder={
+                  role === "student"
+                    ? "e.g., CS Student seeking Summer 2027 internships"
+                    : role === "recruiter"
+                    ? "e.g., Technical Recruiter at Acme"
+                    : "e.g., Senior Software Engineer"
+                }
+              />
+            </div>
 
-            {/* Company */}
-            <FormField
-              control={form.control}
-              name="company"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Where do you work?" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="ob-location">Location</Label>
+              <Input
+                id="ob-location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="City, State"
+              />
+            </div>
 
-            {/* Location */}
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <FormControl>
-                    <Input placeholder="City, Country" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {role === "student" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="ob-school">School / Bootcamp</Label>
+                  <Input
+                    id="ob-school"
+                    value={university}
+                    onChange={(e) => setUniversity(e.target.value)}
+                    placeholder="e.g., Georgia State University"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ob-major">Major</Label>
+                  <Input
+                    id="ob-major"
+                    value={major}
+                    onChange={(e) => setMajor(e.target.value)}
+                    placeholder="e.g., Computer Science"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Expected Graduation</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Select value={gradMonth} onValueChange={setGradMonth}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MONTHS.map((m, i) => (
+                          <SelectItem key={m} value={String(i + 1)}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={gradYear} onValueChange={setGradYear}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GRAD_YEARS.map((y) => (
+                          <SelectItem key={y} value={String(y)}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </>
+            )}
 
-            {/* Bio */}
-            <FormField
-              control={form.control}
-              name="bio"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bio</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Tell us a bit about yourself..."
-                      className="resize-none"
-                      rows={3}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {role === "industry" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="ob-company">Current Company</Label>
+                  <Input
+                    id="ob-company"
+                    value={currentCompany}
+                    onChange={(e) => setCurrentCompany(e.target.value)}
+                    placeholder="Where do you work?"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tech Domain</Label>
+                  <ChipsInput
+                    value={techDomains}
+                    onChange={setTechDomains}
+                    suggestions={TECH_DOMAIN_OPTIONS}
+                    placeholder="e.g., Cloud, Security"
+                  />
+                </div>
+                <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-3">
+                  <div>
+                    <p className="text-sm font-medium">Open to mentorship</p>
+                    <p className="text-xs text-muted-foreground">
+                      Let students request guidance from you.
+                    </p>
+                  </div>
+                  <Switch checked={mentorshipOptIn} onCheckedChange={setMentorshipOptIn} />
+                </div>
+              </>
+            )}
 
-            {/* Website */}
-            <FormField
-              control={form.control}
-              name="website"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website or LinkedIn</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {role === "recruiter" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="ob-hiring-company">Hiring Company</Label>
+                  <Input
+                    id="ob-hiring-company"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Company you recruit for"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Roles You Hire For</Label>
+                  <ChipsInput
+                    value={hiringRoles}
+                    onChange={setHiringRoles}
+                    suggestions={HIRING_FOCUS_SUGGESTIONS}
+                    placeholder="e.g., Internships, New Grad Roles"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Your account will be reviewed before talent search unlocks.
+                </p>
+              </>
+            )}
 
+            <div className="space-y-2">
+              <Label htmlFor="ob-bio">Short bio</Label>
+              <Textarea
+                id="ob-bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={3}
+                className="resize-none"
+                placeholder="Tell people a bit about yourself..."
+              />
+            </div>
+
+            <ModalActions
+              submitLabel="Complete setup"
+              pendingLabel="Saving..."
+              cancelLabel="Back"
+              onCancel={() => setStep(1)}
+              onSubmit={onSubmit}
+              isPending={isSubmitting}
+              disabled={!fullName.trim()}
+            />
             <Button
-              type="submit"
-              className="w-full"
+              type="button"
+              variant="link"
+              size="sm"
+              className="w-full sm:hidden"
+              onClick={() => setStep(1)}
               disabled={isSubmitting}
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Complete Setup"
-              )}
+              <ArrowLeft className="mr-1 h-3 w-3" /> Change role
             </Button>
-          </form>
-        </Form>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
