@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GifPicker } from "@/components/GifPicker";
+import { EmojiPicker } from "@/components/EmojiPicker";
 import { MentionTextarea } from "@/components/mentions/MentionTextarea";
 
 const postSchema = z.object({
@@ -57,6 +58,7 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
   const fileRef = useRef<HTMLInputElement>(null);
   const [media, setMedia] = useState<{ url: string; type: "image" | "gif" } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const insertRef = useRef<((text: string) => void) | null>(null);
 
   const form = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
