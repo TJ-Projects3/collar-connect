@@ -93,31 +93,21 @@ export const CandidateCard = ({
           </Link>
 
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="order-last ml-auto h-7 w-7 text-muted-foreground hover:text-destructive"
-                aria-label="Block this user"
-                onClick={() => setBlockOpen(true)}
-              >
-                <UserX className="h-4 w-4" />
-              </Button>
-              <Link
-                to={`/profile?userId=${candidate.id}`}
-                className="font-semibold hover:underline break-words"
-              >
-                {candidate.full_name || "Unnamed student"}
-              </Link>
-              {candidate.isVerifiedIntern && (
-                <Badge className="gap-1 border-transparent bg-[hsl(43_96%_50%)] text-[hsl(30_60%_15%)] hover:bg-[hsl(43_96%_45%)]">
-                  <BadgeCheck className="h-3 w-3" />
-                  NextGen Verified Intern
-                </Badge>
-              )}
-            </div>
+            <Link
+              to={`/profile?userId=${candidate.id}`}
+              className="block truncate font-semibold hover:underline"
+              title={candidate.full_name || "Unnamed student"}
+            >
+              {candidate.full_name || "Unnamed student"}
+            </Link>
+            {candidate.isVerifiedIntern && (
+              <Badge className="mt-1 max-w-full gap-1 whitespace-nowrap border-transparent bg-[hsl(43_96%_50%)] text-[hsl(30_60%_15%)] hover:bg-[hsl(43_96%_45%)]">
+                <BadgeCheck className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">NextGen Verified Intern</span>
+              </Badge>
+            )}
             {meta.length > 0 && (
-              <p className="text-sm text-muted-foreground mt-1 break-words">
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2 break-words">
                 {meta.join(" · ")}
               </p>
             )}
@@ -129,12 +119,22 @@ export const CandidateCard = ({
               </div>
             )}
             {availability && (
-              <Badge variant="secondary" className="mt-2 gap-1">
-                <GraduationCap className="h-3 w-3" />
-                {availability}
+              <Badge variant="secondary" className="mt-2 max-w-full gap-1 whitespace-nowrap">
+                <GraduationCap className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">{availability}</span>
               </Badge>
             )}
           </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-destructive"
+            aria-label="Block this user"
+            onClick={() => setBlockOpen(true)}
+          >
+            <UserX className="h-4 w-4" />
+          </Button>
         </div>
 
         {topSkills.length > 0 && (
