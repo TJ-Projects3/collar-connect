@@ -392,9 +392,13 @@ const Profile = () => {
                     )}
 
 
-                    <Link to="/my-network" className="text-sm text-primary hover:underline font-medium inline-block">
-                      {connectionCount ?? 0} connection{connectionCount !== 1 ? "s" : ""}
-                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setConnectionsOpen(true)}
+                      className="text-sm text-primary hover:underline font-medium inline-block text-left"
+                    >
+                      {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
+                    </button>
                   </div>
                   <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:gap-3 sm:flex-shrink-0 [&>*]:w-full sm:[&>*]:w-auto">
 
