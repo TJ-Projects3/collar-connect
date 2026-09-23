@@ -31,6 +31,10 @@ export interface Question {
   tags: string[];
   upvotes: number;
   answer_count: number;
+  /** Live count derived from question_answers */
+  answerCount: number;
+  /** True when one of the answers is marked accepted */
+  hasAcceptedAnswer: boolean;
   is_anonymous: boolean;
   created_at: string;
   updated_at: string;
