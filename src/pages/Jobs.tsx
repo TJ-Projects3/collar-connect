@@ -290,13 +290,13 @@ const Jobs = () => {
             variant={earlyCareerOnly ? "default" : "outline"}
             onClick={() => setEarlyCareerOnly((prev) => !prev)}
             aria-pressed={earlyCareerOnly}
-            className="md:w-auto"
+            className="h-auto w-full whitespace-normal py-2 text-left md:w-auto"
           >
-            <GraduationCap className="h-4 w-4 mr-2" />
+            <GraduationCap className="h-4 w-4 mr-2 shrink-0" />
             Internships &amp; Early Career
             <Badge
               variant={earlyCareerOnly ? "secondary" : "outline"}
-              className="ml-2"
+              className="ml-2 shrink-0"
             >
               {earlyCareerCount}
             </Badge>
@@ -304,19 +304,19 @@ const Jobs = () => {
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="md:w-auto"
+            className="w-full md:w-auto"
           >
-            <Filter className="h-4 w-4 mr-2" />
+            <Filter className="h-4 w-4 mr-2 shrink-0" />
             Filters
             {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="secondary" className="ml-2 shrink-0">
                 Active
               </Badge>
             )}
           </Button>
           {hasActiveFilters && (
-            <Button variant="ghost" onClick={clearFilters}>
-              <X className="h-4 w-4 mr-2" />
+            <Button variant="ghost" onClick={clearFilters} className="w-full md:w-auto">
+              <X className="h-4 w-4 mr-2 shrink-0" />
               Clear
             </Button>
           )}
@@ -331,7 +331,7 @@ const Jobs = () => {
               onClick={() => setSelectedTrack(track)}
               aria-pressed={selectedTrack === track}
               className={cn(
-                "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
+                "rounded-full border px-3 py-1.5 text-xs transition-colors sm:px-3.5 sm:text-sm",
                 selectedTrack === track
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
