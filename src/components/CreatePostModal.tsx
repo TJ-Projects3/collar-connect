@@ -19,13 +19,14 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Image as ImageIcon, Smile, X, Loader2 } from "lucide-react";
+import { Image as ImageIcon, ImagePlay, Smile, X, Loader2 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useCreatePost } from "@/hooks/usePosts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GifPicker } from "@/components/GifPicker";
+import { EmojiPicker } from "@/components/EmojiPicker";
 import { MentionTextarea } from "@/components/mentions/MentionTextarea";
 
 const postSchema = z.object({
@@ -57,6 +58,7 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
   const fileRef = useRef<HTMLInputElement>(null);
   const [media, setMedia] = useState<{ url: string; type: "image" | "gif" } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const insertRef = useRef<((text: string) => void) | null>(null);
 
   const form = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
@@ -163,6 +165,7 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
                       onValueChange={field.onChange}
                       onBlur={field.onBlur}
                       menuPlacement="bottom"
+                      insertRef={insertRef}
                       onKeyDownCapture={stopSpaceKeyPropagation}
                       onKeyDown={stopSpaceKeyPropagation}
                     />
@@ -234,8 +237,23 @@ export const CreatePostModal = ({ open, onOpenChange, initialContent }: CreatePo
                       disabled={!!media}
                       className="text-muted-foreground hover:text-primary gap-2"
                     >
-                      <Smile className="h-4 w-4" />
+                      <ImagePlay className="h-4 w-4" />
                       <span>GIF</span>
+                    </Button>
+                  }
+                />
+                <EmojiPicker
+                  align="start"
+                  onSelect={(emoji) => insertRef.current?.(emoji)}
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-primary gap-2"
+                    >
+                      <Smile className="h-4 w-4" />
+                      <span>Emoji</span>
                     </Button>
                   }
                 />

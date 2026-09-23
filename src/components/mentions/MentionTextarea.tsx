@@ -28,11 +28,19 @@ interface MentionTextareaProps extends TextareaProps {
   onValueChange: (value: string) => void;
   /** Where the suggestion list opens relative to the field. */
   menuPlacement?: "top" | "bottom";
+  /**
+   * Receives a callback that inserts text at the current caret position
+   * (used by the emoji picker).
+   */
+  insertRef?: React.MutableRefObject<((text: string) => void) | null>;
 }
 
-/** Base shadcn textarea classes, mirrored by the highlight overlay. */
+/**
+ * Base shadcn textarea classes, mirrored by the highlight overlay.
+ * Must stay block-level (never `flex`) so mention spans flow inline with text.
+ */
 const TEXTAREA_BASE =
-  "flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm";
+  "block min-h-[80px] w-full rounded-md border px-3 py-2 text-sm";
 
 const initialsOf = (name: string | null) =>
   (name || "U")
@@ -48,7 +56,10 @@ const initialsOf = (name: string | null) =>
  * styled `@Name` so the UUID never reaches the user.
  */
 export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(
-  ({ value, onValueChange, onKeyDown, menuPlacement = "top", className, ...rest }, forwardedRef) => {
+  (
+    { value, onValueChange, onKeyDown, menuPlacement = "top", insertRef, className, ...rest },
+    forwardedRef,
+  ) => {
     const innerRef = useRef<HTMLTextAreaElement | null>(null);
     const overlayRef = useRef<HTMLDivElement | null>(null);
     const [query, setQuery] = useState<string | null>(null);
@@ -108,6 +119,29 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
       pendingCaret.current = mapRawIndexToDisplay(nextSegments.segments, rawCaret);
       syncQuery(nextSegments.display, pendingCaret.current ?? caret);
     };
+
+    /** Inserts plain text (e.g. an emoji) at the caret, replacing any selection. */
+    const insertAtCaret = (text: string) => {
+      const el = innerRef.current;
+      const displayStart = el?.selectionStart ?? display.length;
+      const displayEnd = el?.selectionEnd ?? displayStart;
+      const rawStart = mapDisplayIndexToRaw(segments, displayStart, "start");
+      const rawEnd = Math.max(rawStart, mapDisplayIndexToRaw(segments, displayEnd, "end"));
+      const nextRaw = `${value.slice(0, rawStart)}${text}${value.slice(rawEnd)}`;
+      onValueChange(nextRaw);
+
+      const nextSegments = toDisplayText(nextRaw);
+      pendingCaret.current = mapRawIndexToDisplay(nextSegments.segments, rawStart + text.length);
+      requestAnimationFrame(() => innerRef.current?.focus());
+    };
+
+    useEffect(() => {
+      if (!insertRef) return;
+      insertRef.current = insertAtCaret;
+      return () => {
+        insertRef.current = null;
+      };
+    });
 
     const insert = (candidate: MentionCandidate) => {
       if (!range) return;
@@ -173,7 +207,7 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
             s.isMention ? (
               <span
                 key={`${s.rawStart}-${i}`}
-                className="bg-primary/10 font-semibold text-primary"
+                className="inline-flex flex-row items-center whitespace-nowrap rounded-[3px] bg-primary/10 align-baseline font-semibold leading-[inherit] text-primary [font-size:inherit]"
               >
                 {s.text}
               </span>
