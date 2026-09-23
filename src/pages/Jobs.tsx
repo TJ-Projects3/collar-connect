@@ -249,7 +249,7 @@ const Jobs = () => {
             onClick={() => setView("explore")}
             aria-pressed={view === "explore"}
             className={cn(
-              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              "flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
               view === "explore"
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -262,7 +262,7 @@ const Jobs = () => {
             onClick={() => setView("tracker")}
             aria-pressed={view === "tracker"}
             className={cn(
-              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              "flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
               view === "tracker"
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
