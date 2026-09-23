@@ -84,6 +84,17 @@ const Settings = () => {
     }
   };
 
+  const handleMentionPrivacy = async (checked: boolean) => {
+    try {
+      await updateProfile.mutateAsync({ mentions_connections_only: checked } as any);
+      toast.success(
+        checked ? "Only your connections can @mention you" : "Anyone can @mention you"
+      );
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to update mention setting");
+    }
+  };
+
   const handleTextField = async (field: string, value: string) => {
     try {
       await updateProfile.mutateAsync({ [field]: value.trim() || null } as any);
