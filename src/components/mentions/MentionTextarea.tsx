@@ -1,8 +1,24 @@
-import { forwardRef, useMemo, useRef, useState, type KeyboardEvent, type TextareaHTMLAttributes } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type TextareaHTMLAttributes,
+} from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { buildMentionToken, findActiveMentionQuery } from "@/lib/mentions";
+import {
+  applyDisplayEdit,
+  buildMentionToken,
+  findActiveMentionQuery,
+  mapDisplayIndexToRaw,
+  mapRawIndexToDisplay,
+  toDisplayText,
+} from "@/lib/mentions";
 import { useMentionSearch, type MentionCandidate } from "@/hooks/useMentionSearch";
 
 type TextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange">;
@@ -14,6 +30,10 @@ interface MentionTextareaProps extends TextareaProps {
   menuPlacement?: "top" | "bottom";
 }
 
+/** Base shadcn textarea classes, mirrored by the highlight overlay. */
+const TEXTAREA_BASE =
+  "flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm";
+
 const initialsOf = (name: string | null) =>
   (name || "U")
     .split(" ")
@@ -23,15 +43,20 @@ const initialsOf = (name: string | null) =>
     .slice(0, 2);
 
 /**
- * Textarea with @mention autocomplete. Inserts `@[Full Name](uuid)` markers,
- * which the display layer renders as profile links.
+ * Textarea with @mention autocomplete. The value the parent owns keeps the
+ * `@[Full Name](uuid)` markers, while the field itself shows a clean, pill
+ * styled `@Name` so the UUID never reaches the user.
  */
 export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(
   ({ value, onValueChange, onKeyDown, menuPlacement = "top", className, ...rest }, forwardedRef) => {
     const innerRef = useRef<HTMLTextAreaElement | null>(null);
+    const overlayRef = useRef<HTMLDivElement | null>(null);
     const [query, setQuery] = useState<string | null>(null);
     const [range, setRange] = useState<{ start: number; end: number } | null>(null);
     const [highlighted, setHighlighted] = useState(0);
+    const pendingCaret = useRef<number | null>(null);
+
+    const { display, segments } = useMemo(() => toDisplayText(value), [value]);
 
     const { data: candidates = [] } = useMentionSearch(query);
     const open = query !== null && candidates.length > 0;
@@ -41,6 +66,25 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
       if (typeof forwardedRef === "function") forwardedRef(el);
       else if (forwardedRef) (forwardedRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = el;
     };
+
+    // Restore the caret after the parent re-renders with the new raw value.
+    useLayoutEffect(() => {
+      const caret = pendingCaret.current;
+      if (caret === null) return;
+      pendingCaret.current = null;
+      const el = innerRef.current;
+      if (!el) return;
+      const safe = Math.max(0, Math.min(caret, el.value.length));
+      el.setSelectionRange(safe, safe);
+    }, [display]);
+
+    const syncOverlayScroll = () => {
+      const el = innerRef.current;
+      const overlay = overlayRef.current;
+      if (el && overlay) overlay.scrollTop = el.scrollTop;
+    };
+
+    useEffect(syncOverlayScroll, [display]);
 
     const syncQuery = (text: string, caret: number) => {
       const active = findActiveMentionQuery(text, caret);
@@ -55,25 +99,29 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const next = e.target.value;
-      onValueChange(next);
-      syncQuery(next, e.target.selectionStart ?? next.length);
+      const nextDisplay = e.target.value;
+      const caret = e.target.selectionStart ?? nextDisplay.length;
+      const { raw: nextRaw, rawCaret } = applyDisplayEdit(value, display, nextDisplay);
+      onValueChange(nextRaw);
+
+      const nextSegments = toDisplayText(nextRaw);
+      pendingCaret.current = mapRawIndexToDisplay(nextSegments.segments, rawCaret);
+      syncQuery(nextSegments.display, pendingCaret.current ?? caret);
     };
 
     const insert = (candidate: MentionCandidate) => {
       if (!range) return;
       const token = buildMentionToken(candidate.full_name || "User", candidate.id);
-      const next = `${value.slice(0, range.start)}${token} ${value.slice(range.end)}`;
-      onValueChange(next);
+      const rawStart = mapDisplayIndexToRaw(segments, range.start, "start");
+      const rawEnd = Math.max(rawStart, mapDisplayIndexToRaw(segments, range.end, "end"));
+      const nextRaw = `${value.slice(0, rawStart)}${token} ${value.slice(rawEnd)}`;
+      onValueChange(nextRaw);
       setQuery(null);
       setRange(null);
-      const caret = range.start + token.length + 1;
-      requestAnimationFrame(() => {
-        const el = innerRef.current;
-        if (!el) return;
-        el.focus();
-        el.setSelectionRange(caret, caret);
-      });
+
+      const nextSegments = toDisplayText(nextRaw);
+      pendingCaret.current = mapRawIndexToDisplay(nextSegments.segments, rawStart + token.length + 1);
+      requestAnimationFrame(() => innerRef.current?.focus());
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -111,12 +159,41 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
 
     return (
       <div className="relative">
+        {/* Highlight layer: mirrors the textarea metrics and paints mention pills. */}
+        <div
+          ref={overlayRef}
+          aria-hidden="true"
+          className={cn(
+            TEXTAREA_BASE,
+            className,
+            "pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words border-transparent bg-transparent text-foreground",
+          )}
+        >
+          {segments.map((s, i) =>
+            s.isMention ? (
+              <span
+                key={`${s.rawStart}-${i}`}
+                className="rounded bg-primary/10 px-0.5 font-medium text-primary"
+              >
+                {s.text}
+              </span>
+            ) : (
+              <span key={`${s.rawStart}-${i}`}>{s.text}</span>
+            ),
+          )}
+          {"\u200b"}
+        </div>
+
         <Textarea
           {...rest}
           ref={setRefs}
-          value={value}
+          value={display}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          onScroll={(e) => {
+            rest.onScroll?.(e);
+            syncOverlayScroll();
+          }}
           onBlur={(e) => {
             rest.onBlur?.(e);
             window.setTimeout(() => setQuery(null), 120);
@@ -126,7 +203,7 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
             const el = e.currentTarget;
             syncQuery(el.value, el.selectionStart ?? el.value.length);
           }}
-          className={className}
+          className={cn(className, "relative bg-transparent text-transparent caret-foreground")}
         />
 
         {open && (
