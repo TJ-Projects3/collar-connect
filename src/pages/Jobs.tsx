@@ -510,7 +510,7 @@ const Jobs = () => {
                         }
                         aria-pressed={trackedByJobId.has(job.id)}
                         onClick={() => toggleSaved(job)}
-                        className="h-8 w-8 shrink-0"
+                        className="hidden h-8 w-8 shrink-0 sm:inline-flex"
                       >
                         <Bookmark
                           className={cn(
@@ -523,17 +523,17 @@ const Jobs = () => {
                       </Button>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
                     {job.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {job.location}
+                      <span className="flex min-w-0 max-w-full items-start gap-1">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                        <span className="break-words">{job.location}</span>
                       </span>
                     )}
-                    {postedLabel && <span>{postedLabel}</span>}
+                    {postedLabel && <span className="whitespace-nowrap">{postedLabel}</span>}
                     {internship && (
                       <span className="flex items-center gap-1 text-success">
-                        <GraduationCap className="h-3.5 w-3.5" />
+                        <GraduationCap className="h-3.5 w-3.5 shrink-0" />
                         Great for students
                       </span>
                     )}
