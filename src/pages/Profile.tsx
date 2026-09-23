@@ -737,6 +737,15 @@ const Profile = () => {
         experience={editingExperience}
       />
 
+      <ConnectionsModal
+        userId={viewedUserId}
+        open={connectionsOpen}
+        onOpenChange={setConnectionsOpen}
+        isOwnProfile={isOwnProfile}
+      />
+
+
+
       {/* Message Dialog */}
       <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
         <DialogContent>
