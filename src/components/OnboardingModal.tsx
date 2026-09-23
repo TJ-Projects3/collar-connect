@@ -186,7 +186,6 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
         className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        hideCloseButton
       >
         <DialogHeader>
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
