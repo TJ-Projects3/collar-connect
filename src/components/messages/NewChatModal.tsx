@@ -37,18 +37,14 @@ export const NewChatModal = ({ open, onOpenChange, onStartDirect, onGroupCreated
   const [groupName, setGroupName] = useState("");
 
   const options = useMemo<Option[]>(() => {
-    const list: Option[] = [];
-    for (const c of connections as Array<Record<string, any>>) {
-      const other = c.requester_id === user?.id ? c.receiver : c.requester;
-      if (other?.id && other.id !== user?.id) {
-        list.push({
-          id: other.id,
-          full_name: other.full_name ?? null,
-          avatar_url: other.avatar_url ?? null,
-          job_title: other.job_title ?? null,
-        });
-      }
-    }
+    const list: Option[] = connections
+      .filter((c) => c.id !== user?.id)
+      .map((c) => ({
+        id: c.id,
+        full_name: c.full_name ?? null,
+        avatar_url: c.avatar_url ?? null,
+        job_title: c.job_title ?? null,
+      }));
     const q = search.trim().toLowerCase();
     return list.filter((o) => !q || (o.full_name ?? "").toLowerCase().includes(q));
   }, [connections, user?.id, search]);

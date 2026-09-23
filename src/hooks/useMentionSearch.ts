@@ -31,11 +31,7 @@ export const useMentionSearch = (term: string | null) => {
   const debouncedTerm = useDebounced(term ?? "", 180);
   const { data: connections = [] } = useMyConnections();
 
-  const connectionIds = new Set<string>();
-  for (const c of connections as any[]) {
-    const otherId = c.requester_id === user?.id ? c.receiver_id : c.requester_id;
-    if (otherId) connectionIds.add(otherId);
-  }
+  const connectionIds = new Set<string>(connections.map((c) => c.id));
   const connectionKey = Array.from(connectionIds).sort().join(",");
 
   return useQuery({
