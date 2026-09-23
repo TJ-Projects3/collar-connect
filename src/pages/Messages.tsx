@@ -124,7 +124,9 @@ const Messages = () => {
                             {c.counterpart_profile?.full_name || "Unknown"}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {c.last_message?.content}
+                            {c.last_message?.content
+                              ? stripMentionMarkup(c.last_message.content)
+                              : ""}
                           </p>
                         </div>
                         <div className="text-xs text-muted-foreground shrink-0">
