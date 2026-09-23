@@ -120,6 +120,29 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
       syncQuery(nextSegments.display, pendingCaret.current ?? caret);
     };
 
+    /** Inserts plain text (e.g. an emoji) at the caret, replacing any selection. */
+    const insertAtCaret = (text: string) => {
+      const el = innerRef.current;
+      const displayStart = el?.selectionStart ?? display.length;
+      const displayEnd = el?.selectionEnd ?? displayStart;
+      const rawStart = mapDisplayIndexToRaw(segments, displayStart, "start");
+      const rawEnd = Math.max(rawStart, mapDisplayIndexToRaw(segments, displayEnd, "end"));
+      const nextRaw = `${value.slice(0, rawStart)}${text}${value.slice(rawEnd)}`;
+      onValueChange(nextRaw);
+
+      const nextSegments = toDisplayText(nextRaw);
+      pendingCaret.current = mapRawIndexToDisplay(nextSegments.segments, rawStart + text.length);
+      requestAnimationFrame(() => innerRef.current?.focus());
+    };
+
+    useEffect(() => {
+      if (!insertRef) return;
+      insertRef.current = insertAtCaret;
+      return () => {
+        insertRef.current = null;
+      };
+    });
+
     const insert = (candidate: MentionCandidate) => {
       if (!range) return;
       const token = buildMentionToken(candidate.full_name || "User", candidate.id);
