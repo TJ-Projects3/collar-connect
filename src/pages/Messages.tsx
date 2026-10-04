@@ -15,7 +15,7 @@ import {
 import { formatDistanceToNow, format, isToday } from "date-fns";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Send, ArrowLeft, Users, Plus, MessageCircle } from "lucide-react";
+import { Send, ArrowLeft, Users, Plus, MessageCircle, Mic, Square, X, Smile } from "lucide-react";
 import { LinkifyText } from "@/components/LinkifyText";
 import { useRecruiterGate } from "@/hooks/useRecruiterGate";
 import { RecruiterStatusNotice } from "@/components/RecruiterStatusNotice";
@@ -23,6 +23,9 @@ import { MentionTextarea } from "@/components/mentions/MentionTextarea";
 import { stripMentionMarkup } from "@/lib/mentions";
 import { NewChatModal } from "@/components/messages/NewChatModal";
 import { GroupMembersSheet } from "@/components/messages/GroupMembersSheet";
+import { EmojiReactionPicker } from "@/components/chat/EmojiReactionPicker";
+import { AudioMessagePlayer } from "@/components/chat/AudioMessagePlayer";
+import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 
 const formatMessageTime = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -39,12 +42,17 @@ const Messages = () => {
   const { user } = useAuth();
   const { data: conversations = [] } = useConversations();
   const sendMessage = useSendMessage();
-  const gate = useRecruiterGate();
-  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-  const [pendingRecipientId, setPendingRecipientId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeConversationId = searchParams.get("id");
+
   const [messageText, setMessageText] = useState("");
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+  const [isGroupSheetOpen, setIsGroupSheetOpen] = useState(false);
+
+  const { isRecording, audioBlob, recordingTime, startRecording, stopRecording, resetRecording } = useVoiceRecorder();
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
   const chatColumnRef = useRef<HTMLElement>(null);
@@ -66,50 +74,12 @@ const Messages = () => {
     });
   };
 
-  const activeConversation = useMemo<ConversationSummary | null>(
-    () => conversations.find((c) => c.id === activeConversationId) ?? null,
+  const activeConversation = useMemo(
+    () => conversations.find((c) => c.id === activeConversationId),
     [conversations, activeConversationId]
   );
 
-  const { data: messages = [], isLoading: messagesLoading } =
-    useConversationMessages(activeConversationId);
-
-  // Profile for a brand-new direct chat that has no conversation yet
-  const { data: pendingProfile } = useQuery({
-    queryKey: ["profile", pendingRecipientId],
-    enabled: !!pendingRecipientId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url")
-        .eq("id", pendingRecipientId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Sync from URL params
-  useEffect(() => {
-    const cid = searchParams.get("conversationId");
-    if (cid) {
-      setActiveConversationId(cid);
-      setPendingRecipientId(null);
-      return;
-    }
-
-    const rid = searchParams.get("recipientId");
-    if (!rid) return;
-
-    const existing = conversations.find((c) => !c.is_group && c.counterpart_id === rid);
-    if (existing) {
-      setActiveConversationId(existing.id);
-      setPendingRecipientId(null);
-    } else {
-      setActiveConversationId(null);
-      setPendingRecipientId(rid);
-    }
-  }, [searchParams, conversations]);
+  const { data: messages = [] } = useConversationMessages(activeConversationId);
 
   const threadOpen = !!activeConversationId || !!pendingRecipientId;
 
@@ -176,33 +146,25 @@ const Messages = () => {
     };
   }, [composerFocused, threadOpen]);
 
-  const openConversation = (conversationId: string) => {
-    setActiveConversationId(conversationId);
-    setPendingRecipientId(null);
-    setSearchParams((prev) => {
-      const params = new URLSearchParams(prev);
-      params.delete("recipientId");
-      params.set("conversationId", conversationId);
-      return params;
+  const handleSend = async () => {
+    if (!messageText.trim() || !activeConversationId) return;
+    const textToSend = messageText;
+    setMessageText("");
+    await sendMessage.mutateAsync({
+      conversationId: activeConversationId,
+      content: textToSend,
     });
   };
 
-  const openDirect = (recipientId: string) => {
-    const existing = conversations.find((c) => !c.is_group && c.counterpart_id === recipientId);
-    if (existing) {
-      openConversation(existing.id);
-      return;
-    }
-    setActiveConversationId(null);
-    setPendingRecipientId(recipientId);
-    setSearchParams((prev) => {
-      const params = new URLSearchParams(prev);
-      params.delete("conversationId");
-      params.set("recipientId", recipientId);
-      return params;
-    });
-  };
+  const handleSendVoiceNote = async () => {
+    if (!audioBlob || !activeConversationId || !user) return;
+    try {
+      const fileName = `${user.id}/${Date.now()}.webm`;
+      const { data, error } = await supabase.storage
+        .from("voice_notes")
+        .upload(fileName, audioBlob);
 
+      if (error) throw error;
   const closeThread = () => {
     setComposerFocused(false);
     setActiveConversationId(null);
@@ -215,29 +177,35 @@ const Messages = () => {
     });
   };
 
-  const handleSend = async () => {
-    const content = messageText.trim();
-    if (!content) return;
+      const { data: { publicUrl } } = supabase.storage
+        .from("voice_notes")
+        .getPublicUrl(fileName);
 
-    if (activeConversation?.is_group) {
       await sendMessage.mutateAsync({
-        conversationId: activeConversation.id,
-        content,
-        isGroup: true,
+        conversationId: activeConversationId,
+        content: "Voice note",
+        mediaUrl: publicUrl,
+        mediaType: "audio",
       });
-      setMessageText("");
-      return;
+      resetRecording();
+    } catch (err) {
+      console.error("Error sending voice note:", err);
     }
-
-    const recipientId = activeConversation?.counterpart_id ?? pendingRecipientId;
-    if (!recipientId) return;
-
-    const result = await sendMessage.mutateAsync({ recipientId, content });
-    setMessageText("");
-    const conversationId = result?.[0]?.conversation_id;
-    if (conversationId && !activeConversationId) openConversation(conversationId);
   };
 
+  return (
+    <div className="container max-w-6xl py-6 h-[calc(100vh-4rem)]">
+      <RecruiterStatusNotice />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full border rounded-lg overflow-hidden bg-background">
+        <div className="md:col-span-1 border-r flex flex-col h-full">
+          <div className="p-4 border-b flex items-center justify-between">
+            <h1 className="text-xl font-bold flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              Messages
+            </h1>
+            <Button size="icon" variant="ghost" onClick={() => setIsNewChatOpen(true)}>
+              <Plus className="h-5 w-5" />
+            </Button>
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -270,18 +238,38 @@ const Messages = () => {
               rows={1}
             />
           </div>
-          <Button
-            onClick={() => void handleSend()}
-            disabled={sendMessage.isPending || !messageText.trim()}
-            size="icon"
-            className="shrink-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+          <ScrollArea className="flex-1">
+            <div className="divide-y">
+              {conversations.map((conv) => (
+                <button
+                  key={conv.id}
+                  onClick={() => setSearchParams({ id: conv.id })}
+                  className={`w-full p-4 text-left hover:bg-muted/50 transition-colors flex items-center gap-3 ${
+                    activeConversationId === conv.id ? "bg-muted" : ""
+                  }`}
+                >
+                  <Avatar>
+                    <AvatarImage src={conv.avatar_url || ""} />
+                    <AvatarFallback>{getInitials(conversationDisplayName(conv, user?.id))}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium truncate">{conversationDisplayName(conv, user?.id)}</p>
+                      {conv.last_message_at && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: true })}
+                        </span>
+                      )}
+                    </div>
+                    {conv.last_message && (
+                      <p className="text-sm text-muted-foreground truncate">{conv.last_message}</p>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
-      )}
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -366,61 +354,81 @@ const Messages = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="-ml-2 h-9 w-9 lg:hidden"
-                    onClick={closeThread}
-                    aria-label="Back to conversations"
+                    className="md:hidden"
+                    onClick={() => setSearchParams({})}
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
+                  <Avatar>
+                    <AvatarImage src={activeConversation.avatar_url || ""} />
+                    <AvatarFallback>{getInitials(conversationDisplayName(activeConversation, user?.id))}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h2 className="font-semibold">{conversationDisplayName(activeConversation, user?.id)}</h2>
+                    {activeConversation.is_group && (
+                      <p className="text-xs text-muted-foreground">Group Chat</p>
+                    )}
+                  </div>
+                </div>
+                {activeConversation.is_group && (
+                  <Button variant="ghost" size="icon" onClick={() => setIsGroupSheetOpen(true)}>
+                    <Users className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
 
-                  {activeConversation?.is_group ? (
-                    <>
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={activeConversation.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          <Users className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold">
-                          {activeConversation.title || "Group chat"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {activeConversation.participants.length} members
-                        </p>
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-4">
+                  {messages.map((msg) => {
+                    const isSender = msg.sender_id === user?.id;
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex flex-col ${isSender ? "items-end" : "items-start"}`}
+                      >
+                        <div
+                          className={`max-w-[70%] rounded-lg p-3 relative group ${
+                            isSender
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted"
+                          }`}
+                        >
+                          {msg.media_type === "audio" || msg.media_type === "voice" ? (
+                            <AudioMessagePlayer audioUrl={msg.media_url || ""} />
+                          ) : (
+                            <p className="text-sm whitespace-pre-wrap">
+                              <LinkifyText text={stripMentionMarkup(msg.content)} />
+                            </p>
+                          )}
+                          <span className="text-[10px] opacity-70 mt-1 block text-right">
+                            {formatMessageTime(msg.created_at)}
+                          </span>
+                          <div className="mt-1 flex items-center gap-1">
+                            <EmojiReactionPicker />
+                          </div>
+                        </div>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)}>
-                        Members
-                      </Button>
-                    </>
-                  ) : (
-                    (() => {
-                      const otherId =
-                        activeConversation?.counterpart_id ?? pendingRecipientId ?? "";
-                      const profile =
-                        activeConversation?.counterpart_profile ?? pendingProfile ?? null;
-                      return (
-                        <>
-                          <Link to={`/profile?userId=${otherId}`}>
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src={profile?.avatar_url || undefined} />
-                              <AvatarFallback className="bg-primary text-sm text-primary-foreground">
-                                {getInitials(profile?.full_name)}
-                              </AvatarFallback>
-                            </Avatar>
-                          </Link>
-                          <Link
-                            to={`/profile?userId=${otherId}`}
-                            className="truncate font-semibold hover:underline"
-                          >
-                            {profile?.full_name || "Loading..."}
-                          </Link>
-                        </>
-                      );
-                    })()
-                  )}
-                </CardHeader>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
 
+              <div className="p-4 border-t">
+                {isRecording ? (
+                  <div className="flex items-center gap-3 bg-muted p-2 rounded-md">
+                    <span className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
+                    <span className="text-sm font-medium">Recording: {recordingTime}s</span>
+                    <div className="ml-auto flex items-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={resetRecording}>
+                        <X className="h-4 w-4 mr-1" /> Cancel
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={stopRecording}>
+                        <Square className="h-4 w-4 mr-1" /> Stop
+                      </Button>
+                      <Button size="sm" onClick={handleSendVoiceNote}>
+                        <Send className="h-4 w-4 mr-1" /> Send Voice
+                      </Button>
                 <ScrollArea ref={messageListRef} className="min-h-0 flex-1 p-4">
                   {messagesLoading && activeConversationId ? (
                     <p className="py-8 text-center text-muted-foreground">Loading messages...</p>
@@ -475,46 +483,45 @@ const Messages = () => {
                         );
                       })}
                     </div>
-                  )}
-                </ScrollArea>
-
-                {composer}
-              </>
-            ) : (
-              <div className="flex flex-1 items-center justify-center p-6">
-                <div className="flex flex-col items-center gap-4 text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                    <MessageCircle className="h-7 w-7 text-primary" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-lg font-medium">No conversations open</p>
-                    <p className="text-sm text-muted-foreground">
-                      Message a connection one-on-one, or start a group chat.
-                    </p>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <MentionTextarea
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      placeholder="Type a message..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      className="min-h-[40px] max-h-[120px]"
+                    />
+                    <Button variant="outline" size="icon" onClick={startRecording} title="Record Voice Note">
+                      <Mic className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={handleSend} size="icon">
+                      <Send className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button className="gap-2" onClick={() => setNewChatOpen(true)}>
-                    <Plus className="h-4 w-4" /> Start a Chat
-                  </Button>
-                </div>
+                )}
               </div>
-            )}
-          </Card>
-        </main>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              Select a conversation to start messaging
+            </div>
+          )}
+        </div>
       </div>
 
-      <NewChatModal
-        open={newChatOpen}
-        onOpenChange={setNewChatOpen}
-        onStartDirect={openDirect}
-        onGroupCreated={openConversation}
-      />
-
-      {activeConversation?.is_group && (
+      <NewChatModal open={isNewChatOpen} onOpenChange={setIsNewChatOpen} />
+      {activeConversation && (
         <GroupMembersSheet
-          open={membersOpen}
-          onOpenChange={setMembersOpen}
-          conversation={activeConversation}
-          onLeft={closeThread}
+          open={isGroupSheetOpen}
+          onOpenChange={setIsGroupSheetOpen}
+          conversationId={activeConversation.id}
         />
       )}
     </div>
